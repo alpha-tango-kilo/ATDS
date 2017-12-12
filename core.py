@@ -43,14 +43,27 @@ class Player():
         """
         return "Player is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.x, y = self.y, w = self.w, h = self.h)
 
-
 def player(colour, x, y, w, h):
     pygame.draw.rect(gameDisplay, colour, [x, y, w, h])
+
+def drawCrosshair(mouse, player, colour=black):
+    # top hair
+    pygame.draw.rect(gameDisplay, colour, [mouse[0] - 1, mouse[1] - 10, 2, 6])
+    # bottom hair
+    pygame.draw.rect(gameDisplay, colour, [mouse[0] - 1, mouse[1] + 4, 2, 6])
+    # left hair
+    pygame.draw.rect(gameDisplay, colour, [mouse[0] - 10, mouse[1] - 1, 6, 2])
+    # right hair
+    pygame.draw.rect(gameDisplay, colour, [mouse[0] + 4, mouse[1] - 1, 6, 2])
+    pygame.draw.lines(gameDisplay, colour, mouse, player, 2)
 
 def instance():
     running = True
     playerx = 10
     playery = 10
+
+    # hide mouse
+    pygame.mouse.set_visible(False)
 
     while running:
         for event in pygame.event.get():
@@ -88,9 +101,13 @@ def instance():
             print("right")
         ###
 
+        mousePos = pygame.mouse.get_pos()
+        #print(mousePos)
+
         # Draw things to screen #
         gameDisplay.fill(white)
         player(red, playerx, playery, 15, 15)
+        drawCrosshair(mousePos, (playerx, playery), black)
 
         ###
         pygame.display.update()
