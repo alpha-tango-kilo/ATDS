@@ -44,21 +44,47 @@ class Player():
         """
         return "Player is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.x, y = self.y, w = self.w, h = self.h)
 
-    def draw(self):
+    def draw(self, mouse):
+        # Crosshair #
+        # line to player
+        pygame.draw.aaline(gameDisplay, black, mouse, (self.x + (self.w / 2), self.y + (self.h / 2)), 2)
+        # top hair
+        pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] - 10, 2, 6])
+        # bottom hair
+        pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] + 4, 2, 6])
+        # left hair
+        pygame.draw.rect(gameDisplay, black, [mouse[0] - 10, mouse[1] - 1, 6, 2])
+        # right hair
+        pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
+        ###
+        # actual character
         pygame.draw.rect(gameDisplay, self.colour, [self.x, self.y, self.w, self.h])
 
-def drawCrosshair(mouse, player, colour=black):
-    # top hair
-    pygame.draw.rect(gameDisplay, colour, [mouse[0] - 1, mouse[1] - 10, 2, 6])
-    # bottom hair
-    pygame.draw.rect(gameDisplay, colour, [mouse[0] - 1, mouse[1] + 4, 2, 6])
-    # left hair
-    pygame.draw.rect(gameDisplay, colour, [mouse[0] - 10, mouse[1] - 1, 6, 2])
-    # right hair
-    pygame.draw.rect(gameDisplay, colour, [mouse[0] + 4, mouse[1] - 1, 6, 2])
+    def move(self, direction):
+        if direction == 'u':
+            self.y -= 1
+        if direction == 'd':
+            self.y += 1
+        if direction == 'l':
+            self.x -= 1
+        if direction == 'r':
+            self.x += 1
 
-def drawCrosshairLine(mouse, player, colour=black):
-    pygame.draw.aaline(gameDisplay, colour, mouse, player, 2)
+class Wall():
+    """
+    Those things we love to hit our heads against
+    """
+    def __init__(self, x, y, w, h):
+        """
+        Define size and destructability of the wall
+        """
+        pass
+
+    def __str__(self):
+        pass
+
+    def __repr__(self):
+        pass
 
 def instance():
     running = True
@@ -70,10 +96,7 @@ def instance():
 
     while running:
         for event in pygame.event.get():
-            #print(event)
-
-            # Any actions should be put here #
-
+            # Any pygame handled events should be put here #
             # Quit the game
             if event.type == pygame.QUIT:
                 running = False
@@ -88,33 +111,23 @@ def instance():
 
         # W
         if keys[pygame.K_w]:
-            player.y -= 1
-            print("up")
+            player.move('u')
         # A
         if keys[pygame.K_a]:
-            player.x -= 1
-            print("left")
+            player.move('l')
         # S
         if keys[pygame.K_s]:
-            player.y += 1
-            print("down")
+            player.move('d')
         # D
         if keys[pygame.K_d]:
-            player.x += 1
-            print("right")
+            player.move('r')
         ###
-
-        mousePos = pygame.mouse.get_pos()
-        #print(mousePos)
 
         # Draw things to screen #
         gameDisplay.fill(white)
-        #player(red, player.x, player.y, 15, 15)
-        drawCrosshairLine(mousePos, (player.x + (player.w / 2), player.y + (player.h / 2)), black)
-        player.draw()
-        drawCrosshair(mousePos, (player.x + (player.w / 2), player.y + (player.h / 2)), black)
-
+        player.draw(pygame.mouse.get_pos())
         ###
+
         pygame.display.update()
         clock.tick(120)
 
