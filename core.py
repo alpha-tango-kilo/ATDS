@@ -56,7 +56,9 @@ def drawCrosshair(mouse, player, colour=black):
     pygame.draw.rect(gameDisplay, colour, [mouse[0] - 10, mouse[1] - 1, 6, 2])
     # right hair
     pygame.draw.rect(gameDisplay, colour, [mouse[0] + 4, mouse[1] - 1, 6, 2])
-    #pygame.draw.lines(gameDisplay, colour, mouse, player, 2)
+
+def drawCrosshairLine(mouse, player, colour=black):
+    pygame.draw.aaline(gameDisplay, colour, mouse, player, 2)
 
 def instance():
     running = True
@@ -108,8 +110,9 @@ def instance():
         # Draw things to screen #
         gameDisplay.fill(white)
         #player(red, player.x, player.y, 15, 15)
+        drawCrosshairLine(mousePos, (player.x + (player.w / 2), player.y + (player.h / 2)), black)
         player.draw()
-        drawCrosshair(mousePos, (player.x, player.y), black)
+        drawCrosshair(mousePos, (player.x + (player.w / 2), player.y + (player.h / 2)), black)
 
         ###
         pygame.display.update()
