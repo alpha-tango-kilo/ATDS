@@ -6,12 +6,13 @@ displayWidth = 1280
 displayHeight = 720
 
 gameDisplay = pygame.display.set_mode((displayWidth, displayHeight))
-pygame.display.set_caption("A game")
+pygame.display.set_caption("ATDS")
 
 clock = pygame.time.Clock()
 
 # Colours #
 black = (0,0,0)
+grey = (105,105,105)
 white = (255,255,255)
 red = (255,0,0)
 ###
@@ -70,26 +71,45 @@ class Player():
         if direction == 'r':
             self.x += 1
 
-class Wall():
+class Obstacle():
     """
     Those things we love to hit our heads against
     """
-    def __init__(self, x, y, w, h):
+    def __init__(self, vertices, destructable = False):
         """
-        Define size and destructability of the wall
+        Define the shape and destructability of the wall
         """
-        pass
+        self.destructable = destructable
+        self.vertices = vertices
+
+        # Obstacle will be grey if you can break it
+        if self.destructable:
+            self.colour = black
+        else:
+            self.colour = grey
 
     def __str__(self):
-        pass
+        """
+        Providing an str means that if you just type an object is called, this is what is
+        returned
+        """
+        return "This obstacle has {vnum} vertices, of which the co-ordinates are {vs}".format(vnum = len(self.vertices), vs = self.vertices)
 
     def __repr__(self):
-        pass
+        """
+        Providing an str means that if you just type an object is called, this is what is
+        returned
+        """
+        return "This obstacle has {vnum} vertices, of which the co-ordinates are {vs}".format(vnum = len(self.vertices), vs = self.vertices)
+
+    def draw(self):
+        pygame.draw.polygon(gameDisplay, self.colour, self.vertices)
 
 def instance():
     running = True
 
     player = Player()
+    wallTest = Obstacle(((100,100), (100,200), (150,200), (220,200), (140, 50)), False)
 
     # hide mouse
     pygame.mouse.set_visible(False)
@@ -125,6 +145,7 @@ def instance():
 
         # Draw things to screen #
         gameDisplay.fill(white)
+        wallTest.draw()
         player.draw(pygame.mouse.get_pos())
         ###
 
