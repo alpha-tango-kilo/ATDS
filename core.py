@@ -17,7 +17,7 @@ white = (255,255,255)
 red = (255,0,0)
 ###
 
-class Player():
+class Player(pygame.sprite.Sprite):
     """
     This is the player's actor
     """
@@ -25,12 +25,19 @@ class Player():
         """
         Parameters provided allow for a better customisation of the player "model"
         """
+        super().__init__()
+
         self.x = x
         self.y = y
         self.w = w
         self.h = h
         self.colour = colour
         self.speed = 1
+
+        self.image = pygame.Surface([self.w, self.h])
+        self.image.fill(self.colour)
+        #self.image.set_colorkey(white)
+        self.rect = self.image.get_rect()
 
     def __str__(self):
         """
@@ -46,10 +53,9 @@ class Player():
         """
         return "Player is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.x, y = self.y, w = self.w, h = self.h)
 
-    def draw(self, mouse):
-        # Crosshair #
+    def drawCrosshair(self, mouse):
         # line to player
-        pygame.draw.aaline(gameDisplay, black, mouse, (self.x + (self.w / 2), self.y + (self.h / 2)), 2)
+        pygame.draw.aaline(gameDisplay, black, mouse, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), 2)
         # top hair
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] - 10, 2, 6])
         # bottom hair
@@ -58,19 +64,16 @@ class Player():
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 10, mouse[1] - 1, 6, 2])
         # right hair
         pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
-        ###
-        # actual character
-        pygame.draw.rect(gameDisplay, self.colour, [self.x, self.y, self.w, self.h])
 
     def move(self, direction):
         if direction == 'u':
-            self.y -= self.speed
+            self.rect.y -= self.speed
         if direction == 'd':
-            self.y += self.speed
+            self.rect.y += self.speed
         if direction == 'l':
-            self.x -= self.speed
+            self.rect.x -= self.speed
         if direction == 'r':
-            self.x += self.speed
+            self.rect.x += self.speed
 
     """
     def shoot(self, mouse):
@@ -103,12 +106,12 @@ class Guard():
         """
 
         # x co-ordinate #
-        if abs(self.x - x) > self.width + self.speed:
+        if abs(self.x - x) > self.w + self.speed:
             if x < self.x:
                 self.x -= self.speed
             elif x > self.x:
                 self.x += self.speed
-        elif abs(self.x - x) <= self.width + self.speed and abs(self.x - x) >= self.width: # fine adjusment
+        elif abs(self.x - x) <= self.w + self.speed and abs(self.x - x) >= self.w: # fine adjusment
             if x < self.x:
                 self.x -= 0.1
             elif x > self.x:
@@ -116,12 +119,12 @@ class Guard():
         ###
 
         # y co-ordinate #
-        if abs(self.y - y) > self.width + self.speed:
+        if abs(self.y - y) > self.w + self.speed:
             if y < self.y:
                 self.y -= self.speed
             elif y > self.y:
                 self.y += self.speed
-        elif abs(self.y - y) <= self.width + self.speed and abs(self.y - y) >= self.width: # fine adjustment
+        elif abs(self.y - y) <= self.w + self.speed and abs(self.y - y) >= self.w: # fine adjustment
             if y < self.y:
                 self.y -= 0.1
             elif y > self.y:
@@ -169,6 +172,9 @@ def instance():
     guard = Guard(500, 500, 15, 15)
     wallTest = Obstacle(((100,100), (100,200), (150,200), (220,200), (140, 50)), False)
 
+    allSpritesList = pygame.sprite.Group()
+    allSpritesList.add(player)
+
     # hide mouse
     pygame.mouse.set_visible(False)
 
@@ -204,12 +210,13 @@ def instance():
         # Draw things to screen #
         gameDisplay.fill(white)
         wallTest.draw()
-        guard.goto(player.x, player.y)
+        guard.goto(player.rect.x, player.rect.y)
         guard.draw()
-        player.draw(pygame.mouse.get_pos())
+        player.drawCrosshair(pygame.mouse.get_pos())
+        allSpritesList.draw(gameDisplay)
         ###
 
-        pygame.display.update()
+        pygame.display.flip()
         clock.tick(120)
 
     pygame.quit()
