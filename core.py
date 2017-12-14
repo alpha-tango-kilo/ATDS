@@ -30,6 +30,7 @@ class Player():
         self.w = w
         self.h = h
         self.colour = colour
+        self.speed = 1
 
     def __str__(self):
         """
@@ -63,13 +64,59 @@ class Player():
 
     def move(self, direction):
         if direction == 'u':
-            self.y -= 1
+            self.y -= self.speed
         if direction == 'd':
-            self.y += 1
+            self.y += self.speed
         if direction == 'l':
-            self.x -= 1
+            self.x -= self.speed
         if direction == 'r':
-            self.x += 1
+            self.x += self.speed
+
+    """
+    def shoot(self, mouse):
+        xDiff = self.x - mouse[0]
+        yDiff = self.y - mouse[1]
+        xStep = xDiff
+        yStep = yDiff
+        while xStep > 5 or yStep > 5: #reduce to small increments to increase accuracy, increases time taken
+            xStep = xStep/2
+            yStep = yStep/2
+    """
+
+class Guard():
+    """
+    These are the bad guys
+    """
+    def __init__(self, x, y, w, h, speed = 1.5):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.speed = speed
+
+    def draw(self):
+        pygame.draw.rect(gameDisplay, black, [self.x, self.y, self.w, self.h])
+
+    def goto(self, x, y):
+        if abs(self.x - x) > 15 or abs(self.y - y) > 15:
+            if abs(self.x - x) > 1 or abs(self.y - y) > 1:
+                if x < self.x:
+                    self.x -= self.speed
+                elif x > self.x:
+                    self.x += self.speed
+                if y < self.y:
+                    self.y -= self.speed
+                elif y > self.y:
+                    self.y += self.speed
+            else: # fine adjusment
+                if x < self.x:
+                    self.x -= 0.1
+                elif x > self.x:
+                    self.x += 0.1
+                if y < self.y:
+                    self.y -= 0.1
+                elif y > self.y:
+                    self.y += 0.1
 
 class Obstacle():
     """
@@ -109,6 +156,7 @@ def instance():
     running = True
 
     player = Player()
+    guard = Guard(500, 500, 15, 15)
     wallTest = Obstacle(((100,100), (100,200), (150,200), (220,200), (140, 50)), False)
 
     # hide mouse
@@ -146,6 +194,8 @@ def instance():
         # Draw things to screen #
         gameDisplay.fill(white)
         wallTest.draw()
+        guard.goto(player.x, player.y)
+        guard.draw()
         player.draw(pygame.mouse.get_pos())
         ###
 
