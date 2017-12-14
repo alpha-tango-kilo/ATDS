@@ -98,25 +98,35 @@ class Guard():
         pygame.draw.rect(gameDisplay, black, [self.x, self.y, self.w, self.h])
 
     def goto(self, x, y):
-        if abs(self.x - x) > 15 or abs(self.y - y) > 15:
-            if abs(self.x - x) > 1 or abs(self.y - y) > 1:
-                if x < self.x:
-                    self.x -= self.speed
-                elif x > self.x:
-                    self.x += self.speed
-                if y < self.y:
-                    self.y -= self.speed
-                elif y > self.y:
-                    self.y += self.speed
-            else: # fine adjusment
-                if x < self.x:
-                    self.x -= 0.1
-                elif x > self.x:
-                    self.x += 0.1
-                if y < self.y:
-                    self.y -= 0.1
-                elif y > self.y:
-                    self.y += 0.1
+        """
+        Stopping in close proximity (as opposed to on top of the target) only works if the 2 rectangles are the same width
+        """
+
+        # x co-ordinate #
+        if abs(self.x - x) > self.width + self.speed:
+            if x < self.x:
+                self.x -= self.speed
+            elif x > self.x:
+                self.x += self.speed
+        elif abs(self.x - x) <= self.width + self.speed and abs(self.x - x) >= self.width: # fine adjusment
+            if x < self.x:
+                self.x -= 0.1
+            elif x > self.x:
+                self.x += 0.1
+        ###
+
+        # y co-ordinate #
+        if abs(self.y - y) > self.width + self.speed:
+            if y < self.y:
+                self.y -= self.speed
+            elif y > self.y:
+                self.y += self.speed
+        elif abs(self.y - y) <= self.width + self.speed and abs(self.y - y) >= self.width: # fine adjustment
+            if y < self.y:
+                self.y -= 0.1
+            elif y > self.y:
+                self.y += 0.1
+        ###
 
 class Obstacle():
     """
