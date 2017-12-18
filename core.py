@@ -5,7 +5,7 @@ pygame.init()
 displayWidth = 1280
 displayHeight = 720
 
-gameDisplay = pygame.display.set_mode((displayWidth, displayHeight))
+gameDisplay = pygame.display.set_mode((displayWidth, displayHeight), pygame.NOFRAME)
 pygame.display.set_caption("ATDS")
 
 clock = pygame.time.Clock()
@@ -90,7 +90,7 @@ class Guard():
     """
     These are the bad guys
     """
-    def __init__(self, x, y, w, h, speed = 1.5):
+    def __init__(self, x, y, w, h, speed = 1.2):
         self.x = x
         self.y = y
         self.w = w
@@ -187,7 +187,10 @@ def instance():
 
             # Key pressed (triggers once, even if held) #
             if event.type == pygame.KEYDOWN:
-                pass
+
+                # close game if escape is pressed
+                if event.key == pygame.K_ESCAPE:
+                    running = False
             ###
 
         # Keys being held #
@@ -216,7 +219,7 @@ def instance():
         allSpritesList.draw(gameDisplay)
         ###
 
-        pygame.display.flip()
+        pygame.display.update()
         clock.tick(120)
 
     pygame.quit()
