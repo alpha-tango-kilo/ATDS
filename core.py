@@ -86,16 +86,27 @@ class Player(pygame.sprite.Sprite):
             yStep = yStep/2
     """
 
-class Guard():
+class Guard(pygame.sprite.Sprite):
     """
     These are the bad guys
     """
-    def __init__(self, x, y, w, h, speed = 1.2):
+    def __init__(self, x, y, w, h, speed = 1.2, colour = black):
+
+        super().__init__()
+
         self.x = x
         self.y = y
         self.w = w
         self.h = h
+        self.colour = colour
         self.speed = speed
+
+        self.image = pygame.Surface([self.w, self.h])
+        self.image.fill(self.colour)
+        self.rect = self.image.get_rect()
+
+        self.rect.x = self.x
+        self.rect.y = self.y
 
     def draw(self):
         pygame.draw.rect(gameDisplay, black, [self.x, self.y, self.w, self.h])
@@ -106,41 +117,46 @@ class Guard():
         """
 
         # x co-ordinate #
-        if abs(self.x - x) > self.w + self.speed:
-            if x < self.x:
-                self.x -= self.speed
-            elif x > self.x:
-                self.x += self.speed
-        elif abs(self.x - x) <= self.w + self.speed and abs(self.x - x) >= self.w: # fine adjusment
-            if x < self.x:
-                self.x -= 0.1
-            elif x > self.x:
-                self.x += 0.1
+        if abs(self.rect.x - x) > self.w + self.speed:
+            if x < self.rect.x:
+                self.rect.x -= self.speed
+            elif x > self.rect.x:
+                self.rect.x += self.speed
+        elif abs(self.rect.x - x) <= self.w + self.speed and abs(self.rect.x - x) >= self.w: # fine adjusment
+            if x < self.rect.x:
+                self.rect.x -= 0.1
+            elif x > self.rect.x:
+                self.rect.x += 0.1
         ###
 
         # y co-ordinate #
-        if abs(self.y - y) > self.w + self.speed:
-            if y < self.y:
-                self.y -= self.speed
-            elif y > self.y:
-                self.y += self.speed
-        elif abs(self.y - y) <= self.w + self.speed and abs(self.y - y) >= self.w: # fine adjustment
-            if y < self.y:
-                self.y -= 0.1
-            elif y > self.y:
-                self.y += 0.1
+        if abs(self.rect.y - y) > self.w + self.speed:
+            if y < self.rect.y:
+                self.rect.y -= self.speed
+            elif y > self.rect.y:
+                self.rect.y += self.speed
+        elif abs(self.rect.y - y) <= self.w + self.speed and abs(self.rect.y - y) >= self.w: # fine adjustment
+            if y < self.rect.y:
+                self.rect.y -= 0.1
+            elif y > self.rect.y:
+                self.rect.y += 0.1
         ###
 
-class Obstacle():
+class Obstacle(pygame.sprite.Sprite):
     """
     Those things we love to hit our heads against
     """
-    def __init__(self, vertices, destructable = False):
+    def __init__(self, x, y, w, h, destructable = False):
         """
         Define the shape and destructability of the wall
         """
+        super().__init__()
+
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
         self.destructable = destructable
-        self.vertices = vertices
 
         # Obstacle will be grey if you can break it
         if self.destructable:
@@ -174,6 +190,7 @@ def instance():
 
     allSpritesList = pygame.sprite.Group()
     allSpritesList.add(player)
+    allSpritesList.add(guard)
 
     # hide mouse
     pygame.mouse.set_visible(False)
@@ -214,7 +231,7 @@ def instance():
         gameDisplay.fill(white)
         wallTest.draw()
         guard.goto(player.rect.x, player.rect.y)
-        guard.draw()
+        #guard.draw()
         player.drawCrosshair(pygame.mouse.get_pos())
         allSpritesList.draw(gameDisplay)
         ###
