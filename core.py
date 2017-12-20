@@ -27,8 +27,6 @@ class Player(pygame.sprite.Sprite):
         """
         super().__init__()
 
-        self.x = x
-        self.y = y
         self.w = w
         self.h = h
         self.colour = colour
@@ -38,6 +36,8 @@ class Player(pygame.sprite.Sprite):
         self.image.fill(self.colour)
         #self.image.set_colorkey(white)
         self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
     def __str__(self):
         """
@@ -94,8 +94,6 @@ class Guard(pygame.sprite.Sprite):
 
         super().__init__()
 
-        self.x = x
-        self.y = y
         self.w = w
         self.h = h
         self.colour = colour
@@ -105,8 +103,8 @@ class Guard(pygame.sprite.Sprite):
         self.image.fill(self.colour)
         self.rect = self.image.get_rect()
 
-        self.rect.x = self.x
-        self.rect.y = self.y
+        self.rect.x = x
+        self.rect.y = y
 
     def draw(self):
         pygame.draw.rect(gameDisplay, black, [self.x, self.y, self.w, self.h])
@@ -152,17 +150,21 @@ class Obstacle(pygame.sprite.Sprite):
         """
         super().__init__()
 
-        self.x = x
-        self.y = y
         self.w = w
         self.h = h
         self.destructable = destructable
 
         # Obstacle will be grey if you can break it
         if self.destructable:
-            self.colour = black
-        else:
             self.colour = grey
+        else:
+            self.colour = black
+
+        self.image = pygame.Surface([self.w, self.h])
+        self.image.fill(self.colour)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
     def __str__(self):
         """
@@ -178,19 +180,17 @@ class Obstacle(pygame.sprite.Sprite):
         """
         return "This obstacle has {vnum} vertices, of which the co-ordinates are {vs}".format(vnum = len(self.vertices), vs = self.vertices)
 
-    def draw(self):
-        pygame.draw.polygon(gameDisplay, self.colour, self.vertices)
-
 def instance():
     running = True
 
     player = Player()
     guard = Guard(500, 500, 15, 15)
-    wallTest = Obstacle(((100,100), (100,200), (150,200), (220,200), (140, 50)), False)
+    wall = Obstacle(200, 200, 300, 150, False)
 
     allSpritesList = pygame.sprite.Group()
     allSpritesList.add(player)
     allSpritesList.add(guard)
+    allSpritesList.add(wall)
 
     # hide mouse
     pygame.mouse.set_visible(False)
@@ -229,7 +229,6 @@ def instance():
 
         # Draw things to screen #
         gameDisplay.fill(white)
-        wallTest.draw()
         guard.goto(player.rect.x, player.rect.y)
         #guard.draw()
         player.drawCrosshair(pygame.mouse.get_pos())
