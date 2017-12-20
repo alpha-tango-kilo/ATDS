@@ -187,13 +187,19 @@ def instance():
     guard = Guard(500, 500, 15, 15)
     wall = Obstacle(200, 200, 300, 150, False)
 
-    allSpritesList = pygame.sprite.Group()
-    allSpritesList.add(player)
-    allSpritesList.add(guard)
-    allSpritesList.add(wall)
+    allSprites = pygame.sprite.Group()
+    environmentSprites = pygame.sprite.Group()
+
+    allSprites.add(player)
+    allSprites.add(guard)
+    allSprites.add(wall)
+
+    environmentSprites.add(wall)
 
     # hide mouse
     pygame.mouse.set_visible(False)
+
+    count = 0
 
     while running:
         for event in pygame.event.get():
@@ -232,8 +238,14 @@ def instance():
         guard.goto(player.rect.x, player.rect.y)
         #guard.draw()
         player.drawCrosshair(pygame.mouse.get_pos())
-        allSpritesList.draw(gameDisplay)
+        allSprites.draw(gameDisplay)
         ###
+
+        collided = pygame.sprite.collide_rect(player, wall)
+
+        if collided == True:
+            print("Touchy touchy " + str(count))
+            count += 1
 
         pygame.display.update()
         clock.tick(120)
