@@ -31,6 +31,7 @@ class Player(pygame.sprite.Sprite):
         self.h = h
         self.colour = colour
         self.speed = 1
+        self.bannedDirs = []
 
         self.image = pygame.Surface([self.w, self.h])
         self.image.fill(self.colour)
@@ -65,15 +66,40 @@ class Player(pygame.sprite.Sprite):
         # right hair
         pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
 
-    def move(self, direction):
-        if direction == 'u':
-            self.rect.y -= self.speed
-        if direction == 'd':
-            self.rect.y += self.speed
-        if direction == 'l':
-            self.rect.x -= self.speed
-        if direction == 'r':
-            self.rect.x += self.speed
+    def move(self, direction, oObject = None):
+
+        if direction not in self.bannedDirs:
+            if direction == 'u':
+                self.rect.y -= self.speed
+                if "d" in self.bannedDirs:
+                    self.bannedDirs.remove("d")
+            elif direction == 'd':
+                self.rect.y += self.speed
+                if "u" in self.bannedDirs:
+                    self.bannedDirs.remove("u")
+            elif direction == 'l':
+                self.rect.x -= self.speed
+                if "r" in self.bannedDirs:
+                    self.bannedDirs.remove("r")
+            elif direction == 'r':
+                self.rect.x += self.speed
+                if "l" in self.bannedDirs:
+                    self.bannedDirs.remove("l")
+
+        if oObject:
+            tPlayer = self
+            tPlayer.move(direction)
+            """if "d" in self.bannedDirs:
+                tPlayer.move("u")
+            elif "u" in self.bannedDirs:
+                tPlayer.move("d")
+            if "r" in self.bannedDirs:
+                tPlayer.move("l")
+            elif "l" in self.bannedDirs:
+                tPlayer.move("r")"""
+            if pygame.sprite.collide_rect(tPlayer, oObject) and direction not in self.bannedDirs:
+                self.bannedDirs.append(direction)
+        print(self.bannedDirs)
 
     """
     def shoot(self, mouse):
@@ -166,19 +192,12 @@ class Obstacle(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
-    def __str__(self):
-        """
-        Providing an str means that if you just type an object is called, this is what is
-        returned
-        """
-        return "This obstacle has {vnum} vertices, of which the co-ordinates are {vs}".format(vnum = len(self.vertices), vs = self.vertices)
-
     def __repr__(self):
         """
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return "This obstacle has {vnum} vertices, of which the co-ordinates are {vs}".format(vnum = len(self.vertices), vs = self.vertices)
+        return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
 
 def instance():
     running = True
@@ -188,18 +207,18 @@ def instance():
     wall = Obstacle(200, 200, 300, 150, False)
 
     allSprites = pygame.sprite.Group()
-    environmentSprites = pygame.sprite.Group()
-
     allSprites.add(player)
     allSprites.add(guard)
     allSprites.add(wall)
 
+    environmentSprites = pygame.sprite.Group()
     environmentSprites.add(wall)
+
+    guards = pygame.sprite.Group()
+    guards.add(guard)
 
     # hide mouse
     pygame.mouse.set_visible(False)
-
-    count = 0
 
     while running:
         for event in pygame.event.get():
@@ -214,6 +233,7 @@ def instance():
                 # close game if escape is pressed
                 if event.key == pygame.K_ESCAPE:
                     running = False
+
             ###
 
         # Keys being held #
@@ -221,31 +241,30 @@ def instance():
 
         # W
         if keys[pygame.K_w]:
-            player.move('u')
+            player.move('u', wall)
         # A
         if keys[pygame.K_a]:
-            player.move('l')
+            player.move('l', wall)
         # S
         if keys[pygame.K_s]:
-            player.move('d')
+            player.move('d', wall)
         # D
         if keys[pygame.K_d]:
-            player.move('r')
+            player.move('r', wall)
         ###
 
         # Draw things to screen #
         gameDisplay.fill(white)
         guard.goto(player.rect.x, player.rect.y)
-        #guard.draw()
         player.drawCrosshair(pygame.mouse.get_pos())
+        #player.collisionDetection(wall)
         allSprites.draw(gameDisplay)
         ###
 
-        collided = pygame.sprite.collide_rect(player, wall)
-
-        if collided == True:
-            print("Touchy touchy " + str(count))
-            count += 1
+        """
+        collided = pygame.sprite.spritecollide(player, environmentSprites, False) # returns array of repr of objects collided with
+        guardHit = pygame.sprite.collide_rect(player, guard) # returns boolean
+        """
 
         pygame.display.update()
         clock.tick(120)
