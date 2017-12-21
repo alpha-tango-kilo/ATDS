@@ -71,35 +71,23 @@ class Player(pygame.sprite.Sprite):
         if direction not in self.bannedDirs:
             if direction == 'u':
                 self.rect.y -= self.speed
-                if "d" in self.bannedDirs:
-                    self.bannedDirs.remove("d")
             elif direction == 'd':
                 self.rect.y += self.speed
-                if "u" in self.bannedDirs:
-                    self.bannedDirs.remove("u")
             elif direction == 'l':
                 self.rect.x -= self.speed
-                if "r" in self.bannedDirs:
-                    self.bannedDirs.remove("r")
             elif direction == 'r':
                 self.rect.x += self.speed
-                if "l" in self.bannedDirs:
-                    self.bannedDirs.remove("l")
 
-        if oObject and direction not in self.bannedDirs:
+        if oObject:
             tPlayer = Player(self.rect.x, self.rect.y, self.w, self.h)
-            tPlayer.move(direction)
-            if "d" in self.bannedDirs:
-                tPlayer.move("u")
-            elif "u" in self.bannedDirs:
-                tPlayer.move("d")
-            if "r" in self.bannedDirs:
-                tPlayer.move("l")
-            elif "l" in self.bannedDirs:
-                tPlayer.move("r")
-            if pygame.sprite.collide_rect(tPlayer, oObject) and direction not in self.bannedDirs:
-                self.bannedDirs.append(direction)
-        print(self.bannedDirs)
+            for test in ["u", "d", "l", "r"]:
+                tPlayer.rect.x = self.rect.x
+                tPlayer.rect.y = self.rect.y
+                tPlayer.move(test)
+                if pygame.sprite.collide_rect(tPlayer, oObject) and test not in self.bannedDirs:
+                    self.bannedDirs.append(test)
+                elif not pygame.sprite.collide_rect(tPlayer, oObject) and test in self.bannedDirs:
+                    self.bannedDirs.remove(test)
 
     """
     def shoot(self, mouse):
