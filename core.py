@@ -31,7 +31,7 @@ class Player(pygame.sprite.Sprite):
         self.h = h
         self.colour = colour
         self.speed = 1
-        self.bannedDirs = []
+        self.bannedDirs = [False, False, False, False]
 
         self.image = pygame.Surface([self.w, self.h])
         self.image.fill(self.colour)
@@ -66,28 +66,31 @@ class Player(pygame.sprite.Sprite):
         # right hair
         pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
 
-    def move(self, direction, oObject = None):
+    def move(self, direction, sprGroup = None):
 
-        if direction not in self.bannedDirs:
-            if direction == 'u':
-                self.rect.y -= self.speed
-            elif direction == 'd':
-                self.rect.y += self.speed
-            elif direction == 'l':
-                self.rect.x -= self.speed
-            elif direction == 'r':
-                self.rect.x += self.speed
+        if direction == 'u' and not self.bannedDirs[0]:
+            self.rect.y -= self.speed
+        elif direction == 'd' and not self.bannedDirs[1]:
+            self.rect.y += self.speed
+        elif direction == 'l' and not self.bannedDirs[2]:
+            self.rect.x -= self.speed
+        elif direction == 'r' and not self.bannedDirs[3]:
+            self.rect.x += self.speed
 
-        if oObject:
-            tPlayer = Player(self.rect.x, self.rect.y, self.w, self.h)
-            for test in ["u", "d", "l", "r"]:
-                tPlayer.rect.x = self.rect.x
-                tPlayer.rect.y = self.rect.y
-                tPlayer.move(test)
-                if pygame.sprite.collide_rect(tPlayer, oObject) and test not in self.bannedDirs:
-                    self.bannedDirs.append(test)
-                elif not pygame.sprite.collide_rect(tPlayer, oObject) and test in self.bannedDirs:
-                    self.bannedDirs.remove(test)
+        if sprGroup:
+            keep = [False, False, False, False]
+            directions = ["u", "d", "l", "r"]
+            for spr in sprGroup:
+                tPlayer = Player(self.rect.x, self.rect.y, self.w, self.h)
+                for test in range(len(directions)):
+                    tPlayer.rect.x = self.rect.x
+                    tPlayer.rect.y = self.rect.y
+                    tPlayer.move(directions[test])
+                    if pygame.sprite.collide_rect(tPlayer, spr):
+                        self.bannedDirs[test] = True
+                        keep[test] = True
+                    elif not pygame.sprite.collide_rect(tPlayer, spr) and not keep[test]:
+                        self.bannedDirs[test] = False
 
     """
     def shoot(self, mouse):
@@ -193,14 +196,17 @@ def instance():
     player = Player()
     guard = Guard(500, 500, 15, 15)
     wall = Obstacle(200, 200, 300, 150, False)
+    wall2 = Obstacle(700, 600, 200, 20, True)
 
     allSprites = pygame.sprite.Group()
     allSprites.add(player)
     allSprites.add(guard)
     allSprites.add(wall)
+    allSprites.add(wall2)
 
     environmentSprites = pygame.sprite.Group()
     environmentSprites.add(wall)
+    environmentSprites.add(wall2)
 
     guards = pygame.sprite.Group()
     guards.add(guard)
@@ -229,16 +235,16 @@ def instance():
 
         # W
         if keys[pygame.K_w]:
-            player.move('u', wall)
+            player.move('u', environmentSprites)
         # A
         if keys[pygame.K_a]:
-            player.move('l', wall)
+            player.move('l', environmentSprites)
         # S
         if keys[pygame.K_s]:
-            player.move('d', wall)
+            player.move('d', environmentSprites)
         # D
         if keys[pygame.K_d]:
-            player.move('r', wall)
+            player.move('r', environmentSprites)
         ###
 
         # Draw things to screen #
