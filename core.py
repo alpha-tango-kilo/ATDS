@@ -86,17 +86,17 @@ class Player(pygame.sprite.Sprite):
                 if "l" in self.bannedDirs:
                     self.bannedDirs.remove("l")
 
-        if oObject:
-            tPlayer = self
+        if oObject and direction not in self.bannedDirs:
+            tPlayer = Player(self.rect.x, self.rect.y, self.w, self.h)
             tPlayer.move(direction)
-            """if "d" in self.bannedDirs:
+            if "d" in self.bannedDirs:
                 tPlayer.move("u")
             elif "u" in self.bannedDirs:
                 tPlayer.move("d")
             if "r" in self.bannedDirs:
                 tPlayer.move("l")
             elif "l" in self.bannedDirs:
-                tPlayer.move("r")"""
+                tPlayer.move("r")
             if pygame.sprite.collide_rect(tPlayer, oObject) and direction not in self.bannedDirs:
                 self.bannedDirs.append(direction)
         print(self.bannedDirs)
