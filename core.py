@@ -193,6 +193,12 @@ class Obstacle(pygame.sprite.Sprite):
 def instance():
     running = True
 
+    # Prevent player from leaving the screen
+    gameBoundTop = Obstacle(0, -10, displayWidth, 10, False)
+    gameBoundBottom = Obstacle(0, displayHeight, displayWidth, 10, False)
+    gameBoundLeft = Obstacle(-10, 0, 10, displayHeight, False)
+    gameBoundRight = Obstacle(displayWidth, 0, 10, displayHeight, False)
+
     player = Player()
     guard = Guard(500, 500, 15, 15)
     wall = Obstacle(200, 200, 300, 150, False)
@@ -203,10 +209,18 @@ def instance():
     allSprites.add(guard)
     allSprites.add(wall)
     allSprites.add(wall2)
+    allSprites.add(gameBoundTop)
+    allSprites.add(gameBoundBottom)
+    allSprites.add(gameBoundLeft)
+    allSprites.add(gameBoundRight)
 
     environmentSprites = pygame.sprite.Group()
     environmentSprites.add(wall)
     environmentSprites.add(wall2)
+    environmentSprites.add(gameBoundTop)
+    environmentSprites.add(gameBoundBottom)
+    environmentSprites.add(gameBoundLeft)
+    environmentSprites.add(gameBoundRight)
 
     guards = pygame.sprite.Group()
     guards.add(guard)
@@ -251,7 +265,6 @@ def instance():
         gameDisplay.fill(white)
         guard.goto(player.rect.x, player.rect.y)
         player.drawCrosshair(pygame.mouse.get_pos())
-        #player.collisionDetection(wall)
         allSprites.draw(gameDisplay)
         ###
 
