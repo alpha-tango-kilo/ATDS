@@ -92,16 +92,9 @@ class Player(pygame.sprite.Sprite):
                     elif not pygame.sprite.collide_rect(tPlayer, spr) and not keep[test]:
                         self.bannedDirs[test] = False
 
-    """
-    def shoot(self, mouse):
-        xDiff = self.x - mouse[0]
-        yDiff = self.y - mouse[1]
-        xStep = xDiff
-        yStep = yDiff
-        while xStep > 5 or yStep > 5: #reduce to small increments to increase accuracy, increases time taken
-            xStep = xStep/2
-            yStep = yStep/2
-    """
+    def shoot(self, mouse, sprGroup):
+        bullet = Projectile(self.rect.x, self.rect.y, mouse)
+        bullet.go(sprGroup)
 
 class Guard(pygame.sprite.Sprite):
     """
@@ -236,7 +229,38 @@ class Obstacle(pygame.sprite.Sprite):
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
+        return self
+        #return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
+
+class Projectile(pygame.sprite.Sprite):
+    """
+    The pew pew things
+    """
+    def __init__(self, x, y, mouse):
+        super().__init__()
+        self.xStep = mouse[0] - x
+        self.yStep = mouse[1] - y
+
+        if self.xStep < self.yStep:
+            self.yStep = self.yStep / self.xStep
+            self.xStep = 1
+        else:
+            self.xStep = self.xStep / self.yStep
+            self.yStep = 1
+
+        self.image = pygame.Surface([2, 2])
+        self.image.fill(black)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def go(self, sprGroup):
+        while pygame.sprite.spritecollide(self, sprGroup, False) == []:
+            if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0:
+                return None
+            self.rect.x += self.xStep
+            self.rect.y += self.yStep
+        print(pygame.sprite.spritecollide(self, sprGroup, False))
 
 def instance():
     running = True
@@ -273,6 +297,11 @@ def instance():
     guards = pygame.sprite.Group()
     guards.add(guard)
 
+    shootables = pygame.sprite.Group()
+    shootables.add(guard)
+    shootables.add(wall)
+    shootables.add(wall2)
+
     # hide mouse
     pygame.mouse.set_visible(False)
 
@@ -289,6 +318,9 @@ def instance():
                 # close game if escape is pressed
                 if event.key == pygame.K_ESCAPE:
                     running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                player.shoot(pygame.mouse.get_pos(), shootables)
 
             ###
 
@@ -315,6 +347,8 @@ def instance():
         player.drawCrosshair(pygame.mouse.get_pos())
         allSprites.draw(gameDisplay)
         ###
+
+        #print(pygame.sprite.spritecollide(player, environmentSprites, False))
 
         """
         collided = pygame.sprite.spritecollide(player, environmentSprites, False) # returns array of repr of objects collided with
