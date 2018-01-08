@@ -162,6 +162,8 @@ class Guard(pygame.sprite.Sprite):
                 self.rect.y += 0.1
         ###
 
+        print("({x}, {y})".format(x = self.rect.x, y = self.rect.y))
+
         if sprGroup:
             keep = [False, False, False, False]
             directions = ['u', 'd', 'l', 'r']
@@ -175,9 +177,6 @@ class Guard(pygame.sprite.Sprite):
                     keep[test] = True
                 elif len(pygame.sprite.spritecollide(tGuard, sprGroup, False)) == 0 and not keep[test]:
                     self.bannedDirs[test] = False
-
-            #print(self.bannedDirs)
-            #print()
 
 class Obstacle(pygame.sprite.Sprite):
     """
@@ -236,7 +235,7 @@ class Projectile(pygame.sprite.Sprite):
         self.rect.y = y
 
     def go(self, sprGroup):
-        while pygame.sprite.spritecollide(self, sprGroup, False) == []:
+        while len(pygame.sprite.spritecollide(self, sprGroup, False)) == 0:
             print(pygame.sprite.spritecollide(self, sprGroup, False))
             if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0:
                 return None
@@ -253,7 +252,7 @@ def instance():
     gameBoundRight = Obstacle(displayWidth, 0, 10, displayHeight, False)
 
     player = Player()
-    guard = Guard(500, 500, 15, 15, 1.2, dan)
+    guard = Guard(500, 500, 15, 15, 2, dan)
     wall = Obstacle(200, 200, 300, 150, False)
     wall2 = Obstacle(700, 600, 200, 20, True)
 
