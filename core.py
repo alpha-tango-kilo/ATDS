@@ -162,8 +162,6 @@ class Guard(pygame.sprite.Sprite):
                 self.rect.y += 0.1
         ###
 
-        print("({x}, {y})".format(x = self.rect.x, y = self.rect.y))
-
         if sprGroup:
             keep = [False, False, False, False]
             directions = ['u', 'd', 'l', 'r']
@@ -209,8 +207,7 @@ class Obstacle(pygame.sprite.Sprite):
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return "ouch"
-        #return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
+        return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
 
 class Projectile(pygame.sprite.Sprite):
     """
@@ -236,11 +233,14 @@ class Projectile(pygame.sprite.Sprite):
 
     def go(self, sprGroup):
         while len(pygame.sprite.spritecollide(self, sprGroup, False)) == 0:
-            print(pygame.sprite.spritecollide(self, sprGroup, False))
+            #print(pygame.sprite.spritecollide(self, sprGroup, False))
             if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0:
                 return None
             self.rect.x += self.xStep
             self.rect.y += self.yStep
+        collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)[0]
+        print(collidedWith)
+        return collidedWith
 
 def instance():
     running = True
