@@ -15,6 +15,7 @@ black = (0,0,0)
 grey = (105,105,105)
 white = (255,255,255)
 red = (255,0,0)
+dan = (42,117,225)
 ###
 
 class Player(pygame.sprite.Sprite):
@@ -79,18 +80,17 @@ class Player(pygame.sprite.Sprite):
 
         if sprGroup:
             keep = [False, False, False, False]
-            directions = ["u", "d", "l", "r"]
-            for spr in sprGroup:
-                tPlayer = Player(self.rect.x, self.rect.y, self.w, self.h)
-                for test in range(len(directions)):
-                    tPlayer.rect.x = self.rect.x
-                    tPlayer.rect.y = self.rect.y
-                    tPlayer.move(directions[test])
-                    if pygame.sprite.collide_rect(tPlayer, spr):
-                        self.bannedDirs[test] = True
-                        keep[test] = True
-                    elif not pygame.sprite.collide_rect(tPlayer, spr) and not keep[test]:
-                        self.bannedDirs[test] = False
+            directions = ['u', 'd', 'l', 'r']
+            tPlayer = Player(self.rect.x, self.rect.y, self.w, self.h)
+            for test in range(len(directions)):
+                tPlayer.rect.x = self.rect.x
+                tPlayer.rect.y = self.rect.y
+                tPlayer.move(directions[test])
+                if len(pygame.sprite.spritecollide(tPlayer, sprGroup, False)) > 0:
+                    self.bannedDirs[test] = True
+                    keep[test] = True
+                elif len(pygame.sprite.spritecollide(tPlayer, sprGroup, False)) == 0 and not keep[test]:
+                    self.bannedDirs[test] = False
 
     def shoot(self, mouse, sprGroup):
         bullet = Projectile(self.rect.x, self.rect.y, mouse)
@@ -131,7 +131,7 @@ class Guard(pygame.sprite.Sprite):
                 self.rect.x -= self.speed
             elif x > self.rect.x and not self.bannedDirs[3]:
                 self.rect.x += self.speed
-        elif abs(self.rect.x - x) <= self.w + self.speed and abs(self.rect.x - x) >= self.w: # fine adjusment
+        elif abs(self.rect.x - x) <= self.w + self.speed and abs(self.rect.x - x) >= self.w and sprGroup == None: # fine adjusment
             if x < self.rect.x and not self.bannedDirs[2]:
                 self.rect.x -= 0.1
             elif x > self.rect.x and not self.bannedDirs[3]:
@@ -144,7 +144,7 @@ class Guard(pygame.sprite.Sprite):
                 self.rect.y -= self.speed
             elif y > self.rect.y and not self.bannedDirs[1]:
                 self.rect.y += self.speed
-        elif abs(self.rect.y - y) <= self.w + self.speed and abs(self.rect.y - y) >= self.w: # fine adjustment
+        elif abs(self.rect.y - y) <= self.w + self.speed and abs(self.rect.y - y) >= self.w and sprGroup == None: # fine adjustment
             if y < self.rect.y and not self.bannedDirs[0]:
                 self.rect.y -= 0.1
             elif y > self.rect.y and not self.bannedDirs[1]:
@@ -195,8 +195,8 @@ class Guard(pygame.sprite.Sprite):
                 elif not pygame.sprite.collide_rect(tGuard, spr) and not keep[0]:
                     self.bannedDirs[1] = False
 
-            print(self.bannedDirs)
-            print()
+            #print(self.bannedDirs)
+            #print()
 
 class Obstacle(pygame.sprite.Sprite):
     """
@@ -229,7 +229,7 @@ class Obstacle(pygame.sprite.Sprite):
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return self
+        return "ouch"
         #return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
 
 class Projectile(pygame.sprite.Sprite):
@@ -256,11 +256,11 @@ class Projectile(pygame.sprite.Sprite):
 
     def go(self, sprGroup):
         while pygame.sprite.spritecollide(self, sprGroup, False) == []:
+            print(pygame.sprite.spritecollide(self, sprGroup, False))
             if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0:
                 return None
             self.rect.x += self.xStep
             self.rect.y += self.yStep
-        print(pygame.sprite.spritecollide(self, sprGroup, False))
 
 def instance():
     running = True
@@ -272,7 +272,7 @@ def instance():
     gameBoundRight = Obstacle(displayWidth, 0, 10, displayHeight, False)
 
     player = Player()
-    guard = Guard(500, 500, 15, 15)
+    guard = Guard(500, 500, 15, 15, 1.2, dan)
     wall = Obstacle(200, 200, 300, 150, False)
     wall2 = Obstacle(700, 600, 200, 20, True)
 
