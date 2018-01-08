@@ -120,6 +120,17 @@ class Guard(pygame.sprite.Sprite):
     def draw(self):
         pygame.draw.rect(gameDisplay, black, [self.x, self.y, self.w, self.h])
 
+    def simpleMove(self, direction):
+        if direction == 'u':
+            self.rect.y -= self.speed
+        elif direction == 'd':
+            self.rect.y += self.speed
+
+        if direction == 'l':
+            self.rect.x -= self.speed
+        elif direction == 'r':
+            self.rect.x += self.speed
+
     def goto(self, x, y, sprGroup = None):
         """
         Stopping in close proximity (as opposed to on top of the target) only works if the 2 rectangles are the same width
@@ -153,47 +164,17 @@ class Guard(pygame.sprite.Sprite):
 
         if sprGroup:
             keep = [False, False, False, False]
-            tGuard = Guard(self.rect.x, self.rect.y, self.w, self.h)
-            for spr in sprGroup:
-                # test left
+            directions = ['u', 'd', 'l', 'r']
+            tGuard = Guard(self.rect.x, self.rect.y, self.w, self.h, self.speed)
+            for test in range(len(directions)):
                 tGuard.rect.x = self.rect.x
                 tGuard.rect.y = self.rect.y
-                tGuard.goto(tGuard.rect.x + self.speed, tGuard.rect.y)
-                if pygame.sprite.collide_rect(tGuard, spr):
-                    self.bannedDirs[2] = True
-                    keep[2] = True
-                elif not pygame.sprite.collide_rect(tGuard, spr) and not keep[0]:
-                    self.bannedDirs[2] = False
-
-                # test right
-                tGuard.rect.x = self.rect.x
-                tGuard.rect.y = self.rect.y
-                tGuard.goto(tGuard.rect.x + self.speed, tGuard.rect.y)
-                if pygame.sprite.collide_rect(tGuard, spr):
-                    self.bannedDirs[3] = True
-                    keep[3] = True
-                elif not pygame.sprite.collide_rect(tGuard, spr) and not keep[0]:
-                    self.bannedDirs[3] = False
-
-                # test up
-                tGuard.rect.x = self.rect.x
-                tGuard.rect.y = self.rect.y
-                tGuard.goto(tGuard.rect.x, tGuard.rect.y - self.speed)
-                if pygame.sprite.collide_rect(tGuard, spr):
-                    self.bannedDirs[0] = True
-                    keep[0] = True
-                elif not pygame.sprite.collide_rect(tGuard, spr) and not keep[0]:
-                    self.bannedDirs[0] = False
-
-                # test down
-                tGuard.rect.x = self.rect.x
-                tGuard.rect.y = self.rect.y
-                tGuard.goto(tGuard.rect.x, tGuard.rect.y + self.speed)
-                if pygame.sprite.collide_rect(tGuard, spr):
-                    self.bannedDirs[1] = True
-                    keep[1] = True
-                elif not pygame.sprite.collide_rect(tGuard, spr) and not keep[0]:
-                    self.bannedDirs[1] = False
+                tGuard.simpleMove(directions[test])
+                if len(pygame.sprite.spritecollide(tGuard, sprGroup, False)) > 0:
+                    self.bannedDirs[test] = True
+                    keep[test] = True
+                elif len(pygame.sprite.spritecollide(tGuard, sprGroup, False)) == 0 and not keep[test]:
+                    self.bannedDirs[test] = False
 
             #print(self.bannedDirs)
             #print()
