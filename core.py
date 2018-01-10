@@ -72,12 +72,7 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
 
     def drawCone(self, mouse):
-        angle = 0
-        try:
-            angle = math.atan((mouse[0] - self.rect.x)/(mouse[1] - self.rect.y))
-        except:
-            angle = math.atan((mouse[1] - self.rect.y)/(mouse[0] - self.rect.x))
-        #print(math.degrees(angle))
+        pass
 
     def move(self, direction, sprGroup = None):
         if direction == 'u' and not self.bannedDirs[0]:
@@ -263,7 +258,7 @@ class Projectile(pygame.sprite.Sprite):
 
             #print("({x}, {y})".format(x = self.rect.x, y = self.rect.y))
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)[0]
-        print(collidedWith)
+        collidedWith.getshot()
         return collidedWith
 
 def instance():
