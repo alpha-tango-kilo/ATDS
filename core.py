@@ -59,12 +59,16 @@ class Player(pygame.sprite.Sprite):
         # line to player
         pygame.draw.aaline(gameDisplay, black, mouse, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), 2)
         # top hair
+        pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] - 11, 4, 8])
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] - 10, 2, 6])
         # bottom hair
+        pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] + 3, 4, 8])
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] + 4, 2, 6])
         # left hair
+        pygame.draw.rect(gameDisplay, white, [mouse[0] - 11, mouse[1] - 2, 8, 4])
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 10, mouse[1] - 1, 6, 2])
         # right hair
+        pygame.draw.rect(gameDisplay, white, [mouse[0] + 3, mouse[1] - 2, 8, 4])
         pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
 
     def drawCone(self, mouse):
@@ -76,7 +80,6 @@ class Player(pygame.sprite.Sprite):
         print(math.degrees(angle))
 
     def move(self, direction, sprGroup = None):
-
         if direction == 'u' and not self.bannedDirs[0]:
             self.rect.y -= self.speed
         elif direction == 'd' and not self.bannedDirs[1]:
@@ -332,10 +335,13 @@ def instance():
 
         # Draw things to screen #
         gameDisplay.fill(white)
+        allSprites.draw(gameDisplay)
+        ###
+
+        # Continuous functions #
         guard.goto(player.rect.x, player.rect.y, environmentSprites)
         player.drawCrosshair(pygame.mouse.get_pos())
         player.drawCone(pygame.mouse.get_pos())
-        allSprites.draw(gameDisplay)
         ###
 
         #print(pygame.sprite.spritecollide(player, environmentSprites, False))
