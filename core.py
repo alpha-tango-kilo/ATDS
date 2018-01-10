@@ -1,4 +1,4 @@
-import pygame
+import pygame, math
 
 pygame.init()
 
@@ -66,6 +66,14 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 10, mouse[1] - 1, 6, 2])
         # right hair
         pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
+
+    def drawCone(self, mouse):
+        angle = 0
+        try:
+            angle = math.atan((mouse[0] - self.rect.x)/(mouse[1] - self.rect.y))
+        except:
+            angle = math.atan((mouse[1] - self.rect.y)/(mouse[0] - self.rect.x))
+        print(math.degrees(angle))
 
     def move(self, direction, sprGroup = None):
 
@@ -238,6 +246,7 @@ class Projectile(pygame.sprite.Sprite):
                 return None
             self.rect.x += self.xStep
             self.rect.y += self.yStep
+            #print("({x}, {y})".format(x = self.rect.x, y = self.rect.y))
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)[0]
         print(collidedWith)
         return collidedWith
@@ -325,6 +334,7 @@ def instance():
         gameDisplay.fill(white)
         guard.goto(player.rect.x, player.rect.y, environmentSprites)
         player.drawCrosshair(pygame.mouse.get_pos())
+        player.drawCone(pygame.mouse.get_pos())
         allSprites.draw(gameDisplay)
         ###
 
