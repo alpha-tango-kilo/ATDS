@@ -77,7 +77,7 @@ class Player(pygame.sprite.Sprite):
             angle = math.atan((mouse[0] - self.rect.x)/(mouse[1] - self.rect.y))
         except:
             angle = math.atan((mouse[1] - self.rect.y)/(mouse[0] - self.rect.x))
-        print(math.degrees(angle))
+        #print(math.degrees(angle))
 
     def move(self, direction, sprGroup = None):
         if direction == 'u' and not self.bannedDirs[0]:
@@ -228,10 +228,12 @@ class Projectile(pygame.sprite.Sprite):
         super().__init__()
         self.xStep = mouse[0] - x
         self.yStep = mouse[1] - y
+        self.moveXfirst = False
 
         if self.xStep < self.yStep:
             self.yStep = self.yStep / self.xStep
             self.xStep = 1
+            self.moveXfirst = True
         else:
             self.xStep = self.xStep / self.yStep
             self.yStep = 1
@@ -241,14 +243,24 @@ class Projectile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.virtualx = x
+        self.virtualy = y
 
     def go(self, sprGroup):
         while len(pygame.sprite.spritecollide(self, sprGroup, False)) == 0:
             #print(pygame.sprite.spritecollide(self, sprGroup, False))
             if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0:
                 return None
-            self.rect.x += self.xStep
-            self.rect.y += self.yStep
+            self.virtualx += self.xStep
+            self.virtualy += self.yStep
+
+            if self.moveXfirst:
+                self.rect.x = self.virtualx
+                self.rect.y = int(round(self.virtualy))
+            else:
+                self.rect.x = int(round(self.virtualx))
+                self.rect.y = self.virtualy
+
             #print("({x}, {y})".format(x = self.rect.x, y = self.rect.y))
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)[0]
         print(collidedWith)
@@ -333,15 +345,12 @@ def instance():
             player.move('r', environmentSprites)
         ###
 
-        # Draw things to screen #
-        gameDisplay.fill(white)
-        allSprites.draw(gameDisplay)
-        ###
-
         # Continuous functions #
+        gameDisplay.fill(white)
         guard.goto(player.rect.x, player.rect.y, environmentSprites)
         player.drawCrosshair(pygame.mouse.get_pos())
         player.drawCone(pygame.mouse.get_pos())
+        allSprites.draw(gameDisplay)
         ###
 
         #print(pygame.sprite.spritecollide(player, environmentSprites, False))
