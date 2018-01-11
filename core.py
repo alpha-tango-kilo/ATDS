@@ -163,9 +163,6 @@ class Guard(Actor):
     def __init__(self, x, y, w, h, speed = 2, colour = black):
         super().__init__(x, y, w, h, speed, colour)
 
-    def draw(self):
-        pygame.draw.rect(gameDisplay, black, [self.x, self.y, self.w, self.h])
-
     def simpleMove(self, direction):
         if direction == 'u':
             self.rect.y -= self.speed
@@ -238,7 +235,6 @@ class Projectile(pygame.sprite.Sprite):
 
     def go(self, sprGroup):
         while len(pygame.sprite.spritecollide(self, sprGroup, False)) == 0:
-            #print(pygame.sprite.spritecollide(self, sprGroup, False))
             if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0:
                 return None
             self.virtualx += self.xStep
@@ -251,7 +247,6 @@ class Projectile(pygame.sprite.Sprite):
                 self.rect.x = int(round(self.virtualx))
                 self.rect.y = self.virtualy
 
-            #print("({x}, {y})".format(x = self.rect.x, y = self.rect.y))
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)[0]
         collidedWith.getShot()
         return collidedWith
@@ -275,10 +270,6 @@ def instance():
     allSprites.add(guard)
     allSprites.add(wall)
     allSprites.add(wall2)
-    #allSprites.add(gameBoundTop)
-    #allSprites.add(gameBoundBottom)
-    #allSprites.add(gameBoundLeft)
-    #allSprites.add(gameBoundRight)
 
     environmentSprites = pygame.sprite.Group()
     environmentSprites.add(wall)
@@ -315,7 +306,6 @@ def instance():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 player.shoot(pygame.mouse.get_pos(), shootables)
-
             ###
 
         # Keys being held #
