@@ -19,6 +19,7 @@ dan = (42,117,225)
 ###
 class World_Object():
     def getShot(self):
+        print("World_Object says 'ow!'")
         return None
 
 class Actor(pygame.sprite.Sprite, World_Object):
@@ -176,7 +177,7 @@ class Guard(Actor):
         elif direction == 'r':
             self.rect.x += self.speed
 
-class Obstacle(pygame.sprite.Sprite):
+class Obstacle(pygame.sprite.Sprite, World_Object):
     """
     Those things we love to hit our heads against
     """
@@ -252,7 +253,7 @@ class Projectile(pygame.sprite.Sprite):
 
             #print("({x}, {y})".format(x = self.rect.x, y = self.rect.y))
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)[0]
-        #collidedWith.getshot()
+        collidedWith.getShot()
         return collidedWith
 
 def instance():
