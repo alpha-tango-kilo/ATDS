@@ -40,8 +40,11 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.image.fill(self.colour)
         #self.image.set_colorkey(white)
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.x = round(x)
+        self.rect.y = round(y)
+
+        self.virtualx = x
+        self.virtualy = y
 
     def __str__(self):
         """
@@ -57,77 +60,83 @@ class Actor(pygame.sprite.Sprite, World_Object):
         """
         return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.x, y = self.y, w = self.w, h = self.h)
 
-    def move(self, direction, sprGroup = None):
-        if direction == 'u' and not self.bannedDirs[0]:
+    def simpleMove(self, direction):
+        if direction == 'u':
             self.rect.y -= self.speed
-        elif direction == 'd' and not self.bannedDirs[1]:
+        elif direction == 'd':
             self.rect.y += self.speed
-        elif direction == 'l' and not self.bannedDirs[2]:
+
+        if direction == 'l':
             self.rect.x -= self.speed
-        elif direction == 'r' and not self.bannedDirs[3]:
+        elif direction == 'r':
             self.rect.x += self.speed
 
-        if sprGroup:
-            keep = [False, False, False, False]
-            directions = ['u', 'd', 'l', 'r']
-            tPlayer = Player(self.rect.x, self.rect.y, self.w, self.h)
-            for test in range(len(directions)):
-                tPlayer.rect.x = self.rect.x
-                tPlayer.rect.y = self.rect.y
-                tPlayer.move(directions[test])
-                if len(pygame.sprite.spritecollide(tPlayer, sprGroup, False)) > 0:
-                    self.bannedDirs[test] = True
-                    keep[test] = True
-                elif len(pygame.sprite.spritecollide(tPlayer, sprGroup, False)) == 0 and not keep[test]:
-                    self.bannedDirs[test] = False
+    def collisionCheck(self, sprGroup):
+        keep = [False, False, False, False]
+        directions = ['u', 'd', 'l', 'r']
+        tActor = Actor(self.rect.x, self.rect.y, self.w, self.h, self.speed)
+        for test in range(len(directions)):
+            tActor.rect.x = self.rect.x
+            tActor.rect.y = self.rect.y
+            tActor.simpleMove(directions[test])
+            if len(pygame.sprite.spritecollide(tActor, sprGroup, False)) > 0:
+                self.bannedDirs[test] = True
+                keep[test] = True
+            elif len(pygame.sprite.spritecollide(tActor, sprGroup, False)) == 0 and not keep[test]:
+                self.bannedDirs[test] = False
+
+    def move(self, direction, sprGroup):
+        if direction == 'u' and not self.bannedDirs[0]:
+            self.virtualy -= self.speed
+        elif direction == 'd' and not self.bannedDirs[1]:
+            self.virtualy += self.speed
+        elif direction == 'l' and not self.bannedDirs[2]:
+            self.virtualx -= self.speed
+        elif direction == 'r' and not self.bannedDirs[3]:
+            self.virtualx += self.speed
+
+        self.rect.x = round(self.virtualx)
+        self.rect.y = round(self.virtualy)
+        self.collisionCheck(sprGroup) # must go after co-ordinate rounding
 
     def goto(self, x, y, sprGroup = None):
         """
-        Stopping in close proximity (as opposed to on top of the target) only works if the 2 rectangles are the same width
+        Stopping in close proximity (as opposed to on top of the target) only works if the 2 squares are the same width
         """
-
         # x co-ordinate #
         if abs(self.rect.x - x) > self.w + self.speed:
-            if x < self.rect.x and not self.bannedDirs[2]:
-                self.rect.x -= self.speed
-            elif x > self.rect.x and not self.bannedDirs[3]:
-                self.rect.x += self.speed
-        elif abs(self.rect.x - x) <= self.w + self.speed and abs(self.rect.x - x) >= self.w and sprGroup == None: # fine adjusment
-            if x < self.rect.x and not self.bannedDirs[2]:
-                self.rect.x -= 0.1
-            elif x > self.rect.x and not self.bannedDirs[3]:
-                self.rect.x += 0.1
+            if x < self.virtualx and not self.bannedDirs[2]:
+                self.virtualx -= self.speed
+            elif x > self.virtualx and not self.bannedDirs[3]:
+                self.virtualx += self.speed
+        elif abs(self.virtualx - x) <= self.w + self.speed and abs(self.virtualx - x) >= self.w and sprGroup == None: # fine adjusment
+            if x < self.virtualx and not self.bannedDirs[2]:
+                self.virtualx -= 0.1
+            elif x > self.virtualx and not self.bannedDirs[3]:
+                self.virtualx += 0.1
         ###
 
         # y co-ordinate #
         if abs(self.rect.y - y) > self.w + self.speed:
-            if y < self.rect.y and not self.bannedDirs[0]:
-                self.rect.y -= self.speed
-            elif y > self.rect.y and not self.bannedDirs[1]:
-                self.rect.y += self.speed
-        elif abs(self.rect.y - y) <= self.w + self.speed and abs(self.rect.y - y) >= self.w and sprGroup == None: # fine adjustment
-            if y < self.rect.y and not self.bannedDirs[0]:
-                self.rect.y -= 0.1
-            elif y > self.rect.y and not self.bannedDirs[1]:
-                self.rect.y += 0.1
+            if y < self.virtualy and not self.bannedDirs[0]:
+                self.virtualy -= self.speed
+            elif y > self.virtualy and not self.bannedDirs[1]:
+                self.virtualy += self.speed
+        elif abs(self.virtualy - y) <= self.w + self.speed and abs(self.virtualy - y) >= self.w and sprGroup == None: # fine adjustment
+            if y < self.virtualy and not self.bannedDirs[0]:
+                self.virtualy -= 0.1
+            elif y > self.virtualy and not self.bannedDirs[1]:
+                self.virtualy += 0.1
         ###
 
+        self.rect.x = round(self.virtualx)
+        self.rect.y = round(self.virtualy)
+
         if sprGroup:
-            keep = [False, False, False, False]
-            directions = ['u', 'd', 'l', 'r']
-            tGuard = Guard(self.rect.x, self.rect.y, self.w, self.h, self.speed)
-            for test in range(len(directions)):
-                tGuard.rect.x = self.rect.x
-                tGuard.rect.y = self.rect.y
-                tGuard.simpleMove(directions[test])
-                if len(pygame.sprite.spritecollide(tGuard, sprGroup, False)) > 0:
-                    self.bannedDirs[test] = True
-                    keep[test] = True
-                elif len(pygame.sprite.spritecollide(tGuard, sprGroup, False)) == 0 and not keep[test]:
-                    self.bannedDirs[test] = False
+            self.collisionCheck(sprGroup)
 
     def shoot(self, mouse, sprGroup):
-        bullet = Projectile(self.rect.x, self.rect.y, mouse)
+        bullet = Projectile(self.virtualx, self.virtualy, mouse)
         bullet.go(sprGroup)
 
 class Player(Actor):
@@ -139,7 +148,7 @@ class Player(Actor):
 
     def drawCrosshair(self, mouse):
         # line to player
-        pygame.draw.aaline(gameDisplay, black, mouse, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), 2)
+        pygame.draw.aaline(gameDisplay, black, mouse, (self.virtualx + (self.w / 2), self.virtualy + (self.h / 2)), 2)
         # top hair
         pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] - 11, 4, 8])
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] - 10, 2, 6])
@@ -160,19 +169,8 @@ class Guard(Actor):
     """
     These are the bad guys
     """
-    def __init__(self, x, y, w, h, speed = 2, colour = black):
+    def __init__(self, x, y, w, h, speed = 1.2, colour = black):
         super().__init__(x, y, w, h, speed, colour)
-
-    def simpleMove(self, direction):
-        if direction == 'u':
-            self.rect.y -= self.speed
-        elif direction == 'd':
-            self.rect.y += self.speed
-
-        if direction == 'l':
-            self.rect.x -= self.speed
-        elif direction == 'r':
-            self.rect.x += self.speed
 
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
@@ -277,7 +275,7 @@ def instance():
     gameBoundRight = Obstacle(displayWidth, 0, 10, displayHeight, False)
 
     player = Player()
-    guard = Guard(500, 500, 15, 15, 2, dan)
+    guard = Guard(500, 500, 15, 15, 1.2, dan)
     wall = Obstacle(200, 200, 300, 150, False)
     wall2 = Obstacle(700, 600, 200, 20, True)
 
@@ -343,7 +341,7 @@ def instance():
 
         # Continuous functions #
         gameDisplay.fill(white)
-        guard.goto(player.rect.x, player.rect.y, environmentSprites)
+        guard.goto(player.virtualx, player.virtualy, environmentSprites)
         player.drawCrosshair(pygame.mouse.get_pos())
         player.drawCone(pygame.mouse.get_pos())
         allSprites.draw(gameDisplay)
