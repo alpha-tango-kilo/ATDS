@@ -22,7 +22,7 @@ class World_Object():
         return None
 
 class Actor(pygame.sprite.Sprite, World_Object):
-    def __init__(self, x = 10, y = 10, w = 15, h = 15, colour = black):
+    def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black):
         super().__init__()
 
         """
@@ -32,7 +32,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.w = w
         self.h = h
         self.colour = colour
-        self.speed = 1
+        self.speed = speed
         self.bannedDirs = [False, False, False, False]
 
         self.image = pygame.Surface([self.w, self.h])
@@ -134,10 +134,7 @@ class Player(Actor):
     This is the player's actor
     """
     def __init__(self, x = 10, y = 10, w = 15, h = 15, colour = red):
-        """
-        Parameters provided allow for a better customisation of the player "model"
-        """
-        super().__init__(x, y, w, h, colour)
+        super().__init__(x, y, w, h, 1, colour)
 
     def drawCrosshair(self, mouse):
         # line to player
@@ -158,26 +155,12 @@ class Player(Actor):
     def drawCone(self, mouse):
         pass
 
-class Guard(pygame.sprite.Sprite):
+class Guard(Actor):
     """
     These are the bad guys
     """
-    def __init__(self, x, y, w, h, speed = 1.2, colour = black):
-
-        super().__init__()
-
-        self.w = w
-        self.h = h
-        self.colour = colour
-        self.speed = speed
-        self.bannedDirs = [False, False, False, False] # up down left right
-
-        self.image = pygame.Surface([self.w, self.h])
-        self.image.fill(self.colour)
-        self.rect = self.image.get_rect()
-
-        self.rect.x = x
-        self.rect.y = y
+    def __init__(self, x, y, w, h, speed = 2, colour = black):
+        super().__init__(x, y, w, h, speed, colour)
 
     def draw(self):
         pygame.draw.rect(gameDisplay, black, [self.x, self.y, self.w, self.h])
@@ -192,51 +175,6 @@ class Guard(pygame.sprite.Sprite):
             self.rect.x -= self.speed
         elif direction == 'r':
             self.rect.x += self.speed
-
-    def goto(self, x, y, sprGroup = None):
-        """
-        Stopping in close proximity (as opposed to on top of the target) only works if the 2 rectangles are the same width
-        """
-
-        # x co-ordinate #
-        if abs(self.rect.x - x) > self.w + self.speed:
-            if x < self.rect.x and not self.bannedDirs[2]:
-                self.rect.x -= self.speed
-            elif x > self.rect.x and not self.bannedDirs[3]:
-                self.rect.x += self.speed
-        elif abs(self.rect.x - x) <= self.w + self.speed and abs(self.rect.x - x) >= self.w and sprGroup == None: # fine adjusment
-            if x < self.rect.x and not self.bannedDirs[2]:
-                self.rect.x -= 0.1
-            elif x > self.rect.x and not self.bannedDirs[3]:
-                self.rect.x += 0.1
-        ###
-
-        # y co-ordinate #
-        if abs(self.rect.y - y) > self.w + self.speed:
-            if y < self.rect.y and not self.bannedDirs[0]:
-                self.rect.y -= self.speed
-            elif y > self.rect.y and not self.bannedDirs[1]:
-                self.rect.y += self.speed
-        elif abs(self.rect.y - y) <= self.w + self.speed and abs(self.rect.y - y) >= self.w and sprGroup == None: # fine adjustment
-            if y < self.rect.y and not self.bannedDirs[0]:
-                self.rect.y -= 0.1
-            elif y > self.rect.y and not self.bannedDirs[1]:
-                self.rect.y += 0.1
-        ###
-
-        if sprGroup:
-            keep = [False, False, False, False]
-            directions = ['u', 'd', 'l', 'r']
-            tGuard = Guard(self.rect.x, self.rect.y, self.w, self.h, self.speed)
-            for test in range(len(directions)):
-                tGuard.rect.x = self.rect.x
-                tGuard.rect.y = self.rect.y
-                tGuard.simpleMove(directions[test])
-                if len(pygame.sprite.spritecollide(tGuard, sprGroup, False)) > 0:
-                    self.bannedDirs[test] = True
-                    keep[test] = True
-                elif len(pygame.sprite.spritecollide(tGuard, sprGroup, False)) == 0 and not keep[test]:
-                    self.bannedDirs[test] = False
 
 class Obstacle(pygame.sprite.Sprite):
     """
