@@ -200,6 +200,13 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         self.rect.x = x
         self.rect.y = y
 
+    def __str__(self):
+        """
+        Providing an str means that if you just type an object is called, this is what is
+        returned
+        """
+        return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
+
     def __repr__(self):
         """
         Providing an str means that if you just type an object is called, this is what is
