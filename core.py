@@ -129,7 +129,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         bullet = Projectile(self.rect.x, self.rect.y, mouse)
         bullet.go(sprGroup)
 
-class Player(pygame.sprite.Sprite):
+class Player(Actor):
     """
     This is the player's actor
     """
@@ -137,34 +137,7 @@ class Player(pygame.sprite.Sprite):
         """
         Parameters provided allow for a better customisation of the player "model"
         """
-        super().__init__()
-
-        self.w = w
-        self.h = h
-        self.colour = colour
-        self.speed = 1
-        self.bannedDirs = [False, False, False, False]
-
-        self.image = pygame.Surface([self.w, self.h])
-        self.image.fill(self.colour)
-        #self.image.set_colorkey(white)
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-
-    def __str__(self):
-        """
-        Providing an str means that if you just type an object is called, this is what is
-        returned
-        """
-        return "Player is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.x, y = self.y, w = self.w, h = self.h)
-
-    def __repr__(self):
-        """
-        Providing an str means that if you just type an object is called, this is what is
-        returned
-        """
-        return "Player is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.x, y = self.y, w = self.w, h = self.h)
+        super().__init__(x, y, w, h, colour)
 
     def drawCrosshair(self, mouse):
         # line to player
@@ -184,34 +157,6 @@ class Player(pygame.sprite.Sprite):
 
     def drawCone(self, mouse):
         pass
-
-    def move(self, direction, sprGroup = None):
-        if direction == 'u' and not self.bannedDirs[0]:
-            self.rect.y -= self.speed
-        elif direction == 'd' and not self.bannedDirs[1]:
-            self.rect.y += self.speed
-        elif direction == 'l' and not self.bannedDirs[2]:
-            self.rect.x -= self.speed
-        elif direction == 'r' and not self.bannedDirs[3]:
-            self.rect.x += self.speed
-
-        if sprGroup:
-            keep = [False, False, False, False]
-            directions = ['u', 'd', 'l', 'r']
-            tPlayer = Player(self.rect.x, self.rect.y, self.w, self.h)
-            for test in range(len(directions)):
-                tPlayer.rect.x = self.rect.x
-                tPlayer.rect.y = self.rect.y
-                tPlayer.move(directions[test])
-                if len(pygame.sprite.spritecollide(tPlayer, sprGroup, False)) > 0:
-                    self.bannedDirs[test] = True
-                    keep[test] = True
-                elif len(pygame.sprite.spritecollide(tPlayer, sprGroup, False)) == 0 and not keep[test]:
-                    self.bannedDirs[test] = False
-
-    def shoot(self, mouse, sprGroup):
-        bullet = Projectile(self.rect.x, self.rect.y, mouse)
-        bullet.go(sprGroup)
 
 class Guard(pygame.sprite.Sprite):
     """
