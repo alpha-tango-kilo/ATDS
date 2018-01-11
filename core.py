@@ -207,6 +207,15 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         """
         return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
 
+    def getShot(self):
+        if self.destructable: # wall breaks
+            self.kill()
+            print("You killed a wall, you monster")
+            return None
+        else:
+            print("You shot a wall, I hope you get more gratification than this than the programmer did writing this line.")
+            return None
+
 class Projectile(pygame.sprite.Sprite):
     """
     The pew pew things
