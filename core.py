@@ -51,34 +51,39 @@ class Actor(pygame.sprite.Sprite, World_Object):
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.x, y = self.y, w = self.w, h = self.h)
+        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.w, h = self.h)
 
     def __repr__(self):
         """
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.x, y = self.y, w = self.w, h = self.h)
+        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.w, h = self.h)
 
-    def simpleMove(self, direction):
+    def simpleMove(self, direction, distance):
         if direction == 'u':
-            self.rect.y -= self.speed
+            self.virtualy -= distance
         elif direction == 'd':
-            self.rect.y += self.speed
+            self.virtualy += distance
 
         if direction == 'l':
-            self.rect.x -= self.speed
+            self.virtualx -= distance
         elif direction == 'r':
-            self.rect.x += self.speed
+            self.virtualx += distance
+
+        self.rect.x = round(self.virtualx)
+        self.rect.y = round(self.virtualy)
 
     def collisionCheck(self, sprGroup):
         keep = [False, False, False, False]
         directions = ['u', 'd', 'l', 'r']
-        tActor = Actor(self.rect.x, self.rect.y, self.w, self.h, self.speed)
+        tActor = Actor(self.virtualx, self.virtualy, self.w, self.h, self.speed)
         for test in range(len(directions)):
             tActor.rect.x = self.rect.x
             tActor.rect.y = self.rect.y
-            tActor.simpleMove(directions[test])
+            tActor.virtualx = self.virtualx
+            tActor.virtualy = self.virtualy
+            tActor.simpleMove(directions[test], self.speed)
             if len(pygame.sprite.spritecollide(tActor, sprGroup, False)) > 0:
                 self.bannedDirs[test] = True
                 keep[test] = True
@@ -103,6 +108,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         """
         Stopping in close proximity (as opposed to on top of the target) only works if the 2 squares are the same width
         """
+
         # x co-ordinate #
         if abs(self.rect.x - x) > self.w + self.speed:
             if x < self.virtualx and not self.bannedDirs[2]:
@@ -131,9 +137,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.rect.x = round(self.virtualx)
         self.rect.y = round(self.virtualy)
-
-        if sprGroup:
-            self.collisionCheck(sprGroup)
+        self.collisionCheck(sprGroup)
 
     def shoot(self, mouse, sprGroup):
         bullet = Projectile(self.virtualx, self.virtualy, mouse)
@@ -218,7 +222,7 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
             print("You killed a wall, you monster")
             return None
         else:
-            print("You shot a wall, I hope you get more gratification than this than the programmer did writing this line.")
+            print("You shot a wall, I hope you get more gratification from this than the programmer did writing this line.")
             return None
 
 class Projectile(pygame.sprite.Sprite):
