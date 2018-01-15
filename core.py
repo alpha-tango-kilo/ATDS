@@ -258,6 +258,7 @@ class Projectile(pygame.sprite.Sprite):
     def go(self, sprGroup):
         while len(pygame.sprite.spritecollide(self, sprGroup, False)) == 0:
             if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0:
+                print("Giving up")
                 return None
             self.virtualx += self.xStep
             self.virtualy += self.yStep
@@ -269,20 +270,23 @@ class Projectile(pygame.sprite.Sprite):
                 self.rect.x = int(round(self.virtualx))
                 self.rect.y = self.virtualy
 
+            print("Bullet co-ords: ({x}, {y})".format(x = self.rect.x, y = self.rect.y))
+
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)
-        print(collidedWith)
+        #print(collidedWith)
         collidedWith[0].getShot()
-        self.kill()
+        #self.kill()
+        print("Registered hit.")
         return collidedWith
 
 def instance():
     running = True
 
     # Prevent player from leaving the screen
-    gameBoundTop = Obstacle(0, -10, displayWidth, 10, False)
-    gameBoundBottom = Obstacle(0, displayHeight, displayWidth, 10, False)
-    gameBoundLeft = Obstacle(-10, 0, 10, displayHeight, False)
-    gameBoundRight = Obstacle(displayWidth, 0, 10, displayHeight, False)
+    gameBoundTop = Obstacle(0, -100, displayWidth, 100, False)
+    gameBoundBottom = Obstacle(0, displayHeight, displayWidth, 100, False)
+    gameBoundLeft = Obstacle(-100, 0, 100, displayHeight, False)
+    gameBoundRight = Obstacle(displayWidth, 0, 100, displayHeight, False)
 
     player = Player()
     guard = Guard(500, 500, 15, 15, 1.2, dan)
