@@ -176,6 +176,10 @@ class Guard(Actor):
     def __init__(self, x, y, w, h, speed = 1.2, colour = black):
         super().__init__(x, y, w, h, speed, colour)
 
+    def getShot(self):
+        print("Guard hit. They didn't appreciate it.")
+        return None
+
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
     Those things we love to hit our heads against
@@ -219,10 +223,10 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
     def getShot(self):
         if self.destructable: # wall breaks
             self.kill()
-            print("You killed a wall, you monster")
+            print("Wall shot. Wall dead.")
             return None
         else:
-            print("You shot a wall, I hope you get more gratification from this than the programmer did writing this line.")
+            print("Wall shot. Wall smiles.")
             return None
 
 class Projectile(pygame.sprite.Sprite):
@@ -267,6 +271,7 @@ class Projectile(pygame.sprite.Sprite):
 
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)[0]
         collidedWith.getShot()
+        self.kill()
         return collidedWith
 
 def instance():
