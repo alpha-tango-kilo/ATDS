@@ -140,7 +140,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.collisionCheck(sprGroup)
 
     def shoot(self, mouse, sprGroup):
-        bullet = Projectile(self.virtualx, self.virtualy, mouse)
+        bullet = Projectile(self.virtualx + self.w / 2, self.virtualy + self.h / 2, mouse)
         bullet.go(sprGroup)
 
 class Player(Actor):
@@ -211,14 +211,14 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
+        return "Obstacle at ({x}, {y}), with a width of {w} and height of {h}".format(x = self.rect.x, y = self.rect.y, w = self.w, h = self.h)
 
     def __repr__(self):
         """
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return "({x}, {y})".format(x = self.rect.x, y = self.rect.y)
+        return "Obstacle at ({x}, {y}), with a width of {w} and height of {h}".format(x = self.rect.x, y = self.rect.y, w = self.w, h = self.h)
 
     def getShot(self):
         if self.destructable: # wall breaks
@@ -269,8 +269,9 @@ class Projectile(pygame.sprite.Sprite):
                 self.rect.x = int(round(self.virtualx))
                 self.rect.y = self.virtualy
 
-        collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)[0]
-        collidedWith.getShot()
+        collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)
+        print(collidedWith)
+        collidedWith[0].getShot()
         self.kill()
         return collidedWith
 
