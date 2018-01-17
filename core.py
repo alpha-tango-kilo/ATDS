@@ -1,4 +1,5 @@
 import pygame
+import math as m
 
 pygame.init()
 
@@ -144,6 +145,19 @@ class Actor(pygame.sprite.Sprite, World_Object):
         bullet = Projectile(self.virtualx + self.w / 2, self.virtualy + self.h / 2, mouse)
         bullet.go(sprGroup)
 
+    def drawCone(self, mouse, fov, distance):
+        # Find those damn co-ordinates #
+        fov = m.radians(fov)/2 # convert fov to radians and divide by 2 to make the angles work
+        t = [0,0] # initialise t
+        t[0] = m.tan(m.atan((mouse[0] - self.rect.x)/(mouse[1] - self.rect.y)) - fov) # finds angle needed for first point
+        t[1] = m.tan(m.atan((mouse[0] - self.rect.x)/(mouse[1] - self.rect.y)) + fov) # finds angle needed for second point
+
+        ps = [[self.rect.x, self.rect.y], [0,0], [0,0]] # initialise variable with 3 points of fov triangle
+        for p in range(1, len(ps)): # loop for second 2 co-ords in ps
+            ps[p][0] = self.rect.x + m.sqrt((distance**2)/(t[p - 1]**2 + 1)) # finds x co-ordinate
+            ps[p][1] = self.rect.y + m.sqrt((distance**2)/(t[p - 1]**-2 + 1)) # finds y co-ordinate
+        ###
+
 class Player(Actor):
     """
     This is the player's actor
@@ -166,9 +180,6 @@ class Player(Actor):
         # right hair
         pygame.draw.rect(gameDisplay, white, [mouse[0] + 3, mouse[1] - 2, 8, 4])
         pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
-
-    def drawCone(self, mouse):
-        pass
 
 class Guard(Actor):
     """
