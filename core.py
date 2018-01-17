@@ -34,7 +34,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.h = h
         self.colour = colour
         self.speed = speed
-        self.bannedDirs = [False, False, False, False]
+        self.bannedDirs = [False for _ in range(4)]
 
         self.image = pygame.Surface([self.w, self.h])
         self.image.fill(self.colour)
@@ -237,15 +237,13 @@ class Projectile(pygame.sprite.Sprite):
         super().__init__()
         self.xStep = mouse[0] - x
         self.yStep = mouse[1] - y
-        self.moveXfirst = False
 
         if self.xStep < self.yStep:
-            self.yStep = self.yStep / self.xStep
-            self.xStep = 1
-            self.moveXfirst = True
+            self.yStep = self.yStep / abs(self.xStep)
+            self.xStep = self.xStep / abs(self.xStep)
         else:
-            self.xStep = self.xStep / self.yStep
-            self.yStep = 1
+            self.xStep = self.xStep / abs(self.yStep)
+            self.yStep = self.yStep / abs(self.yStep) # consider optimising this
 
         self.image = pygame.Surface([2, 2])
         self.image.fill(black)
@@ -263,19 +261,15 @@ class Projectile(pygame.sprite.Sprite):
             self.virtualx += self.xStep
             self.virtualy += self.yStep
 
-            if self.moveXfirst:
-                self.rect.x = self.virtualx
-                self.rect.y = int(round(self.virtualy))
-            else:
-                self.rect.x = int(round(self.virtualx))
-                self.rect.y = self.virtualy
+            self.rect.x = int(round(self.virtualx))
+            self.rect.y = int(round(self.virtualy))
 
-            print("Bullet co-ords: ({x}, {y})".format(x = self.rect.x, y = self.rect.y))
+            print("Bullet co-ords: ({x}, {y})".format(x = self.virtualx, y = self.virtualy))
 
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)
         #print(collidedWith)
         collidedWith[0].getShot()
-        #self.kill()
+        self.kill()
         print("Registered hit.")
         return collidedWith
 
@@ -356,9 +350,10 @@ def instance():
         # Continuous functions #
         gameDisplay.fill(white)
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
-        player.drawCrosshair(pygame.mouse.get_pos())
         player.drawCone(pygame.mouse.get_pos())
         allSprites.draw(gameDisplay)
+        player.drawCrosshair(pygame.mouse.get_pos())
+        #player.draw(gameDisplay)
         ###
 
         #print(pygame.sprite.spritecollide(player, environmentSprites, False))
