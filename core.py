@@ -158,6 +158,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
             ps[p][1] = self.rect.y + m.sqrt((distance**2)/(t[p - 1]**-2 + 1)) # finds y co-ordinate
         ###
 
+        print(ps)
+
 class Player(Actor):
     """
     This is the player's actor
@@ -361,7 +363,7 @@ def instance():
         # Continuous functions #
         gameDisplay.fill(white)
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
-        player.drawCone(pygame.mouse.get_pos())
+        player.drawCone(pygame.mouse.get_pos(), 60, 100)
         allSprites.draw(gameDisplay)
         player.drawCrosshair(pygame.mouse.get_pos())
         lonelyPlayer.draw(gameDisplay)
