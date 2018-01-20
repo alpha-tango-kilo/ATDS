@@ -149,16 +149,19 @@ class Actor(pygame.sprite.Sprite, World_Object):
         # Find those damn co-ordinates #
         fov = m.radians(fov)/2 # convert fov to radians and divide by 2 to make the angles work
         t = [0,0] # initialise t
-        t[0] = m.tan(m.atan((mouse[0] - self.rect.x)/(mouse[1] - self.rect.y)) - fov) # finds angle needed for first point
-        t[1] = m.tan(m.atan((mouse[0] - self.rect.x)/(mouse[1] - self.rect.y)) + fov) # finds angle needed for second point
+        t[0] = m.tan(m.atan((mouse[0] - (self.rect.x + (self.w / 2)))/(mouse[1] - (self.rect.y + (self.h / 2)))) - fov) # finds angle needed for first point
+        t[1] = m.tan(m.atan((mouse[0] - (self.rect.x + (self.w / 2)))/(mouse[1] - (self.rect.y + (self.h / 2)))) + fov) # finds angle needed for second point
 
         ps = [[self.rect.x, self.rect.y], [0,0], [0,0]] # initialise variable with 3 points of fov triangle
         for p in range(1, len(ps)): # loop for second 2 co-ords in ps
-            ps[p][0] = self.rect.x + m.sqrt((distance**2)/(t[p - 1]**2 + 1)) # finds x co-ordinate
-            ps[p][1] = self.rect.y + m.sqrt((distance**2)/(t[p - 1]**-2 + 1)) # finds y co-ordinate
+            ps[p][0] = round(self.rect.x + m.sqrt((distance**2)/(t[p - 1]**2 + 1))) # finds x co-ordinate
+            ps[p][1] = round(self.rect.y + m.sqrt((distance**2)/(t[p - 1]**-2 + 1))) # finds y co-ordinate
         ###
 
-        print(ps)
+        #print(ps)
+
+        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (ps[0][0], ps[0][1]))
+        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (ps[1][0], ps[1][1]))
 
 class Player(Actor):
     """
