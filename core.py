@@ -5,6 +5,7 @@ pygame.init()
 
 displayWidth = 1280
 displayHeight = 720
+myfont = pygame.font.SysFont("monospace", 16)
 
 gameDisplay = pygame.display.set_mode((displayWidth, displayHeight), pygame.NOFRAME)
 pygame.display.set_caption("ATDS")
@@ -147,7 +148,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
     def drawCone(self, mouse, fov, distance):
         # Find those damn co-ordinates #
-        fov = m.radians(fov)/2 # convert fov to radians and divide by 2 to make the angles work
+        fov = m.radians(fov/2) # convert fov to radians and divide by 2 to make the angles work || put /2 inside brackets as dividing degress is almost always going to be easier than dividing radians
         t = [0,0] # initialise t
         t[0] = m.tan(m.atan((mouse[0] - (self.rect.x + (self.w / 2)))/(mouse[1] - (self.rect.y + (self.h / 2)))) - fov) # finds angle needed for first point
         t[1] = m.tan(m.atan((mouse[0] - (self.rect.x + (self.w / 2)))/(mouse[1] - (self.rect.y + (self.h / 2)))) + fov) # finds angle needed for second point
@@ -160,8 +161,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         #print(ps)
 
-        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (ps[0][0], ps[0][1]))
-        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (ps[1][0], ps[1][1]))
+        #pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (ps[0][0], ps[0][1]))
+        #pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (ps[1][0], ps[1][1]))
 
 class Player(Actor):
     """
