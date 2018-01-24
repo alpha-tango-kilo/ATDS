@@ -149,20 +149,20 @@ class Actor(pygame.sprite.Sprite, World_Object):
     def drawCone(self, mouse, fov, distance):
         # Find those damn co-ordinates #
         fov = m.radians(fov/2) # convert fov to radians and divide by 2 to make the angles work || put /2 inside brackets as dividing degress is almost always going to be easier than dividing radians
-        t = [0,0] # initialise t
+        t = [0,0] # initialise t, the tan value of the angles needed to get to the points
         t[0] = m.tan(m.atan((mouse[0] - (self.rect.x + (self.w / 2)))/(mouse[1] - (self.rect.y + (self.h / 2)))) - fov) # finds angle needed for first point
         t[1] = m.tan(m.atan((mouse[0] - (self.rect.x + (self.w / 2)))/(mouse[1] - (self.rect.y + (self.h / 2)))) + fov) # finds angle needed for second point
 
-        ps = [[self.rect.x, self.rect.y], [0,0], [0,0]] # initialise variable with 3 points of fov triangle
+        ps = [[self.rect.x, self.rect.y], [0,0], [0,0]] # initialise variable for 3 points of fov triangle, player co-ords can be filled already
         for p in range(1, len(ps)): # loop for second 2 co-ords in ps
             ps[p][0] = round(self.rect.x + m.sqrt((distance**2)/(t[p - 1]**2 + 1))) # finds x co-ordinate
-            ps[p][1] = round(self.rect.y + m.sqrt((distance**2)/(t[p - 1]**-2 + 1))) # finds y co-ordinate
+            ps[p][1] = round(self.rect.y - m.sqrt((distance**2)/(t[p - 1]**-2 + 1))) # finds y co-ordinate || the first - sign is the one that was changed with by hand debugging
         ###
 
-        #print(ps)
+        print(ps)
 
-        #pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (ps[0][0], ps[0][1]))
-        #pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (ps[1][0], ps[1][1]))
+        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (ps[1][0], ps[1][1]))
+        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (ps[2][0], ps[2][1]))
 
 class Player(Actor):
     """
