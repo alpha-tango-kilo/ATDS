@@ -146,23 +146,29 @@ class Actor(pygame.sprite.Sprite, World_Object):
         bullet = Projectile(self.virtualx + self.w / 2, self.virtualy + self.h / 2, mouse)
         bullet.go(sprGroup)
 
-    def drawCone(self, mouse, fov, distance):
-        # Find those damn co-ordinates #
-        fov = m.radians(fov/2) # convert fov to radians and divide by 2 to make the angles work || put /2 inside brackets as dividing degress is almost always going to be easier than dividing radians
-        t = [0,0] # initialise t, the tan value of the angles needed to get to the points
-        t[0] = m.tan(m.atan((mouse[0] - (self.rect.x + (self.w / 2)))/(mouse[1] - (self.rect.y + (self.h / 2)))) - fov) # finds angle needed for first point
-        t[1] = m.tan(m.atan((mouse[0] - (self.rect.x + (self.w / 2)))/(mouse[1] - (self.rect.y + (self.h / 2)))) + fov) # finds angle needed for second point
+    def drawCone(self, mouse, fov, distance): # shoutout to Phil Marshall for this snazzy chunk of code
+        fov = m.radians(fov/2)
 
-        ps = [[self.rect.x, self.rect.y], [0,0], [0,0]] # initialise variable for 3 points of fov triangle, player co-ords can be filled already
-        for p in range(1, len(ps)): # loop for second 2 co-ords in ps
-            ps[p][0] = round(self.rect.x + m.sqrt((distance**2)/(t[p - 1]**2 + 1))) # finds x co-ordinate
-            ps[p][1] = round(self.rect.y - m.sqrt((distance**2)/(t[p - 1]**-2 + 1))) # finds y co-ordinate || the first - sign is the one that was changed with by hand debugging
-        ###
+        dx = mouse[0] - (self.rect.x + (self.w / 2))
+        dy = mouse[1] - (self.rect.y + (self.w / 2))
+        mod_m = m.sqrt(dx**2 + dy**2)
+        sf = distance/mod_m
+        centre_x = sf*dx + (self.rect.x + (self.w / 2))
+        centre_y = sf*dy + (self.rect.y + (self.w / 2))
 
-        print(ps)
+        angle_sf = sf*m.tan(fov)
 
-        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (ps[1][0], ps[1][1]))
-        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (ps[2][0], ps[2][1]))
+        perp_dx = dy
+        perp_dy = -dx
+        corner1_x = centre_x + angle_sf*perp_dx
+        corner1_y = centre_y + angle_sf*perp_dy
+        corner2_x = centre_x - angle_sf*perp_dx
+        corner2_y = centre_y - angle_sf*perp_dy
+
+        # End Phil Marshall magic #
+
+        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
+        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
 
 class Player(Actor):
     """
