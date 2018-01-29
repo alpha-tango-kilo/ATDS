@@ -332,6 +332,12 @@ def instance():
     shootables.add(wall)
     shootables.add(wall2)
 
+    image = pygame.Surface([100, 100])
+    image.fill(dan)
+    rect = image.get_rect()
+    rect.x = 1000
+    rect.y = 300
+
     # hide mouse
     pygame.mouse.set_visible(False)
 
@@ -372,8 +378,10 @@ def instance():
 
         # Continuous functions #
         gameDisplay.fill(white)
+        pygame.draw.rect(gameDisplay, black, rect)
+        pygame.draw.arc(gameDisplay, dan, rect, 0, m.pi/2, round(rect.width/2)) # why is this not filled in properly
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
-        player.drawCone(pygame.mouse.get_pos(), 60, 100)
+        player.drawCone(pygame.mouse.get_pos(), 103, 250)
         allSprites.draw(gameDisplay)
         player.drawCrosshair(pygame.mouse.get_pos())
         lonelyPlayer.draw(gameDisplay)
