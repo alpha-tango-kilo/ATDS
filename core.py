@@ -147,7 +147,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         bullet = Projectile(self.virtualx + self.w / 2, self.virtualy + self.h / 2, mouse)
         bullet.go(sprGroup)
 
-    def drawCone(self, mouse, fov, distance): # shoutout to Phil Marshall for this snazzy chunk of code
+    def drawCone(self, mouse, fov, distance): # shoutout to Mr. Marshall for this snazzy chunk of code
         fov = m.radians(fov/2)
 
         dx = mouse[0] - (self.rect.x + (self.w / 2))
@@ -166,11 +166,23 @@ class Actor(pygame.sprite.Sprite, World_Object):
         corner2_x = centre_x - angle_sf*perp_dx
         corner2_y = centre_y - angle_sf*perp_dy
 
-        # End Phil Marshall magic #
+        # End Mr. Marshall magic #
+
+        xDiff = corner1_x - self.rect.x
+        yDiff = corner1_y - self.rect.y
+        angFromVert = 0
+
+        if yDiff != 0:
+            angFromVert = -1 * m.atan(xDiff / yDiff)
+        elif xDiff > 0:
+            angFromVert = 0.5 * m.pi
+        elif xDiff < 0:
+            angFromVert = 1.5 * m.pi
+
         arcRect = pygame.Surface([distance, distance]).get_rect()
         arcRect.x = (self.rect.x + (self.w/2)) - distance/2
         arcRect.y = (self.rect.y + (self.h/2)) - distance/2
-        pygame.draw.arc(gameDisplay, dan, arcRect, 0, m.pi/2, round(arcRect.width/2)) # why is this not filled in properly
+        pygame.draw.arc(gameDisplay, dan, arcRect, angFromVert, angFromVert + (2 * fov), round(arcRect.width/2)) # why is this not filled in properly
 
         pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
         pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
@@ -378,7 +390,7 @@ def instance():
         # Continuous functions #
         gameDisplay.fill(white)
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
-        player.drawCone(pygame.mouse.get_pos(), 103, 250)
+        player.drawCone(pygame.mouse.get_pos(), 90, 250)
         allSprites.draw(gameDisplay)
         player.drawCrosshair(pygame.mouse.get_pos())
         lonelyPlayer.draw(gameDisplay)
