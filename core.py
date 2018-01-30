@@ -3,15 +3,10 @@ import math as m
 
 pygame.init()
 
+# Global constants
 displayWidth = 1280
 displayHeight = 720
 myfont = pygame.font.SysFont("monospace", 16)
-
-gameDisplay = pygame.display.set_mode((displayWidth, displayHeight), pygame.NOFRAME)
-pygame.display.set_caption("ATDS")
-
-clock = pygame.time.Clock()
-
 # Colours #
 black = (0,0,0)
 grey = (105,105,105)
@@ -19,6 +14,12 @@ white = (255,255,255)
 red = (255,0,0)
 dan = (42,117,225)
 ###
+###
+
+gameDisplay = pygame.display.set_mode((displayWidth, displayHeight), pygame.NOFRAME)
+pygame.display.set_caption("ATDS")
+
+clock = pygame.time.Clock()
 
 class World_Object():
     def getShot(self):
