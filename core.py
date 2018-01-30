@@ -167,6 +167,10 @@ class Actor(pygame.sprite.Sprite, World_Object):
         corner2_y = centre_y - angle_sf*perp_dy
 
         # End Phil Marshall magic #
+        arcRect = pygame.Surface([distance, distance]).get_rect()
+        arcRect.x = (self.rect.x + (self.w/2)) - distance/2
+        arcRect.y = (self.rect.y + (self.h/2)) - distance/2
+        pygame.draw.arc(gameDisplay, dan, arcRect, 0, m.pi/2, round(arcRect.width/2)) # why is this not filled in properly
 
         pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
         pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
@@ -333,12 +337,6 @@ def instance():
     shootables.add(wall)
     shootables.add(wall2)
 
-    image = pygame.Surface([100, 100])
-    image.fill(dan)
-    rect = image.get_rect()
-    rect.x = 1000
-    rect.y = 300
-
     # hide mouse
     pygame.mouse.set_visible(False)
 
@@ -379,8 +377,6 @@ def instance():
 
         # Continuous functions #
         gameDisplay.fill(white)
-        pygame.draw.rect(gameDisplay, black, rect)
-        pygame.draw.arc(gameDisplay, dan, rect, 0, m.pi/2, round(rect.width/2)) # why is this not filled in properly
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
         player.drawCone(pygame.mouse.get_pos(), 103, 250)
         allSprites.draw(gameDisplay)
