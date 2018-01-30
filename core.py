@@ -169,14 +169,14 @@ class Actor(pygame.sprite.Sprite, World_Object):
         # End Mr. Marshall magic #
 
         xDiff = corner1_x - self.rect.x
-        yDiff = corner1_y - self.rect.y
+        yDiff = self.rect.y - corner1_y
         angFromVert = 0
 
         if yDiff != 0:
             angFromVert = -1 * m.atan(xDiff / yDiff)
-        elif xDiff > 0:
-            angFromVert = 0.5 * m.pi
         elif xDiff < 0:
+            angFromVert = 0.5 * m.pi
+        elif xDiff > 0:
             angFromVert = 1.5 * m.pi
 
         arcRect = pygame.Surface([distance, distance]).get_rect()
