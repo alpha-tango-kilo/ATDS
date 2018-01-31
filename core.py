@@ -13,6 +13,7 @@ grey = (105,105,105)
 white = (255,255,255)
 red = (255,0,0)
 dan = (42,117,225)
+lightgrey = (230,230,230)
 ###
 ###
 
@@ -148,7 +149,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         bullet.go(sprGroup)
 
     def drawCone(self, mouse, fov, distance): # shoutout to Mr. Marshall for this snazzy chunk of code
-        fov = m.radians(fov/2)
+        fov = m.radians(fov)
 
         dx = mouse[0] - (self.rect.x + (self.w / 2))
         dy = mouse[1] - (self.rect.y + (self.w / 2))
@@ -157,7 +158,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         centre_x = sf*dx + (self.rect.x + (self.w / 2))
         centre_y = sf*dy + (self.rect.y + (self.w / 2))
 
-        angle_sf = sf*m.tan(fov)
+        angle_sf = sf*m.tan(fov/2)
 
         perp_dx = dy
         perp_dy = -dx
@@ -168,21 +169,24 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         # End Mr. Marshall magic #
 
-        xDiff = corner1_x - self.rect.x
-        yDiff = self.rect.y - corner1_y
+        xDiff = corner1_x - self.virtualx
+        yDiff = self.virtualy - corner1_y
         angFromVert = 0
 
         if yDiff != 0:
-            angFromVert = -1 * m.atan(xDiff / yDiff)
-        elif xDiff < 0:
-            angFromVert = 0.5 * m.pi
+            if corner1_y < self.rect.y:
+                angFromVert = -1 * m.atan(xDiff / yDiff)
+            else:
+                angFromVert = -1 * m.atan(xDiff / yDiff) + m.pi
         elif xDiff > 0:
+            angFromVert = 0.5 * m.pi
+        elif xDiff < 0:
             angFromVert = 1.5 * m.pi
 
-        arcRect = pygame.Surface([distance, distance]).get_rect()
-        arcRect.x = (self.rect.x + (self.w/2)) - distance/2
-        arcRect.y = (self.rect.y + (self.h/2)) - distance/2
-        pygame.draw.arc(gameDisplay, dan, arcRect, angFromVert, angFromVert + (2 * fov), round(arcRect.width/2)) # why is this not filled in properly
+        arcRect = pygame.Surface([(distance * 2), (distance * 2)]).get_rect()
+        arcRect.x = (self.rect.x + (self.w/2)) - distance
+        arcRect.y = (self.rect.y + (self.h/2)) - distance
+        pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(arcRect.width/2)) # why is this not filled in properly
 
         pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
         pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
@@ -390,13 +394,11 @@ def instance():
         # Continuous functions #
         gameDisplay.fill(white)
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
-        player.drawCone(pygame.mouse.get_pos(), 90, 250)
+        player.drawCone(pygame.mouse.get_pos(), 103, 100)
         allSprites.draw(gameDisplay)
         player.drawCrosshair(pygame.mouse.get_pos())
         lonelyPlayer.draw(gameDisplay)
         ###
-
-        #print(pygame.sprite.spritecollide(player, environmentSprites, False))
 
         """
         collided = pygame.sprite.spritecollide(player, environmentSprites, False) # returns array of repr of objects collided with
