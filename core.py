@@ -364,7 +364,7 @@ def instance():
     pygame.mouse.set_visible(False)
 
     # initialise overlay
-    overlay = pygame.mask.fromSurface(gameDisplay)
+    overlay = pygame.mask.from_surface(gameDisplay)
 
     while running:
         for event in pygame.event.get():
@@ -403,12 +403,17 @@ def instance():
 
         # Continuous functions #
         overlay.fill()
-        overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100))
+        overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100)) # requires second arguemnt: "offset"
+        overlaySurface = pygame.Surface((displayWidth, displayHeight), masks=overlay)
 
         gameDisplay.fill(white)
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
         #player.drawCone(pygame.mouse.get_pos(), 103, 100)
         allSprites.draw(gameDisplay)
+
+        # draw overlay
+        gameDisplay.blit(overlaySurface, (0,0))
+
         player.drawCrosshair(pygame.mouse.get_pos())
         lonelyPlayer.draw(gameDisplay)
         ###
