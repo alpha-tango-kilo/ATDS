@@ -183,13 +183,20 @@ class Actor(pygame.sprite.Sprite, World_Object):
         elif xDiff < 0:
             angFromVert = 1.5 * m.pi
 
-        arcRect = pygame.Surface([(distance * 2), (distance * 2)]).get_rect()
+        viewBox = pygame.Surface([(distance * 2), (distance * 2)])
+        arcRect = viewBox.get_rect()
         arcRect.x = (self.rect.x + (self.w/2)) - distance
         arcRect.y = (self.rect.y + (self.h/2)) - distance
+        pygame.draw.arc(viewBox, lightgrey, arcRect, angFromVert, angFromVert + fov, round(arcRect.width/2))
         pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(arcRect.width/2)) # why is this not filled in properly
+
+        actorMask = pygame.mask.from_surface(viewBox)
+        print(actorMask.outline())
 
         pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
         pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
+
+        return actorMask
 
 class Player(Actor):
     """
@@ -356,6 +363,9 @@ def instance():
     # hide mouse
     pygame.mouse.set_visible(False)
 
+    # initialise overlay
+    overlay = pygame.mask.fromSurface(gameDisplay)
+
     while running:
         for event in pygame.event.get():
             # Any pygame handled events should be put here #
@@ -392,9 +402,12 @@ def instance():
         ###
 
         # Continuous functions #
+        overlay.fill()
+        overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100))
+
         gameDisplay.fill(white)
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
-        player.drawCone(pygame.mouse.get_pos(), 103, 100)
+        #player.drawCone(pygame.mouse.get_pos(), 103, 100)
         allSprites.draw(gameDisplay)
         player.drawCrosshair(pygame.mouse.get_pos())
         lonelyPlayer.draw(gameDisplay)
