@@ -322,9 +322,11 @@ class Projectile(pygame.sprite.Sprite):
                 return None
 
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False) # list of all objects collided with from within the specified sprGroup
-        collidedWith[0].getShot() # shoot one of those objects
         self.kill() # remove the bullet
         print("Registered hit. Bullet removed.")
+        for obj in collidedWith:
+            obj.getShot() # 'shoots' each object collided with in turn
+
         return collidedWith
 
 def instance():
