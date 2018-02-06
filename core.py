@@ -41,7 +41,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.speed = speed
         self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
 
-        self.image = pygame.Surface([self.w, self.h]).fill(self.colour) # creates a rectangular picture for the sprite using given parameters
+        self.image = pygame.Surface([self.w, self.h])
+        self.image.fill(self.colour) # creates a rectangular picture for the sprite using given parameters
         #self.image.set_colorkey(white)
         self.rect = self.image.get_rect()
         self.rect.x = round(x) # accounts for float inputs
@@ -144,7 +145,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.collisionCheck(sprGroup)
 
     def shoot(self, target, sprGroup):
-        bullet = Projectile(self.virtualx + self.w / 2, self.virtualy + self.h / 2, target) # create a bullet at the centre of the actor and point it in the direction of the target
+        bullet = Projectile(self.virtualx + (self.w / 2) - 1, self.virtualy + (self.h / 2) - 1, target) # create a bullet, such that its centre is the actor's centre
         bullet.go(sprGroup) # fires bullet (dramatically)
 
     def drawCone(self, mouse, fov, distance):
@@ -287,9 +288,10 @@ class Projectile(pygame.sprite.Sprite):
     """
     def __init__(self, x, y, mouse):
         super().__init__()
-        self.xStep = mouse[0] - x
+        self.xStep = mouse[0] - x # finds difference in co-ords
         self.yStep = mouse[1] - y
 
+        # makes smaller difference to be 1, and scales the other value appropriately
         if self.xStep < self.yStep:
             self.yStep = self.yStep / abs(self.xStep)
             self.xStep = self.xStep / abs(self.xStep)
@@ -298,28 +300,30 @@ class Projectile(pygame.sprite.Sprite):
             self.yStep = self.yStep / abs(self.yStep) # consider optimising this
 
         self.image = pygame.Surface([2, 2])
-        self.image.fill(black)
+        self.image.fill(black) # bullets are 2x2
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+
+        self.rect.x = round(x) # set co-ords
+        self.rect.y = round(y)
         self.virtualx = x
         self.virtualy = y
 
     def go(self, sprGroup):
-        while len(pygame.sprite.spritecollide(self, sprGroup, False)) == 0:
-            if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0:
-                print("Giving up")
-                return None
-            self.virtualx += self.xStep
+        while len(pygame.sprite.spritecollide(self, sprGroup, False)) == 0: # while the bullet has yet to hit anything
+            self.virtualx += self.xStep # move bullet in repeated small increments
             self.virtualy += self.yStep
 
-            self.rect.x = int(round(self.virtualx))
-            self.rect.y = int(round(self.virtualy))
+            self.rect.x = round(self.virtualx)
+            self.rect.y = round(self.virtualy)
 
-        collidedWith = pygame.sprite.spritecollide(self, sprGroup, False)
-        #print(collidedWith)
-        collidedWith[0].getShot()
-        self.kill()
+            if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0: # if the bullet is out of bounds
+                print("Giving up")
+                self.kill()
+                return None
+
+        collidedWith = pygame.sprite.spritecollide(self, sprGroup, False) # list of all objects collided with from within the specified sprGroup
+        collidedWith[0].getShot() # shoot one of those objects
+        self.kill() # remove the bullet
         print("Registered hit. Bullet removed.")
         return collidedWith
 
