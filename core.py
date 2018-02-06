@@ -22,33 +22,32 @@ pygame.display.set_caption("ATDS")
 
 clock = pygame.time.Clock()
 
-class World_Object():
-    def getShot(self):
+class World_Object(): # any object that is visible to and interactive with the player should inherit from this class
+    def getShot(self): # a default case for any object rendered to the screen being shot, needed otherwise projectiles will error
         print("World_Object says 'ow!'")
         return None
 
 class Actor(pygame.sprite.Sprite, World_Object):
     def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black):
-        super().__init__()
+        super().__init__() # inits sprite
 
         """
         Parameters provided allow for a better customisation of the player "model"
         """
 
-        self.w = w
-        self.h = h
+        self.w = w # width
+        self.h = h # height
         self.colour = colour
         self.speed = speed
-        self.bannedDirs = [False for _ in range(4)]
+        self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
 
-        self.image = pygame.Surface([self.w, self.h])
-        self.image.fill(self.colour)
+        self.image = pygame.Surface([self.w, self.h]).fill(self.colour) # creates a rectangular picture for the sprite using given parameters
         #self.image.set_colorkey(white)
         self.rect = self.image.get_rect()
-        self.rect.x = round(x)
+        self.rect.x = round(x) # accounts for float inputs
         self.rect.y = round(y)
 
-        self.virtualx = x
+        self.virtualx = x # allows for decimal movement
         self.virtualy = y
 
     def __str__(self):
@@ -66,46 +65,46 @@ class Actor(pygame.sprite.Sprite, World_Object):
         return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.w, h = self.h)
 
     def simpleMove(self, direction, distance):
-        if direction == 'u':
+        if direction == 'u': # up
             self.virtualy -= distance
-        elif direction == 'd':
+        elif direction == 'd': # down
             self.virtualy += distance
 
-        if direction == 'l':
-            self.virtualx -= distance
+        if direction == 'l': # left and right are in an independent if statement to up and down to allow for diagonal movement
+            self.virtualx -= distance # left
         elif direction == 'r':
-            self.virtualx += distance
+            self.virtualx += distance # right
 
-        self.rect.x = round(self.virtualx)
+        self.rect.x = round(self.virtualx) # update physical (pixel) co-ordinates
         self.rect.y = round(self.virtualy)
 
     def collisionCheck(self, sprGroup):
-        keep = [False for _ in range(4)]
-        directions = ['u', 'd', 'l', 'r']
-        tActor = Actor(self.virtualx, self.virtualy, self.w, self.h, self.speed)
-        for test in range(len(directions)):
-            tActor.rect.x = self.rect.x
+        keep = [False for _ in range(4)] # used to preserve banned directions if a test says the actor can't move up but another test says the actor can move up
+        directions = ['u', 'd', 'l', 'r'] # we were never told we had to be proud of our solutions...
+        tActor = Actor(self.virtualx, self.virtualy, self.w, self.h, self.speed) # create a clone of the actor being tested, with the same key characteristics (colour is not important as tActor will never be drawn to screen)
+        for test in range(len(directions)): # iterates from 0 to 3
+            tActor.rect.x = self.rect.x # resets all co-ordinates for each test
             tActor.rect.y = self.rect.y
             tActor.virtualx = self.virtualx
             tActor.virtualy = self.virtualy
-            tActor.simpleMove(directions[test], self.speed)
-            if len(pygame.sprite.spritecollide(tActor, sprGroup, False)) > 0:
-                self.bannedDirs[test] = True
-                keep[test] = True
-            elif len(pygame.sprite.spritecollide(tActor, sprGroup, False)) == 0 and not keep[test]:
-                self.bannedDirs[test] = False
+            tActor.simpleMove(directions[test], self.speed) # uses movement function without collision checking
+            if len(pygame.sprite.spritecollide(tActor, sprGroup, False)) > 0: # checks if an objects are collided with from sprGroup (typically environmentSprites)
+                self.bannedDirs[test] = True # bans direction
+                keep[test] = True # ensures that banned direction is not overwritten
+            elif len(pygame.sprite.spritecollide(tActor, sprGroup, False)) == 0 and not keep[test]: # if there are no collisions and the direction has no already been banned in this test battery...
+                self.bannedDirs[test] = False # ...allow movement in this direction
 
     def move(self, direction, sprGroup):
-        if direction == 'u' and not self.bannedDirs[0]:
+        if direction == 'u' and not self.bannedDirs[0]: # up
             self.virtualy -= self.speed
-        elif direction == 'd' and not self.bannedDirs[1]:
+        elif direction == 'd' and not self.bannedDirs[1]: # down
             self.virtualy += self.speed
-        elif direction == 'l' and not self.bannedDirs[2]:
+        elif direction == 'l' and not self.bannedDirs[2]: # left
             self.virtualx -= self.speed
-        elif direction == 'r' and not self.bannedDirs[3]:
+        elif direction == 'r' and not self.bannedDirs[3]: # right
             self.virtualx += self.speed
 
-        self.rect.x = round(self.virtualx)
+        self.rect.x = round(self.virtualx) # update physical co-ords
         self.rect.y = round(self.virtualy)
         self.collisionCheck(sprGroup) # must go after co-ordinate rounding
 
@@ -144,12 +143,14 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.rect.y = round(self.virtualy)
         self.collisionCheck(sprGroup)
 
-    def shoot(self, mouse, sprGroup):
-        bullet = Projectile(self.virtualx + self.w / 2, self.virtualy + self.h / 2, mouse)
-        bullet.go(sprGroup)
+    def shoot(self, target, sprGroup):
+        bullet = Projectile(self.virtualx + self.w / 2, self.virtualy + self.h / 2, target) # create a bullet at the centre of the actor and point it in the direction of the target
+        bullet.go(sprGroup) # fires bullet (dramatically)
 
-    def drawCone(self, mouse, fov, distance): # shoutout to Mr. Marshall for this snazzy chunk of code
-        fov = m.radians(fov)
+    def drawCone(self, mouse, fov, distance):
+        fov = m.radians(fov) # convert fov to radians
+
+        # Mr. Marshall's code #
 
         dx = mouse[0] - (self.rect.x + (self.w / 2))
         dy = mouse[1] - (self.rect.y + (self.w / 2))
@@ -169,29 +170,29 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         # End Mr. Marshall magic #
 
-        xDiff = corner1_x - self.virtualx
+        xDiff = corner1_x - self.virtualx # work out difference from point to actor
         yDiff = self.virtualy - corner1_y
-        angFromVert = 0.0
+        angFromVert = 0.0 # initialise as float
 
-        if yDiff != 0:
-            if corner1_y < self.rect.y:
+        if yDiff != 0: # to prevent 0 division errors
+            if corner1_y < self.rect.y: # I don't know, it just works
                 angFromVert = -1 * m.atan(xDiff / yDiff)
             else:
                 angFromVert = -1 * m.atan(xDiff / yDiff) + m.pi
-        elif xDiff > 0:
+        elif xDiff > 0: # looking exactly right
             angFromVert = 0.5 * m.pi
-        elif xDiff < 0:
+        elif xDiff < 0: # looking exactly left
             angFromVert = 1.5 * m.pi
 
-        viewBox = pygame.Surface([(distance * 2), (distance * 2)])
+        viewBox = pygame.Surface([(distance * 2), (distance * 2)]) # create large square upon which to draw arc (pygame things)
         viewBox.fill((0, 0, 0, 255))
         arcRect = viewBox.get_rect()
-        arcRect.x = round(self.virtualx - distance + (self.w / 2))
+        arcRect.x = round(self.virtualx - distance + (self.w / 2)) # move square such that the centre of the player is at the centre of the square
         arcRect.y = round(self.virtualy - distance + (self.h / 2))
-        pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(distance))
+        pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(distance)) # draw the arc to the virtual surface, for mask creation purposes
         pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(distance)) # why is this not filled in properly
 
-        actorMask = pygame.mask.from_surface(viewBox)
+        actorMask = pygame.mask.from_surface(viewBox) # create mask of arc
         #print(actorMask.outline())
 
         pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
@@ -210,7 +211,7 @@ class Player(Actor):
         # line to player
         pygame.draw.aaline(gameDisplay, black, mouse, (self.virtualx + (self.w / 2), self.virtualy + (self.h / 2)), 2)
         # top hair
-        pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] - 11, 4, 8])
+        pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] - 11, 4, 8]) # all hairs are outlined in white so they can be seen even when the cursor is over a black object
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] - 10, 2, 6])
         # bottom hair
         pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] + 3, 4, 8])
@@ -273,7 +274,7 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
 
     def getShot(self):
         if self.destructable: # wall breaks
-            self.kill()
+            self.kill() # removes sprite
             print("Wall shot. Wall dead.")
             return None
         else:
@@ -325,7 +326,7 @@ class Projectile(pygame.sprite.Sprite):
 def instance():
     running = True
 
-    # Prevent player from leaving the screen
+    # Used to prevent player from leaving the screen
     gameBoundTop = Obstacle(0, -100, displayWidth, 100, False)
     gameBoundBottom = Obstacle(0, displayHeight, displayWidth, 100, False)
     gameBoundLeft = Obstacle(-100, 0, 100, displayHeight, False)
@@ -336,13 +337,13 @@ def instance():
     wall = Obstacle(200, 200, 300, 150, False)
     wall2 = Obstacle(700, 600, 200, 20, True)
 
-    allSprites = pygame.sprite.Group()
+    allSprites = pygame.sprite.Group() # used for drawing all visible sprites
     allSprites.add(player)
     allSprites.add(guard)
     allSprites.add(wall)
     allSprites.add(wall2)
 
-    environmentSprites = pygame.sprite.Group()
+    environmentSprites = pygame.sprite.Group() # used for collision checking
     environmentSprites.add(wall)
     environmentSprites.add(wall2)
     environmentSprites.add(gameBoundTop)
@@ -353,10 +354,10 @@ def instance():
     guards = pygame.sprite.Group()
     guards.add(guard)
 
-    lonelyPlayer = pygame.sprite.Group()
+    lonelyPlayer = pygame.sprite.Group() # used to draw the player (again)
     lonelyPlayer.add(player)
 
-    shootables = pygame.sprite.Group()
+    shootables = pygame.sprite.Group() # objects that can be shot
     shootables.add(guard)
     shootables.add(wall)
     shootables.add(wall2)
@@ -364,7 +365,7 @@ def instance():
     # hide mouse
     pygame.mouse.set_visible(False)
 
-    # initialise overlay
+    # initialise overlay, done before anything is drawn to the screen
     overlay = pygame.mask.from_surface(gameDisplay)
 
     while running:
@@ -381,7 +382,7 @@ def instance():
                 if event.key == pygame.K_ESCAPE:
                     running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
                 player.shoot(pygame.mouse.get_pos(), shootables)
             ###
 
@@ -403,19 +404,19 @@ def instance():
         ###
 
         # Continuous functions #
-        overlay.fill()    
-        overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100), (0, 0)) # requires second arguemnt: "offset"
-        overlaySurface = pygame.Surface((displayWidth, displayHeight), masks=overlay)
+        overlay.fill() # make overlay opaque
+        overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100), (0, 0)) # cut out the player's cone of vision from screen
+        overlaySurface = pygame.Surface((displayWidth, displayHeight), masks=overlay) # create a surface of the mask so that it can be drawn to screen
 
-        gameDisplay.fill(white)
+        gameDisplay.fill(white) # clean up old frames
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
-        allSprites.draw(gameDisplay)
+        allSprites.draw(gameDisplay) # draw all visible sprites
 
         #gameDisplay.blit(overlaySurface, (0,0)) # draw overlay
 
         player.drawCone(pygame.mouse.get_pos(), 103, 100)
         player.drawCrosshair(pygame.mouse.get_pos())
-        lonelyPlayer.draw(gameDisplay)
+        lonelyPlayer.draw(gameDisplay) # redraw player so that they're over the top of the crosshair lines
         ###
 
         """
@@ -424,7 +425,7 @@ def instance():
         """
 
         pygame.display.update()
-        clock.tick(120)
+        clock.tick(120) # sets framerate to be 120
 
     pygame.quit()
 
