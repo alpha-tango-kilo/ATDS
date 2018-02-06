@@ -6,6 +6,7 @@ pygame.init()
 # Global constants
 displayWidth = 1280
 displayHeight = 720
+framerate = 120
 myfont = pygame.font.SysFont("monospace", 16)
 # Colours #
 black = (0,0,0)
@@ -433,7 +434,7 @@ def instance():
         """
 
         pygame.display.update()
-        clock.tick(120) # sets framerate to be 120
+        clock.tick(framerate) # sets framerate to be 120
 
     pygame.quit()
 
