@@ -184,14 +184,15 @@ class Actor(pygame.sprite.Sprite, World_Object):
             angFromVert = 1.5 * m.pi
 
         viewBox = pygame.Surface([(distance * 2), (distance * 2)])
+        viewBox.fill((0,0,0,255))
         arcRect = viewBox.get_rect()
         arcRect.x = (self.rect.x + (self.w/2)) - distance
         arcRect.y = (self.rect.y + (self.h/2)) - distance
-        pygame.draw.arc(viewBox, lightgrey, arcRect, angFromVert, angFromVert + fov, round(arcRect.width/2))
+        pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(arcRect.width/2))
         pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(arcRect.width/2)) # why is this not filled in properly
 
-        actorMask = pygame.mask.from_surface(viewBox)
-        print(actorMask.outline())
+        actorMask = pygame.mask.from_surface(viewBox.convert_alpha())
+        #print(actorMask.outline())
 
         pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
         pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
@@ -403,7 +404,7 @@ def instance():
 
         # Continuous functions #
         overlay.fill()
-        overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100)) # requires second arguemnt: "offset"
+        overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100), (0, 0)) # requires second arguemnt: "offset"
         overlaySurface = pygame.Surface((displayWidth, displayHeight), masks=overlay)
 
         gameDisplay.fill(white)
