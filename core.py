@@ -194,8 +194,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
         #pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(distance)) # why is this not filled in properly
 
         viewBox.set_colorkey(white)
-        actorMask = pygame.mask.from_surface(viewBox) # create mask of arc
-        #print(actorMask.outline())
+        actorMask = pygame.mask.from_surface(viewBox) # create mask of arc *WORKING CORRECTLY*
+        print(actorMask.count())
 
         #pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
         #pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
@@ -414,8 +414,8 @@ def instance():
         overlay.fill() # make overlay opaque
         overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100), (0, 0)) # cut out the player's cone of vision from screen
         overlay.invert()
-        overlaySurface = pygame.Surface((displayWidth, displayHeight), masks=overlay) # create a surface of the mask so that it can be drawn to screen
-        #overlaySurface.set_colorkey(black)
+        overlaySurface = pygame.Surface((displayWidth, displayHeight), masks = overlay) # create a surface of the mask so that it can be drawn to screen
+        overlaySurface = pygame.Surface((displayWidth, displayHeight), masks = player.drawCone(pygame.mouse.get_pos(), 103, 100))
 
         gameDisplay.fill(white) # clean up old frames
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
@@ -423,7 +423,6 @@ def instance():
 
         gameDisplay.blit(overlaySurface, (0,0)) # draw overlay
 
-        #player.drawCone(pygame.mouse.get_pos(), 103, 100)
         player.drawCrosshair(pygame.mouse.get_pos())
         lonelyPlayer.draw(gameDisplay) # redraw player so that they're over the top of the crosshair lines
         ###
