@@ -186,18 +186,19 @@ class Actor(pygame.sprite.Sprite, World_Object):
             angFromVert = 1.5 * m.pi
 
         viewBox = pygame.Surface([(distance * 2), (distance * 2)]) # create large square upon which to draw arc (pygame things)
-        viewBox.fill((0, 0, 0, 255))
+        viewBox.fill(white)
         arcRect = viewBox.get_rect()
         arcRect.x = round(self.virtualx - distance + (self.w / 2)) # move square such that the centre of the player is at the centre of the square
         arcRect.y = round(self.virtualy - distance + (self.h / 2))
         pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(distance)) # draw the arc to the virtual surface, for mask creation purposes
-        pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(distance)) # why is this not filled in properly
+        #pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(distance)) # why is this not filled in properly
 
+        viewBox.set_colorkey(white)
         actorMask = pygame.mask.from_surface(viewBox) # create mask of arc
         #print(actorMask.outline())
 
-        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
-        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
+        #pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
+        #pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
 
         return actorMask
 
@@ -412,15 +413,17 @@ def instance():
         # Continuous functions #
         overlay.fill() # make overlay opaque
         overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100), (0, 0)) # cut out the player's cone of vision from screen
+        overlay.invert()
         overlaySurface = pygame.Surface((displayWidth, displayHeight), masks=overlay) # create a surface of the mask so that it can be drawn to screen
+        #overlaySurface.set_colorkey(black)
 
         gameDisplay.fill(white) # clean up old frames
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
         allSprites.draw(gameDisplay) # draw all visible sprites
 
-        #gameDisplay.blit(overlaySurface, (0,0)) # draw overlay
+        gameDisplay.blit(overlaySurface, (0,0)) # draw overlay
 
-        player.drawCone(pygame.mouse.get_pos(), 103, 100)
+        #player.drawCone(pygame.mouse.get_pos(), 103, 100)
         player.drawCrosshair(pygame.mouse.get_pos())
         lonelyPlayer.draw(gameDisplay) # redraw player so that they're over the top of the crosshair lines
         ###
