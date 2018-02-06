@@ -171,7 +171,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         xDiff = corner1_x - self.virtualx
         yDiff = self.virtualy - corner1_y
-        angFromVert = 0
+        angFromVert = 0.0
 
         if yDiff != 0:
             if corner1_y < self.rect.y:
@@ -184,14 +184,14 @@ class Actor(pygame.sprite.Sprite, World_Object):
             angFromVert = 1.5 * m.pi
 
         viewBox = pygame.Surface([(distance * 2), (distance * 2)])
-        viewBox.fill((0,0,0,255))
+        viewBox.fill((0, 0, 0, 255))
         arcRect = viewBox.get_rect()
-        arcRect.x = (self.rect.x + (self.w/2)) - distance
-        arcRect.y = (self.rect.y + (self.h/2)) - distance
-        pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(arcRect.width/2))
-        pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(arcRect.width/2)) # why is this not filled in properly
+        arcRect.x = round(self.virtualx - distance + (self.w / 2))
+        arcRect.y = round(self.virtualy - distance + (self.h / 2))
+        pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(distance))
+        pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(distance)) # why is this not filled in properly
 
-        actorMask = pygame.mask.from_surface(viewBox.convert_alpha())
+        actorMask = pygame.mask.from_surface(viewBox)
         #print(actorMask.outline())
 
         pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
@@ -403,18 +403,17 @@ def instance():
         ###
 
         # Continuous functions #
-        overlay.fill()
+        overlay.fill()    
         overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100), (0, 0)) # requires second arguemnt: "offset"
         overlaySurface = pygame.Surface((displayWidth, displayHeight), masks=overlay)
 
         gameDisplay.fill(white)
         guard.goto(player.virtualx, player.virtualy, environmentSprites)
-        #player.drawCone(pygame.mouse.get_pos(), 103, 100)
         allSprites.draw(gameDisplay)
 
-        # draw overlay
-        gameDisplay.blit(overlaySurface, (0,0))
+        #gameDisplay.blit(overlaySurface, (0,0)) # draw overlay
 
+        player.drawCone(pygame.mouse.get_pos(), 103, 100)
         player.drawCrosshair(pygame.mouse.get_pos())
         lonelyPlayer.draw(gameDisplay)
         ###
