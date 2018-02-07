@@ -111,42 +111,6 @@ class Actor(pygame.sprite.Sprite, World_Object):
         if sprGroup:
             self.collisionCheck(sprGroup) # must go after co-ordinate rounding
 
-    def goto(self, x, y, sprGroup = None):
-        """
-        Stopping in close proximity (as opposed to on top of the target) only works if the 2 squares are the same width
-        """
-
-        # x co-ordinate #
-        if abs(self.rect.x - x) > self.w + self.speed:
-            if x < self.virtualx and not self.bannedDirs[2]:
-                self.virtualx -= self.speed
-            elif x > self.virtualx and not self.bannedDirs[3]:
-                self.virtualx += self.speed
-        elif abs(self.virtualx - x) <= self.w + self.speed and abs(self.virtualx - x) >= self.w and sprGroup == None: # fine adjusment
-            if x < self.virtualx and not self.bannedDirs[2]:
-                self.virtualx -= 0.1
-            elif x > self.virtualx and not self.bannedDirs[3]:
-                self.virtualx += 0.1
-        ###
-
-        # y co-ordinate #
-        if abs(self.rect.y - y) > self.w + self.speed:
-            if y < self.virtualy and not self.bannedDirs[0]:
-                self.virtualy -= self.speed
-            elif y > self.virtualy and not self.bannedDirs[1]:
-                self.virtualy += self.speed
-        elif abs(self.virtualy - y) <= self.w + self.speed and abs(self.virtualy - y) >= self.w and sprGroup == None: # fine adjustment
-            if y < self.virtualy and not self.bannedDirs[0]:
-                self.virtualy -= 0.1
-            elif y > self.virtualy and not self.bannedDirs[1]:
-                self.virtualy += 0.1
-        ###
-
-        self.rect.x = round(self.virtualx)
-        self.rect.y = round(self.virtualy)
-        if sprGroup:
-            self.collisionCheck(sprGroup)
-
     def shoot(self, target, sprGroup):
         bullet = Projectile(self.virtualx + (self.w / 2) - 1, self.virtualy + (self.h / 2) - 1, target) # create a bullet, such that its centre is the actor's centre
         bullet.go(sprGroup) # fires bullet (dramatically)
@@ -234,10 +198,84 @@ class Guard(Actor):
     """
     def __init__(self, x, y, w, h, speed = 1.2, colour = black):
         super().__init__(x, y, w, h, speed, colour)
+        self.8dir = (0,0)
+        self.state = [False, False]
+        """
+        Guard state (each number referring to an idex in the array):
+        0 - alerted to presence of player
+        1 - alerted to presence of dead guards
+
+        If all states are False, the guard patrols as normal
+        """
 
     def getShot(self):
         print("Guard hit. They didn't appreciate it.")
         return None
+
+    def goto(self, x, y, sprGroup = None):
+        """
+        Stopping in close proximity (as opposed to on top of the target) only works if the 2 squares are the same width
+        """
+
+        self.8dir = (0,0)
+
+        # x co-ordinate #
+        if abs(self.rect.x - x) > self.w + self.speed:
+            if x < self.virtualx and not self.bannedDirs[2]:
+                self.virtualx -= self.speed
+                self.8dir[1] = -1
+            elif x > self.virtualx and not self.bannedDirs[3]:
+                self.virtualx += self.speed
+                self.8dir[1] = 1
+        elif abs(self.virtualx - x) <= self.w + self.speed and abs(self.virtualx - x) >= self.w and sprGroup == None: # fine adjusment
+            if x < self.virtualx and not self.bannedDirs[2]:
+                self.virtualx -= 0.1
+                self.8dir[1] = -1
+            elif x > self.virtualx and not self.bannedDirs[3]:
+                self.virtualx += 0.1
+                self.8dir[1] = 1
+        ###
+
+        # y co-ordinate #
+        # could change such that moving up/down is determined before the distance moved is
+        if abs(self.rect.y - y) > self.w + self.speed:
+            if y < self.virtualy and not self.bannedDirs[0]:
+                self.virtualy -= self.speed
+                self.8dir[0] = 1
+            elif y > self.virtualy and not self.bannedDirs[1]:
+                self.virtualy += self.speed
+                self.8dir[0] = -1
+        elif abs(self.virtualy - y) <= self.w + self.speed and abs(self.virtualy - y) >= self.w and sprGroup == None: # fine adjustment
+            if y < self.virtualy and not self.bannedDirs[0]:
+                self.virtualy -= 0.1
+                self.8dir[0] = 1
+            elif y > self.virtualy and not self.bannedDirs[1]:
+                self.virtualy += 0.1
+                self.8dir[0] = -1
+        ###
+
+        self.rect.x = round(self.virtualx)
+        self.rect.y = round(self.virtualy)
+        if sprGroup:
+            self.collisionCheck(sprGroup)
+
+    def lookAround(self, player):
+        viewMask = drawCone((self.virtualx + (5 * self.8dir[1]), self.virtualy + (5 * self.8dir[0])), 90, 100)
+        playerMask = pygame.mask.from_surface(player.image)
+
+        if viewMask.overlap(playerMask, (0,0)):
+            return True
+        else:
+            return False
+
+    def brain(self, player, envObjs, allyObjs):
+        self.states = [lookAround(player), False]
+
+        if self.states[0]:
+            self.goto(player.rect.x, player.rect.y, envObjs)
+        else:
+            # patrol as usual
+            pass
 
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
