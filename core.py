@@ -108,7 +108,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.rect.x = round(self.virtualx) # update physical co-ords
         self.rect.y = round(self.virtualy)
-        self.collisionCheck(sprGroup) # must go after co-ordinate rounding
+        if sprGroup:
+            self.collisionCheck(sprGroup) # must go after co-ordinate rounding
 
     def goto(self, x, y, sprGroup = None):
         """
@@ -143,7 +144,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.rect.x = round(self.virtualx)
         self.rect.y = round(self.virtualy)
-        self.collisionCheck(sprGroup)
+        if sprGroup:
+            self.collisionCheck(sprGroup)
 
     def shoot(self, target, sprGroup):
         bullet = Projectile(self.virtualx + (self.w / 2) - 1, self.virtualy + (self.h / 2) - 1, target) # create a bullet, such that its centre is the actor's centre
