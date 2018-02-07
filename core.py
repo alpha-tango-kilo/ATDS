@@ -200,6 +200,8 @@ class Guard(Actor):
         super().__init__(x, y, w, h, speed, colour)
         self.8dir = (0,0)
         self.state = [False, False]
+        self.lastSeenPlayer = (0,0)
+        self.lastSeenGuard = (0,0)
         """
         Guard state (each number referring to an idex in the array):
         0 - alerted to presence of player
@@ -259,11 +261,12 @@ class Guard(Actor):
         if sprGroup:
             self.collisionCheck(sprGroup)
 
-    def lookAround(self, player):
+    def lookAround(self, actor):
         viewMask = drawCone((self.virtualx + (5 * self.8dir[1]), self.virtualy + (5 * self.8dir[0])), 90, 100)
-        playerMask = pygame.mask.from_surface(player.image)
+        actorMask = pygame.mask.from_surface(actor.image)
 
-        if viewMask.overlap(playerMask, (0,0)):
+        if viewMask.overlap(actorMask, (0,0)):
+            self.lastSeenPlayer = (actor.rect.x, actor.rect.y)
             return True
         else:
             return False
