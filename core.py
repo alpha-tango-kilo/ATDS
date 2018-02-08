@@ -171,7 +171,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         viewBox.set_colorkey(white)
         actorMask = pygame.mask.from_surface(viewBox) # create mask of arc *WORKING CORRECTLY*
-        print(actorMask.count())
+        #print(actorMask.count())
 
         #pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
         #pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
@@ -209,7 +209,7 @@ class Guard(Actor):
     def __init__(self, x, y, w, h, patrolPoints, speed = 1.2, colour = black):
         super().__init__(x, y, w, h, speed, colour)
         self.alive = True
-        self.eightDirs = (0,0)
+        self.eightDirs = [0,0]
         self.state = [False, False]
         self.lastSeenPlayer = None
         self.lastSeenGuard = []
@@ -233,7 +233,7 @@ class Guard(Actor):
         Stopping in close proximity (as opposed to on top of the target) only works if the 2 squares are the same width
         """
 
-        self.eightDirs = (0,0)
+        self.eightDirs = [0,0]
 
         # x co-ordinate #
         if abs(self.rect.x - dest.x) > self.w + self.speed:
@@ -303,6 +303,7 @@ class Guard(Actor):
 
         if self.states[0]:
             #self.goto(player.rect.x, player.rect.y, envObjs)
+            pass
         else:
             self.patrol(envObjs) # patrol as usual
 
@@ -410,7 +411,7 @@ def instance():
     gameBoundRight = Obstacle(displayWidth, 0, 100, displayHeight, False)
 
     player = Player()
-    guard = Guard(500, 500, 15, 15, 1.2, dan)
+    guard = Guard(500, 500, 15, 15, [Point(100,650), Point(1180, 650)], 1.2, dan)
     wall = Obstacle(200, 200, 300, 150, False)
     wall2 = Obstacle(700, 600, 200, 20, True)
 
@@ -488,7 +489,7 @@ def instance():
         overlaySurface = pygame.Surface((displayWidth, displayHeight), masks = player.drawCone(pygame.mouse.get_pos(), 103, 100))
 
         gameDisplay.fill(white) # clean up old frames
-        guard.goto(player.virtualx, player.virtualy, environmentSprites)
+        guard.goto(Point(player.virtualx, player.virtualy), environmentSprites)
         allSprites.draw(gameDisplay) # draw all visible sprites
 
         gameDisplay.blit(overlaySurface, (0,0)) # draw overlay
