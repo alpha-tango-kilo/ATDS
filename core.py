@@ -211,7 +211,7 @@ class Guard(Actor):
         super().__init__(x, y, w, h, speed, colour)
         self.alive = True
         self.eightDirs = [0,0]
-        self.state = [False, False]
+        self.states = [False, False]
         self.lastSeenCorpses = []
         self.lastSeenPlayer = None
         self.lastSeenGuards = []
@@ -219,11 +219,11 @@ class Guard(Actor):
         self.currentDest = self.patrolPoints[0]
 
         """
-        Guard state (each number referring to an idex in the array):
+        Guard states (each number referring to an idex in the array):
         0 - alerted to presence of player
         1 - alerted to presence of dead guards
         2 - with another guard
-        3 - investigating
+        3 - investigating around point
 
         If all states are False, the guard patrols as normal
         """
@@ -304,16 +304,17 @@ class Guard(Actor):
                         self.lastSeenGuards.append(Point(actor.rect.x, actor.rect.y))
                     else:
                         self.lastSeenCorpses.append(Point(actor.rect.x, actor.rect.y))
-                        self.state[1] = True
+                        self.states[1] = True
                 elif type(actor) == type(Player()):
                     self.lastSeenPlayer = Point(actor.rect.x, actor.rect.y)
-                    self.state[0] = True
+                    self.states[0] = True
 
     def brain(self, playerGroup, allyGroup, actorGroup, envObjs):
         self.lookAround(actorGroup)
 
-        if self.states[0]:
-            #self.goto(player.rect.x, player.rect.y, envObjs)
+        if self.states[0]: # gotta go get the player! Grrrr
+            self.goto(self.lastSeenPlayer)
+        elif self.states[1]: # omg one of my friends is dead
             pass
         else:
             self.patrol(envObjs) # patrol as usual
