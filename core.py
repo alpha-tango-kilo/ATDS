@@ -1,5 +1,6 @@
 import pygame
 import math as m
+import random as rng
 
 pygame.init()
 
@@ -281,6 +282,11 @@ class Guard(Actor):
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # sets destination to be next point in patrol points list
         self.goto(self.currentDest, envObjs)
 
+    def generatePatrol(self, focus, radius):
+        udlr = [rng.randint(-1,1), rng.randint(-1,1)]
+        self.patrolPoints[Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
+        self.currentDest = focus
+
     def lookAround(self, sprGroup):
         viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100)
         alreadySeenAGuard = False
@@ -289,7 +295,7 @@ class Guard(Actor):
         for actor in sprGroup:
             if viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0)):
                 if actor.amAI:
-                    if not self.alreadySeenAGuard:
+                    if not alreadySeenAGuard:
                         self.lastSeenGuard = []
                         alreadySeenAGuard = True
                     self.lastSeenGuard.append((actor.rect.x, actor.rect.y))
