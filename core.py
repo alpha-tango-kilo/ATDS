@@ -38,6 +38,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.w = w # width
         self.h = h # height
+        self.amAI = True
         self.colour = colour
         self.speed = speed
         self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
@@ -175,6 +176,7 @@ class Player(Actor):
     """
     def __init__(self, x = 10, y = 10, w = 15, h = 15, colour = red):
         super().__init__(x, y, w, h, 1, colour)
+        self.amAI = False
 
     def drawCrosshair(self, mouse):
         # line to player
@@ -196,12 +198,16 @@ class Guard(Actor):
     """
     These are the bad guys
     """
-    def __init__(self, x, y, w, h, speed = 1.2, colour = black):
+    def __init__(self, x, y, w, h, speed = 1.2, colour = black, patrolPoints):
         super().__init__(x, y, w, h, speed, colour)
+        self.alive = True
         self.8dir = (0,0)
         self.state = [False, False]
         self.lastSeenPlayer = (0,0)
-        self.lastSeenGuard = (0,0)
+        self.lastSeenGuard = []
+        self.patrolPoints = patrolPoints
+        self.currentDest = self.patrolPoints[0]
+        
         """
         Guard state (each number referring to an idex in the array):
         0 - alerted to presence of player
@@ -261,15 +267,28 @@ class Guard(Actor):
         if sprGroup:
             self.collisionCheck(sprGroup)
 
-    def lookAround(self, actor):
-        viewMask = drawCone((self.virtualx + (5 * self.8dir[1]), self.virtualy + (5 * self.8dir[0])), 90, 100)
-        actorMask = pygame.mask.from_surface(actor.image)
+    def patrol(self, envObjs):
+        if self.rect.x == currentDest[0] and self.rect.y == currentDest[1]:
+            self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # sets destination to be next point in patrol points list
+        self.goto(currentDest[0], currentDest[1], envObjs)
 
-        if viewMask.overlap(actorMask, (0,0)):
-            self.lastSeenPlayer = (actor.rect.x, actor.rect.y)
-            return True
-        else:
-            return False
+    def lookAround(self, sprGroup):
+        viewMask = drawCone((self.virtualx + (5 * self.8dir[1]), self.virtualy + (5 * self.8dir[0])), 90, 100)
+        alreadySeenAGuard = False
+        seenSomeone = False
+
+        for actor in sprGroup:
+            if viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0)):
+                if actor.amAI:
+                    if not self.alreadySeenAGuard:
+                        self.lastSeenGuard = []
+                        alreadySeenAGuard = True
+                    self.lastSeenGuard.append((actor.rect.x, actor.rect.y))
+                else:
+                    lastSeenPlayer = (actor.rect.x, actor.rect.y)
+                seenSomeone = True
+
+        return seenSomeone
 
     def brain(self, player, envObjs, allyObjs):
         self.states = [lookAround(player), False]
@@ -277,8 +296,7 @@ class Guard(Actor):
         if self.states[0]:
             self.goto(player.rect.x, player.rect.y, envObjs)
         else:
-            # patrol as usual
-            pass
+            self.patrol(envObjs) # patrol as usual
 
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
