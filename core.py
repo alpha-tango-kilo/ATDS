@@ -28,6 +28,14 @@ class World_Object(): # any object that is visible to and interactive with the p
         print("World_Object says 'ow!'")
         return None
 
+class Point()
+    def __init__(self, x = 0, y = 0):
+        self.x = x
+        self.y = y
+
+    def distance(self, point):
+        return m.sqrt((self.x - point.x)**2 + (self.y - point.y)**2)
+
 class Actor(pygame.sprite.Sprite, World_Object):
     def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black):
         super().__init__() # inits sprite
@@ -207,7 +215,7 @@ class Guard(Actor):
         self.lastSeenGuard = []
         self.patrolPoints = patrolPoints
         self.currentDest = self.patrolPoints[0]
-        
+
         """
         Guard state (each number referring to an idex in the array):
         0 - alerted to presence of player
