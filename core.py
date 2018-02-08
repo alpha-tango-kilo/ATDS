@@ -309,13 +309,21 @@ class Guard(Actor):
                     self.lastSeenPlayer = Point(actor.rect.x, actor.rect.y)
                     self.states[0] = True
 
-    def brain(self, playerGroup, allyGroup, actorGroup, envObjs):
+    def quickLook(self, actor):
+        viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100)
+        return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
+
+    def brain(self, player, allyGroup, actorGroup, envObjs):
         self.lookAround(actorGroup)
 
         if self.states[0]: # gotta go get the player! Grrrr
             self.goto(self.lastSeenPlayer)
+
+            if self.rect.x == self.lastSeenPlayer.x and self.rect.y == self.lastSeenPlayer.y and self.quickLook(player) == False: # lost the player
+                self.states[3] = True
+
         elif self.states[1]: # omg one of my friends is dead
-            pass
+            self.goto(self.lastSeenCorpse[len(self.lastSeenCorpse) - 1]) # go to the last seen guard corpse
         else:
             self.patrol(envObjs) # patrol as usual
 
