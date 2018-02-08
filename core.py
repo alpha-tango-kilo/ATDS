@@ -220,6 +220,7 @@ class Guard(Actor):
         Guard state (each number referring to an idex in the array):
         0 - alerted to presence of player
         1 - alerted to presence of dead guards
+        2 - following another guard
 
         If all states are False, the guard patrols as normal
         """
