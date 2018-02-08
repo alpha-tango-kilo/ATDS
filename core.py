@@ -207,13 +207,14 @@ class Guard(Actor):
     """
     These are the bad guys
     """
-    def __init__(self, x, y, w, h, patrolPoints, speed = 1.2, colour = black):
+    def __init__(self, x = 10, y = 10, w = 15, h = 15, patrolPoints = [Point(10,10)], speed = 1.2, colour = black):
         super().__init__(x, y, w, h, speed, colour)
         self.alive = True
         self.eightDirs = [0,0]
         self.state = [False, False]
+        self.lastSeenCorpses = []
         self.lastSeenPlayer = None
-        self.lastSeenGuard = []
+        self.lastSeenGuards = []
         self.patrolPoints = patrolPoints
         self.currentDest = self.patrolPoints[0]
 
@@ -221,13 +222,15 @@ class Guard(Actor):
         Guard state (each number referring to an idex in the array):
         0 - alerted to presence of player
         1 - alerted to presence of dead guards
-        2 - following another guard
+        2 - with another guard
+        3 - investigating
 
         If all states are False, the guard patrols as normal
         """
 
     def getShot(self):
         print("Guard hit. They didn't appreciate it.")
+        self.alive = False
         return None
 
     def goto(self, dest, sprGroup = None):
@@ -287,26 +290,27 @@ class Guard(Actor):
         self.patrolPoints[Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
         self.currentDest = focus
 
-    def lookAround(self, sprGroup):
+    def lookAround(self, actors):
         viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100)
         alreadySeenAGuard = False
-        seenSomeone = False
 
-        for actor in sprGroup:
+        for actor in actors:
             if viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0)):
-                if actor.amAI:
-                    if not alreadySeenAGuard:
-                        self.lastSeenGuard = []
-                        alreadySeenAGuard = True
-                    self.lastSeenGuard.append((actor.rect.x, actor.rect.y))
-                else:
-                    self.lastSeenPlayer = (actor.rect.x, actor.rect.y)
-                seenSomeone = True
+                if type(actor) == type(Guard()) and actor != self:
+                    if actor.alive:
+                        if not alreadySeenAGuard:
+                            self.lastSeenGuards = []
+                            alreadySeenAGuard = True
+                        self.lastSeenGuards.append(Point(actor.rect.x, actor.rect.y))
+                    else:
+                        self.lastSeenCorpses.append(Point(actor.rect.x, actor.rect.y))
+                        self.state[1] = True
+                elif type(actor) == type(Player()):
+                    self.lastSeenPlayer = Point(actor.rect.x, actor.rect.y)
+                    self.state[0] = True
 
-        return seenSomeone
-
-    def brain(self, playerGroup, allyGroup, envObjs):
-        self.states = [self.lookAround(playerGroup), self.lookAround(allyGroup)]
+    def brain(self, playerGroup, allyGroup, actorGroup, envObjs):
+        self.lookAround(actorGroup)
 
         if self.states[0]:
             #self.goto(player.rect.x, player.rect.y, envObjs)
@@ -427,6 +431,10 @@ def instance():
     allSprites.add(guard)
     allSprites.add(wall)
     allSprites.add(wall2)
+
+    actors = pygame.sprite.Group()
+    actors.add(player)
+    actors.add(guard)
 
     environmentSprites = pygame.sprite.Group() # used for collision checking
     environmentSprites.add(wall)
