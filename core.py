@@ -28,7 +28,7 @@ class World_Object(): # any object that is visible to and interactive with the p
         print("World_Object says 'ow!'")
         return None
 
-class Point()
+class Point():
     def __init__(self, x = 0, y = 0):
         self.x = x
         self.y = y
@@ -206,12 +206,12 @@ class Guard(Actor):
     """
     These are the bad guys
     """
-    def __init__(self, x, y, w, h, speed = 1.2, colour = black, patrolPoints):
+    def __init__(self, x, y, w, h, patrolPoints, speed = 1.2, colour = black):
         super().__init__(x, y, w, h, speed, colour)
         self.alive = True
-        self.8dir = (0,0)
+        self.eightDirs = (0,0)
         self.state = [False, False]
-        self.lastSeenPlayer = (0,0)
+        self.lastSeenPlayer = None
         self.lastSeenGuard = []
         self.patrolPoints = patrolPoints
         self.currentDest = self.patrolPoints[0]
@@ -228,46 +228,46 @@ class Guard(Actor):
         print("Guard hit. They didn't appreciate it.")
         return None
 
-    def goto(self, x, y, sprGroup = None):
+    def goto(self, dest, sprGroup = None):
         """
         Stopping in close proximity (as opposed to on top of the target) only works if the 2 squares are the same width
         """
 
-        self.8dir = (0,0)
+        self.eightDirs = (0,0)
 
         # x co-ordinate #
-        if abs(self.rect.x - x) > self.w + self.speed:
-            if x < self.virtualx and not self.bannedDirs[2]:
+        if abs(self.rect.x - dest.x) > self.w + self.speed:
+            if dest.x < self.virtualx and not self.bannedDirs[2]:
                 self.virtualx -= self.speed
-                self.8dir[1] = -1
-            elif x > self.virtualx and not self.bannedDirs[3]:
+                self.eightDirs[1] = -1
+            elif dest.x > self.virtualx and not self.bannedDirs[3]:
                 self.virtualx += self.speed
-                self.8dir[1] = 1
-        elif abs(self.virtualx - x) <= self.w + self.speed and abs(self.virtualx - x) >= self.w and sprGroup == None: # fine adjusment
-            if x < self.virtualx and not self.bannedDirs[2]:
+                self.eightDirs[1] = 1
+        elif abs(self.virtualx - dest.x) <= self.w + self.speed and abs(self.virtualx - dest.x) >= self.w and sprGroup == None: # fine adjusment
+            if dest.x < self.virtualx and not self.bannedDirs[2]:
                 self.virtualx -= 0.1
-                self.8dir[1] = -1
-            elif x > self.virtualx and not self.bannedDirs[3]:
+                self.eightDirs[1] = -1
+            elif dest.x > self.virtualx and not self.bannedDirs[3]:
                 self.virtualx += 0.1
-                self.8dir[1] = 1
+                self.eightDirs[1] = 1
         ###
 
         # y co-ordinate #
         # could change such that moving up/down is determined before the distance moved is
-        if abs(self.rect.y - y) > self.w + self.speed:
-            if y < self.virtualy and not self.bannedDirs[0]:
+        if abs(self.rect.y - dest.y) > self.w + self.speed:
+            if dest.y < self.virtualy and not self.bannedDirs[0]:
                 self.virtualy -= self.speed
-                self.8dir[0] = 1
-            elif y > self.virtualy and not self.bannedDirs[1]:
+                self.eightDirs[0] = 1
+            elif dest.y > self.virtualy and not self.bannedDirs[1]:
                 self.virtualy += self.speed
-                self.8dir[0] = -1
-        elif abs(self.virtualy - y) <= self.w + self.speed and abs(self.virtualy - y) >= self.w and sprGroup == None: # fine adjustment
-            if y < self.virtualy and not self.bannedDirs[0]:
+                self.eightDirs[0] = -1
+        elif abs(self.virtualy - dest.y) <= self.w + self.speed and abs(self.virtualy - dest.y) >= self.w and sprGroup == None: # fine adjustment
+            if dest.y < self.virtualy and not self.bannedDirs[0]:
                 self.virtualy -= 0.1
-                self.8dir[0] = 1
-            elif y > self.virtualy and not self.bannedDirs[1]:
+                self.eightDirs[0] = 1
+            elif dest.y > self.virtualy and not self.bannedDirs[1]:
                 self.virtualy += 0.1
-                self.8dir[0] = -1
+                self.eightDirs[0] = -1
         ###
 
         self.rect.x = round(self.virtualx)
@@ -276,12 +276,12 @@ class Guard(Actor):
             self.collisionCheck(sprGroup)
 
     def patrol(self, envObjs):
-        if self.rect.x == currentDest[0] and self.rect.y == currentDest[1]:
+        if self.rect.x == self.currentDest.x and self.rect.y == self.currentDest.y:
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # sets destination to be next point in patrol points list
-        self.goto(currentDest[0], currentDest[1], envObjs)
+        self.goto(self.currentDest, envObjs)
 
     def lookAround(self, sprGroup):
-        viewMask = drawCone((self.virtualx + (5 * self.8dir[1]), self.virtualy + (5 * self.8dir[0])), 90, 100)
+        viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100)
         alreadySeenAGuard = False
         seenSomeone = False
 
@@ -293,16 +293,16 @@ class Guard(Actor):
                         alreadySeenAGuard = True
                     self.lastSeenGuard.append((actor.rect.x, actor.rect.y))
                 else:
-                    lastSeenPlayer = (actor.rect.x, actor.rect.y)
+                    self.lastSeenPlayer = (actor.rect.x, actor.rect.y)
                 seenSomeone = True
 
         return seenSomeone
 
-    def brain(self, player, envObjs, allyObjs):
-        self.states = [lookAround(player), False]
+    def brain(self, playerGroup, allyGroup, envObjs):
+        self.states = [self.lookAround(playerGroup), self.lookAround(allyGroup)]
 
         if self.states[0]:
-            self.goto(player.rect.x, player.rect.y, envObjs)
+            #self.goto(player.rect.x, player.rect.y, envObjs)
         else:
             self.patrol(envObjs) # patrol as usual
 
