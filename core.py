@@ -212,7 +212,7 @@ class Guard(Actor):
 
         # Navigation related variables
         self.eightDirs = [0,0] # x, y. Positive right/down
-        self.wantToGoHere = [] # udlr
+        self.wantToGoHere = [False for _ in range(4)] # udlr
         self.blocked = [False for _ in range(4)] # udlr
         self.tryThisDir = ''
         self.lastCoords = Point(x,y)
@@ -242,10 +242,9 @@ class Guard(Actor):
         return None
 
     def altRoute(self):
-        for way in self.wantToGoHere:
-            index = directions.index(way)
-            if self.bannedDirs[index]:
-                self.blocked[index] = True
+        for thisWay in range(4):
+            if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay]:
+                self.blocked[thisWay] = True # identify blocked routes
 
         for findTheWay in range(4):
             binaryRand = rng.randint(0,1)
@@ -267,28 +266,28 @@ class Guard(Actor):
         """
 
         self.eightDirs = [0,0]
-        self.wantToGoHere = []
+        self.wantToGoHere = [False, False, False, False]
 
         # x co-ordinate #
         if abs(self.rect.x - dest.x) > self.w + self.speed:
             if dest.x < self.virtualx:
-                self.wantToGoHere.append('l')
+                self.wantToGoHere[2] = True
                 if not self.bannedDirs[2]:
                     self.virtualx -= self.speed
                     self.eightDirs[1] = -1
             elif dest.x > self.virtualx:
-                self.wantToGoHere.append('r')
+                self.wantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx += self.speed
                     self.eightDirs[1] = 1
         elif abs(self.virtualx - dest.x) <= self.w + self.speed and abs(self.virtualx - dest.x) >= self.w and sprGroup == None: # fine adjusment
             if dest.x < self.virtualx:
-                self.wantToGoHere.append('l') # necessary?
+                self.wantToGoHere[2] = True # necessary?
                 if not self.bannedDirs[2]:
                     self.virtualx -= 0.1
                     self.eightDirs[1] = -1
             elif dest.x > self.virtualx:
-                self.wantToGoHere.append('r') # necessary?
+                self.wantToGoHere[3] = True # necessary?
                 if not self.bannedDirs[3]:
                     self.virtualx += 0.1
                     self.eightDirs[1] = 1
@@ -298,23 +297,23 @@ class Guard(Actor):
         # could change such that moving up/down is determined before the distance moved is
         if abs(self.rect.y - dest.y) > self.w + self.speed:
             if dest.y < self.virtualy:
-                self.wantToGoHere.append('u')
+                self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= self.speed
                     self.eightDirs[0] = 1
             elif dest.y > self.virtualy:
-                self.wantToGoHere.append('d')
+                self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += self.speed
                     self.eightDirs[0] = -1
         elif abs(self.virtualy - dest.y) <= self.w + self.speed and abs(self.virtualy - dest.y) >= self.w and sprGroup == None: # fine adjustment
             if dest.y < self.virtualy:
-                self.wantToGoHere.append('u')
+                self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= 0.1
                     self.eightDirs[0] = 1
             elif dest.y > self.virtualy:
-                self.wantToGoHere.append('d')
+                self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += 0.1
                     self.eightDirs[0] = -1
