@@ -210,7 +210,12 @@ class Guard(Actor):
     def __init__(self, x = 10, y = 10, w = 15, h = 15, patrolPoints = [Point(10,10)], speed = 1.2, colour = black):
         super().__init__(x, y, w, h, speed, colour)
         self.alive = True
+
+        # Navigation related variables
         self.eightDirs = [0,0]
+        self.lastCoords = Point(x,y)
+
+        # Brain variables
         self.states = [False, False]
         self.lastSeenCorpses = []
         self.lastSeenPlayer = None
@@ -239,6 +244,7 @@ class Guard(Actor):
         """
 
         self.eightDirs = [0,0]
+        self.lastCoords = Point(self.rect.x, self.rect.y)
 
         # x co-ordinate #
         if abs(self.rect.x - dest.x) > self.w + self.speed:
@@ -279,6 +285,9 @@ class Guard(Actor):
         self.rect.y = round(self.virtualy)
         if sprGroup:
             self.collisionCheck(sprGroup)
+
+            if self.lastCoords.distance(Point(self.rect.x, self.rect.y)) == 0: # if guard hasn't moved since last time procedure was called
+                pass
 
     def patrol(self, envObjs):
         if self.rect.x == self.currentDest.x and self.rect.y == self.currentDest.y:
