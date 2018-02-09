@@ -214,10 +214,11 @@ class Guard(Actor):
         self.eightDirs = [0,0] # x, y. Positive right/down
         self.wantToGoHere = [False for _ in range(4)] # udlr
         self.blocked = [False for _ in range(4)] # udlr
+        self.tryThisDir = ''
         self.lastCoords = Point(x,y)
 
         # Brain variables
-        self.states = [False, False]
+        self.states = [False for _ in range(5)]
         self.lastSeenCorpses = []
         self.lastSeenPlayer = None
         self.lastSeenGuards = []
@@ -230,6 +231,7 @@ class Guard(Actor):
         1 - alerted to presence of dead guards
         2 - with another guard
         3 - investigating around point
+        4 - altRoute-ing
 
         If all states are False, the guard patrols as normal
         """
@@ -244,20 +246,19 @@ class Guard(Actor):
             if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay]:
                 self.blocked[thisWay] = True # identify blocked routes
 
-        tryThisDir = ''
         for findTheWay in range(4):
             binaryRand = rng.randint(0,1)
             if self.blocked[findTheWay]:
                 maybe = (2 + binaryRand) % len(self.blocked)
                 if not self.blocked[maybe]:
-                    tryThisDir = directions[maybe]
+                    self.tryThisDir = directions[maybe]
                     break
                 else:
                     if binaryRand == 0:
-                        tryThisDir = directions[maybe + 1]
+                        self.tryThisDir = directions[maybe + 1]
                     else:
-                        tryThisDir = directions[maybe - 1]
-                
+                        self.tryThisDir = directions[maybe - 1]
+                    break
 
     def goto(self, dest, sprGroup = None):
         """
@@ -265,7 +266,6 @@ class Guard(Actor):
         """
 
         self.eightDirs = [0,0]
-        self.lastCoords = Point(self.rect.x, self.rect.y)
         self.wantToGoHere = [False, False, False, False]
 
         # x co-ordinate #
@@ -325,6 +325,7 @@ class Guard(Actor):
             self.collisionCheck(sprGroup)
 
             if self.lastCoords.distance(Point(self.rect.x, self.rect.y)) == 0: # if guard hasn't moved since last time procedure was called
+                self.states[4] = True
                 self.altRoute()
 
     def patrol(self, envObjs):
@@ -361,9 +362,16 @@ class Guard(Actor):
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
     def brain(self, player, allyGroup, actorGroup, envObjs):
+        self.lastCoords = Point(self.rect.x, self.rect.y)
         self.lookAround(actorGroup)
 
-        if self.states[0]: # gotta go get the player! Grrrr
+        if self.states[4]:
+            self.move(self.tryThisDir)
+            if self.lastCoords.distance(self.rect.x, self.rect.y) == 0:
+                self.blocked[directions.index(self.tryThisDir)] = True
+                self.altRoute()
+
+        elif self.states[0]: # gotta go get the player! Grrrr
             self.goto(self.lastSeenPlayer)
 
             if self.rect.x == self.lastSeenPlayer.x and self.rect.y == self.lastSeenPlayer.y and self.quickLook(player) == False: # lost the player
