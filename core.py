@@ -5,6 +5,7 @@ import random as rng
 pygame.init()
 
 # Global constants
+directions = ['u','l','d','r']
 displayWidth = 1280
 displayHeight = 720
 framerate = 120
@@ -47,7 +48,6 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.w = w # width
         self.h = h # height
-        self.amAI = True
         self.colour = colour
         self.speed = speed
         self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
@@ -185,7 +185,6 @@ class Player(Actor):
     """
     def __init__(self, x = 10, y = 10, w = 15, h = 15, colour = red):
         super().__init__(x, y, w, h, 1, colour)
-        self.amAI = False
 
     def drawCrosshair(self, mouse):
         # line to player
@@ -212,7 +211,9 @@ class Guard(Actor):
         self.alive = True
 
         # Navigation related variables
-        self.eightDirs = [0,0]
+        self.eightDirs = [0,0] # x, y. Positive right/down
+        self.wantToGoHere = [False for _ in range(4)] # udlr
+        self.blocked = [False for _ in range(4)] # udlr
         self.lastCoords = Point(x,y)
 
         # Brain variables
@@ -238,6 +239,26 @@ class Guard(Actor):
         self.alive = False
         return None
 
+    def altRoute(self):
+        for thisWay in range(4):
+            if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay]:
+                self.blocked[thisWay] = True # identify blocked routes
+
+        tryThisDir = ''
+        for findTheWay in range(4):
+            binaryRand = rng.randint(0,1)
+            if self.blocked[findTheWay]:
+                maybe = (2 + binaryRand) % len(self.blocked)
+                if not self.blocked[maybe]:
+                    tryThisDir = directions[maybe]
+                    break
+                else:
+                    if binaryRand == 0:
+                        tryThisDir = directions[maybe + 1]
+                    else:
+                        tryThisDir = directions[maybe - 1]
+                
+
     def goto(self, dest, sprGroup = None):
         """
         Stopping in close proximity (as opposed to on top of the target) only works if the 2 squares are the same width
@@ -245,40 +266,57 @@ class Guard(Actor):
 
         self.eightDirs = [0,0]
         self.lastCoords = Point(self.rect.x, self.rect.y)
+        self.wantToGoHere = [False, False, False, False]
 
         # x co-ordinate #
         if abs(self.rect.x - dest.x) > self.w + self.speed:
-            if dest.x < self.virtualx and not self.bannedDirs[2]:
-                self.virtualx -= self.speed
-                self.eightDirs[1] = -1
-            elif dest.x > self.virtualx and not self.bannedDirs[3]:
-                self.virtualx += self.speed
-                self.eightDirs[1] = 1
+            if dest.x < self.virtualx:
+                self.wantToGoHere[2] = True
+                if not self.bannedDirs[2]:
+                    self.virtualx -= self.speed
+                    self.eightDirs[1] = -1
+            elif dest.x > self.virtualx:
+                self.wantToGoHere[3] = True
+                if not self.bannedDirs[3]:
+                    self.virtualx += self.speed
+                    self.eightDirs[1] = 1
         elif abs(self.virtualx - dest.x) <= self.w + self.speed and abs(self.virtualx - dest.x) >= self.w and sprGroup == None: # fine adjusment
-            if dest.x < self.virtualx and not self.bannedDirs[2]:
-                self.virtualx -= 0.1
-                self.eightDirs[1] = -1
-            elif dest.x > self.virtualx and not self.bannedDirs[3]:
-                self.virtualx += 0.1
-                self.eightDirs[1] = 1
+            if dest.x < self.virtualx:
+                self.wantToGoHere[2] = True # necessary?
+                if not self.bannedDirs[2]:
+                    self.virtualx -= 0.1
+                    self.eightDirs[1] = -1
+            elif dest.x > self.virtualx:
+                self.wantToGoHere[3] = True # necessary?
+                if not self.bannedDirs[3]:
+                    self.virtualx += 0.1
+                    self.eightDirs[1] = 1
         ###
 
         # y co-ordinate #
         # could change such that moving up/down is determined before the distance moved is
         if abs(self.rect.y - dest.y) > self.w + self.speed:
-            if dest.y < self.virtualy and not self.bannedDirs[0]:
-                self.virtualy -= self.speed
-                self.eightDirs[0] = 1
-            elif dest.y > self.virtualy and not self.bannedDirs[1]:
-                self.virtualy += self.speed
-                self.eightDirs[0] = -1
+            if dest.y < self.virtualy:
+                self.wantToGoHere[1] = True
+                if not self.bannedDirs[0]:
+                    self.virtualy -= self.speed
+                    self.eightDirs[0] = 1
+            elif dest.y > self.virtualy:
+                self.wantToGoHere[0] = True
+                if not self.bannedDirs[1]:
+                    self.virtualy += self.speed
+                    self.eightDirs[0] = -1
         elif abs(self.virtualy - dest.y) <= self.w + self.speed and abs(self.virtualy - dest.y) >= self.w and sprGroup == None: # fine adjustment
-            if dest.y < self.virtualy and not self.bannedDirs[0]:
-                self.virtualy -= 0.1
-                self.eightDirs[0] = 1
-            elif dest.y > self.virtualy and not self.bannedDirs[1]:
-                self.virtualy += 0.1
-                self.eightDirs[0] = -1
+            if dest.y < self.virtualy:
+                self.wantToGoHere[1] = True
+                if not self.bannedDirs[0]:
+                    self.virtualy -= 0.1
+                    self.eightDirs[0] = 1
+            elif dest.y > self.virtualy:
+                self.wantToGoHere[0] = True
+                if not self.bannedDirs[1]:
+                    self.virtualy += 0.1
+                    self.eightDirs[0] = -1
         ###
 
         self.rect.x = round(self.virtualx)
@@ -287,7 +325,7 @@ class Guard(Actor):
             self.collisionCheck(sprGroup)
 
             if self.lastCoords.distance(Point(self.rect.x, self.rect.y)) == 0: # if guard hasn't moved since last time procedure was called
-                pass
+                self.altRoute()
 
     def patrol(self, envObjs):
         if self.rect.x == self.currentDest.x and self.rect.y == self.currentDest.y:
