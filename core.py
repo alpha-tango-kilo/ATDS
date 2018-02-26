@@ -365,11 +365,12 @@ class Guard(Actor):
         self.lastCoords = Point(self.rect.x, self.rect.y)
         self.lookAround(actorGroup)
 
-        if self.states[4]:
-            self.move(self.tryThisDir)
-            if self.lastCoords.distance(self.rect.x, self.rect.y) == 0:
-                self.blocked[directions.index(self.tryThisDir)] = True
-                self.altRoute()
+        if self.states[4]: # navigating around an obstacle to get to destination
+            #self.move(self.tryThisDir)
+            #if self.lastCoords.distance(self.rect.x, self.rect.y) == 0 # NOTE: this is an alternative to the below, needs the line above to be uncommented to work. Checks if player moved given a direction to try and move in
+            if self.bannedDirs[self.bannedDirs.index(self.tryThisDir)]: # if I can't move
+                self.blocked[directions.index(self.tryThisDir)] = True # ... the direction I just tried to move in must be blocked by something
+                self.altRoute() # time to find out where to go again
 
         elif self.states[0]: # gotta go get the player! Grrrr
             self.goto(self.lastSeenPlayer)
