@@ -216,8 +216,9 @@ class Guard(Actor):
         self.wantToGoStack = []
         self.blocked = [False for _ in range(4)] # udlr
         self.tryThisDir = ''
-        self.lastCoords = Point(x,y)
+        self.lastCoords = Point()
         self.problemSolvingDirection = rng.choice([-1,1])
+        self.oldDest = Point()
 
         # Brain variables
         self.states = [False for _ in range(5)]
@@ -228,7 +229,7 @@ class Guard(Actor):
         self.currentDest = self.patrolPoints[0]
 
         """
-        Guard states (each number referring to an idex in the array):
+        Guard states (each number referring to an index in the array):
         0 - alerted to presence of player
         1 - alerted to presence of dead guards
         2 - with another guard
@@ -265,7 +266,12 @@ class Guard(Actor):
                     break
         """
 
+        # CHOOSE DIRECTION TO TRY
 
+        if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
+            self.oldDest = self.currentDest
+
+        self.currentDest
 
     def goto(self, dest, sprGroup = None):
         """
@@ -332,8 +338,8 @@ class Guard(Actor):
             self.collisionCheck(sprGroup)
 
             if self.lastCoords.distance(Point(self.rect.x, self.rect.y)) == 0: # if guard hasn't moved since last time procedure was called
-                self.states[4] = True
                 self.altRoute()
+                self.states[4] = True # must be left after the above to prevent the original destination being overwritten
 
     def patrol(self):
         if self.rect.x == self.currentDest.x and self.rect.y == self.currentDest.y:
