@@ -213,13 +213,15 @@ class Guard(Actor):
         # Navigation related variables
         self.eightDirs = [0,0] # x, y. Positive right/down
         self.wantToGoHere = [False for _ in range(4)] # udlr
+        self.wantToGoStack = []
         self.blocked = [False for _ in range(4)] # udlr
         self.tryThisDir = ''
         self.lastCoords = Point(x,y)
+        self.problemSolvingDirection = rng.choice([-1,1])
 
         # Brain variables
         self.states = [False for _ in range(5)]
-        self.lastSeenCorpses = []
+        self.lastSeenCorpses = [] # used as stack
         self.lastSeenPlayer = None
         self.lastSeenGuards = []
         self.patrolPoints = patrolPoints
@@ -245,7 +247,9 @@ class Guard(Actor):
         for thisWay in range(4):
             if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay]:
                 self.blocked[thisWay] = True # identify blocked routes
+                self.wantToGoStack.append(directions[thisWay])
 
+        """
         for findTheWay in range(4):
             binaryRand = rng.randint(0,1)
             if self.blocked[findTheWay]:
@@ -259,6 +263,9 @@ class Guard(Actor):
                     else:
                         self.tryThisDir = directions[maybe - 1]
                     break
+        """
+
+
 
     def goto(self, dest, sprGroup = None):
         """
@@ -328,10 +335,9 @@ class Guard(Actor):
                 self.states[4] = True
                 self.altRoute()
 
-    def patrol(self, envObjs):
+    def patrol(self):
         if self.rect.x == self.currentDest.x and self.rect.y == self.currentDest.y:
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # sets destination to be next point in patrol points list
-        self.goto(self.currentDest, envObjs)
 
     def generatePatrol(self, focus, radius):
         # method creates a random 3 point patrol given a central point and radius
@@ -368,24 +374,24 @@ class Guard(Actor):
         self.lookAround(actorGroup)
 
         if self.states[4]: # navigating around an obstacle to get to destination
-            #self.move(self.tryThisDir)
-            #if self.lastCoords.distance(self.rect.x, self.rect.y) == 0 # NOTE: this is an alternative to the below, needs the line above to be uncommented to work. Checks if player moved given a direction to try and move in
             if self.bannedDirs[self.bannedDirs.index(self.tryThisDir)]: # if I can't move
                 self.blocked[directions.index(self.tryThisDir)] = True # ... the direction I just tried to move in must be blocked by something
                 self.altRoute() # time to find out where to go again
 
         elif self.states[0]: # gotta go get the player! Grrrr
-            self.goto(self.lastSeenPlayer)
+            self.currentDest = self.lastSeenPlayer
 
             if self.rect.x == self.lastSeenPlayer.x and self.rect.y == self.lastSeenPlayer.y and self.quickLook(player) == False: # lost the player
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
 
         elif self.states[1]: # omg one of my friends is dead
-            self.goto(self.lastSeenCorpse[len(self.lastSeenCorpse) - 1]) # go to the last seen guard corpse
+            self.currentDest = self.lastSeenCorpse.pop() # go to the last seen guard corpse
 
         else:
-            self.patrol(envObjs) # patrol as usual
+            self.patrol() # patrol as usual
+
+        self.goto(self.currentDest)
 
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
