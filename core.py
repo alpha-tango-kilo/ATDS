@@ -219,6 +219,7 @@ class Guard(Actor):
         self.lastCoords = Point()
         self.problemSolvingDirection = rng.choice([-1,1])
         self.oldDest = Point()
+        self.dirToTry = 0 # udlr indexes
 
         # Brain variables
         self.states = [False for _ in range(5)]
@@ -246,9 +247,9 @@ class Guard(Actor):
 
     def altRoute(self):
         for thisWay in range(4):
-            if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay]:
+            if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay] and self.block[thisWay] == False: # last clause to prevent repeat appending
                 self.blocked[thisWay] = True # identify blocked routes
-                self.wantToGoStack.append(directions[thisWay])
+                self.wantToGoStack.append(thisWay)
 
         """
         for findTheWay in range(4):
@@ -266,12 +267,20 @@ class Guard(Actor):
                     break
         """
 
-        # CHOOSE DIRECTION TO TRY
-
         if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
             self.oldDest = self.currentDest
+            self.dirToTry = (self.wantToGoStack[len(self.wantToGoStack) - 1] + self.problemSolvingDirection) % 4
+        else:
+            self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
 
-        self.currentDest
+        if self.dirToTry == 0: # up
+            self.currentDest = Point(self.rect.x, self.rect.y - self.speed * 2)
+        elif self.dirToTry == 1: # down
+            self.currentDest = Point(self.rect.x, self.rect.y + self.speed * 2)
+        elif self.dirToTry == 2: # left
+            self.currentDest = Point(self.rect.x - self.speed * 2, self.rect.y)
+        elif self.dirToTry == 3: # right
+            self.currentDest = Point(self.rect.x + self.speed * 2, self.rect.y)
 
     def goto(self, dest, sprGroup = None):
         """
