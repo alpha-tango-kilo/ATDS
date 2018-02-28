@@ -118,6 +118,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.rect.x = round(self.virtualx) # update physical co-ords
         self.rect.y = round(self.virtualy)
+
         if sprGroup:
             self.collisionCheck(sprGroup) # must go after co-ordinate rounding
 
@@ -201,6 +202,66 @@ class Player(Actor):
         # right hair
         pygame.draw.rect(gameDisplay, white, [mouse[0] + 3, mouse[1] - 2, 8, 4])
         pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
+
+    def viewMask(self, mouse, fov, distance):
+        fov = m.radians(fov) # convert fov to radians
+
+        # Mr. Marshall's code #
+
+        dx = mouse[0] - (self.rect.x + (self.w / 2))
+        dy = mouse[1] - (self.rect.y + (self.w / 2))
+        mod_m = m.sqrt(dx**2 + dy**2)
+        sf = distance/mod_m
+        centre_x = sf*dx + (self.rect.x + (self.w / 2))
+        centre_y = sf*dy + (self.rect.y + (self.w / 2))
+
+        angle_sf = sf*m.tan(fov/2)
+
+        perp_dx = dy
+        perp_dy = -dx
+        corner1_x = centre_x + angle_sf*perp_dx
+        corner1_y = centre_y + angle_sf*perp_dy
+        corner2_x = centre_x - angle_sf*perp_dx
+        corner2_y = centre_y - angle_sf*perp_dy
+
+        # End Mr. Marshall magic #
+
+        xDiff = corner1_x - self.virtualx # work out difference from point to actor
+        yDiff = self.virtualy - corner1_y
+        angFromVert = 0.0 # initialise as float
+
+        if yDiff != 0: # to prevent 0 division errors
+            if corner1_y < self.rect.y: # magic?
+                angFromVert = -1 * m.atan(xDiff / yDiff)
+            else:
+                angFromVert = -1 * m.atan(xDiff / yDiff) + m.pi # why adding pi solves everything is still unknown to this day
+        elif xDiff > 0: # looking exactly right
+            angFromVert = 0.5 * m.pi
+        elif xDiff < 0: # looking exactly left
+            angFromVert = 1.5 * m.pi
+
+        viewBox = pygame.Surface([(distance * 2), (distance * 2)]) # create large square upon which to draw arc (pygame things)
+        viewBox.fill(white)
+        arcRect = viewBox.get_rect()
+        arcRect.x = round(self.virtualx - distance + (self.w / 2)) # move square such that the centre of the player is at the centre of the square
+        arcRect.y = round(self.virtualy - distance + (self.h / 2))
+        pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(distance))
+        viewBox.set_colorkey(white)
+        renderArea = pygame.mask.from_surface(viewBox) # now we have to find all the sprites we need to draw within this cone
+
+        return renderArea
+
+    def renderViewable(self, playerViewMask, allSprites):
+
+        visibleSprites = pygame.sprite.Group()
+
+        for sprite in allSprites:
+            spriteMask = pygame.mask.from_surface(sprite.image)
+
+            if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
+                spritesToDraw.add(sprite)
+
+        return visibleSprites
 
 class Guard(Actor):
     """
@@ -517,7 +578,6 @@ def instance():
     wall2 = Obstacle(700, 600, 200, 20, True)
 
     allSprites = pygame.sprite.Group() # used for drawing all visible sprites
-    allSprites.add(player)
     allSprites.add(guard)
     allSprites.add(wall)
     allSprites.add(wall2)
@@ -548,8 +608,8 @@ def instance():
     # hide mouse
     pygame.mouse.set_visible(False)
 
-    # initialise overlay, done before anything is drawn to the screen
-    overlay = pygame.mask.from_surface(gameDisplay)
+    # initialise done before anything is drawn to the screen
+    playerView = pygame.mask.from_surface(gameDisplay)
 
     while running:
         for event in pygame.event.get():
@@ -587,19 +647,20 @@ def instance():
         ###
 
         # Continuous functions #
-        overlay.fill() # make overlay opaque
-        overlay.erase(player.drawCone(pygame.mouse.get_pos(), 103, 100), (0, 0)) # cut out the player's cone of vision from screen
-        overlay.invert()
-        overlaySurface = pygame.Surface((displayWidth, displayHeight), masks = overlay) # create a surface of the mask so that it can be drawn to screen
-        overlaySurface = pygame.Surface((displayWidth, displayHeight), masks = player.drawCone(pygame.mouse.get_pos(), 103, 100))
+        mouseCoords = pygame.mouse.get_pos()
+        playerView.clear()
+        playerView.draw(player.viewMask(mouseCoords, 103, 100), (0,0))
 
         gameDisplay.fill(white) # clean up old frames
         guard.goto(Point(player.virtualx, player.virtualy), environmentSprites)
-        allSprites.draw(gameDisplay) # draw all visible sprites
+        #allSprites.draw(gameDisplay) # draw all visible sprites
+        renderThese = player.renderViewable(playerView, allSprites)
+        print(renderThese)
+        renderThese.draw(gameDisplay)
 
-        gameDisplay.blit(overlaySurface, (0,0)) # draw overlay
+        #gameDisplay.blit(overlaySurface, (0,0)) # draw overlay
 
-        player.drawCrosshair(pygame.mouse.get_pos())
+        player.drawCrosshair(mouseCoords)
         lonelyPlayer.draw(gameDisplay) # redraw player so that they're over the top of the crosshair lines
         ###
 
