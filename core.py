@@ -312,34 +312,19 @@ class Guard(Actor):
                 self.blocked[thisWay] = True # identify blocked routes
                 self.wantToGoStack.append(thisWay)
 
-        """
-        for findTheWay in range(4):
-            binaryRand = rng.randint(0,1)
-            if self.blocked[findTheWay]:
-                maybe = (2 + binaryRand) % len(self.blocked)
-                if not self.blocked[maybe]:
-                    self.tryThisDir = directions[maybe]
-                    break
-                else:
-                    if binaryRand == 0:
-                        self.tryThisDir = directions[maybe + 1]
-                    else:
-                        self.tryThisDir = directions[maybe - 1]
-                    break
-        """
-
         if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
             self.oldDest = self.currentDest
-            self.dirToTry = (self.wantToGoStack[len(self.wantToGoStack) - 1] + self.problemSolvingDirection) % 4
+            cancer = [0, 2, 1, 3] # please, just stop thinking about this (translates udlr format into uldr format -_-)
+            self.dirToTry = (cancer[self.wantToGoStack[len(self.wantToGoStack) - 1]] + self.problemSolvingDirection) % 4
         else:
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
 
         if self.dirToTry == 0: # up
             self.currentDest = Point(self.rect.x, self.rect.y - self.speed * 2)
-        elif self.dirToTry == 1: # down
-            self.currentDest = Point(self.rect.x, self.rect.y + self.speed * 2)
-        elif self.dirToTry == 2: # left
+        elif self.dirToTry == 1: # left
             self.currentDest = Point(self.rect.x - self.speed * 2, self.rect.y)
+        elif self.dirToTry == 2: # down
+            self.currentDest = Point(self.rect.x, self.rect.y + self.speed * 2)
         elif self.dirToTry == 3: # right
             self.currentDest = Point(self.rect.x + self.speed * 2, self.rect.y)
 
@@ -658,10 +643,8 @@ def instance():
         print(renderThese)
         renderThese.draw(gameDisplay)
 
-        #gameDisplay.blit(overlaySurface, (0,0)) # draw overlay
-
         player.drawCrosshair(mouseCoords)
-        lonelyPlayer.draw(gameDisplay) # redraw player so that they're over the top of the crosshair lines
+        lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         ###
 
         """
