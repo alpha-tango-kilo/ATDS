@@ -334,7 +334,9 @@ class Guard(Actor):
         self.goto(self.currentDest, envObjs)
 
     def generatePatrol(self, focus, radius):
-        udlr = [rng.randint(-1,1), rng.randint(-1,1)]
+        # method creates a random 3 point patrol given a central point and radius
+        # currently does not check to ensure the path is possible
+        udlr = [rng.choice([-1,1]), rng.choice([-1,1])] # chooses -1 or 1 randomly
         self.patrolPoints[Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
         self.currentDest = focus
 
@@ -376,10 +378,12 @@ class Guard(Actor):
             self.goto(self.lastSeenPlayer)
 
             if self.rect.x == self.lastSeenPlayer.x and self.rect.y == self.lastSeenPlayer.y and self.quickLook(player) == False: # lost the player
-                self.states[3] = True
+                self.states[0] = True # no longer aware of player
+                self.states[3] = True # investigate around last known point
 
         elif self.states[1]: # omg one of my friends is dead
             self.goto(self.lastSeenCorpse[len(self.lastSeenCorpse) - 1]) # go to the last seen guard corpse
+
         else:
             self.patrol(envObjs) # patrol as usual
 
