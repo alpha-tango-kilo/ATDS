@@ -248,6 +248,7 @@ class Player(Actor):
         pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(distance))
         viewBox.set_colorkey(white)
         renderArea = pygame.mask.from_surface(viewBox) # now we have to find all the sprites we need to draw within this cone
+        print(renderArea.count())
 
         return renderArea
 
@@ -257,6 +258,7 @@ class Player(Actor):
 
         for sprite in allSprites:
             spriteMask = pygame.mask.from_surface(sprite.image)
+            print("Sprite Mask " + str(spriteMask.count()))
 
             if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
                 spritesToDraw.add(sprite)
@@ -544,7 +546,7 @@ class Projectile(pygame.sprite.Sprite):
         self.kill() # remove the bullet
         print("Registered hit. Bullet removed.")
         for obj in collidedWith:
-            obj.getShot() # 'shoots' each object collided with in turn
+            obj.getShot() # registers hit for each object collided with in turn
 
         return collidedWith
 
@@ -635,6 +637,7 @@ def instance():
         mouseCoords = pygame.mouse.get_pos()
         playerView.clear()
         playerView.draw(player.viewMask(mouseCoords, 103, 100), (0,0))
+        #print(playerView.count())
 
         gameDisplay.fill(white) # clean up old frames
         guard.goto(Point(player.virtualx, player.virtualy), environmentSprites)
