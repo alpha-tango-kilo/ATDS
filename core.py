@@ -4,7 +4,7 @@ import random as rng
 
 pygame.init()
 
-# Global constants
+# Global constants #
 directions = ['u','l','d','r']
 displayWidth = 1280
 displayHeight = 720
