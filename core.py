@@ -168,15 +168,18 @@ class Actor(pygame.sprite.Sprite, World_Object):
         arcRect = viewBox.get_rect()
         arcRect.x = round(self.virtualx - distance + (self.w / 2)) # move square such that the centre of the player is at the centre of the square
         arcRect.y = round(self.virtualy - distance + (self.h / 2))
+
+        pygame.draw.rect(gameDisplay, black, arcRect, 2)
+
         pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(distance)) # draw the arc to the virtual surface, for mask creation purposes
-        #pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(distance)) # why is this not filled in properly
+        pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(distance)) # why is this not filled in properly
 
         viewBox.set_colorkey(white)
         actorMask = pygame.mask.from_surface(viewBox) # create mask of arc *WORKING CORRECTLY*
         #print(actorMask.count())
 
-        #pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
-        #pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
+        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
+        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
 
         return actorMask
 
@@ -221,8 +224,6 @@ class Player(Actor):
         perp_dy = -dx
         corner1_x = centre_x + angle_sf*perp_dx
         corner1_y = centre_y + angle_sf*perp_dy
-        corner2_x = centre_x - angle_sf*perp_dx
-        corner2_y = centre_y - angle_sf*perp_dy
 
         # End Mr. Marshall magic #
 
@@ -240,28 +241,24 @@ class Player(Actor):
         elif xDiff < 0: # looking exactly left
             angFromVert = 1.5 * m.pi
 
-        viewBox = pygame.Surface([(distance * 2), (distance * 2)]) # create large square upon which to draw arc (pygame things)
-        viewBox.fill(white)
-        arcRect = viewBox.get_rect()
-        arcRect.x = round(self.virtualx - distance + (self.w / 2)) # move square such that the centre of the player is at the centre of the square
-        arcRect.y = round(self.virtualy - distance + (self.h / 2))
-        pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(distance))
-        viewBox.set_colorkey(white)
-        renderArea = pygame.mask.from_surface(viewBox) # now we have to find all the sprites we need to draw within this cone
-        print(renderArea.count())
+        arcRect = pygame.Rect(self.rect.x, self.rect.y, distance * 2, distance * 2)
+        gameDisplay.fill(white)
+        pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
+        renderArea = pygame.mask.from_surface(gameDisplay) # now we have to find all the sprites we need to draw within this cone
+        print("Render area count: " + str(renderArea.count()))
 
         return renderArea
 
-    def renderViewable(self, playerViewMask, allSprites):
+    def selectToRender(self, playerViewMask, allSprites):
 
         visibleSprites = pygame.sprite.Group()
 
         for sprite in allSprites:
             spriteMask = pygame.mask.from_surface(sprite.image)
-            print("Sprite Mask " + str(spriteMask.count()))
+            #print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
 
             if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
-                spritesToDraw.add(sprite)
+                visibleSprites.add(sprite)
 
         return visibleSprites
 
@@ -636,16 +633,17 @@ def instance():
         # Continuous functions #
         mouseCoords = pygame.mouse.get_pos()
         playerView.clear()
-        playerView.draw(player.viewMask(mouseCoords, 103, 100), (0,0))
+        playerView.draw(player.viewMask(mouseCoords, 90, 100), (0,0))
         #print(playerView.count())
 
         gameDisplay.fill(white) # clean up old frames
         guard.goto(Point(player.virtualx, player.virtualy), environmentSprites)
         #allSprites.draw(gameDisplay) # draw all visible sprites
-        renderThese = player.renderViewable(playerView, allSprites)
+        renderThese = player.selectToRender(playerView, allSprites)
         print(renderThese)
         renderThese.draw(gameDisplay)
 
+        player.drawCone(mouseCoords, 90, 100)
         player.drawCrosshair(mouseCoords)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         ###
