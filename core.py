@@ -40,7 +40,7 @@ class Point():
 
 class Actor(pygame.sprite.Sprite, World_Object):
     def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black):
-        super().__init__() # inits sprite
+        super().__init__() # inits pygame.sprite.Sprite
 
         """
         Parameters provided allow for a better customisation of the player "model"
@@ -81,8 +81,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             self.virtualy -= distance
         elif direction == 'd': # down
             self.virtualy += distance
-
-        if direction == 'l': # left and right are in an independent if statement to up and down to allow for diagonal movement
+        elif direction == 'l': # left and right aren't separate in the if statement as only 1 direction will ever be given as a parameter to the function
             self.virtualx -= distance # left
         elif direction == 'r':
             self.virtualx += distance # right
@@ -596,6 +595,8 @@ def instance():
     playerView = pygame.mask.from_surface(gameDisplay)
 
     while running:
+        mouseCoords = pygame.mouse.get_pos()
+
         for event in pygame.event.get():
             # Any pygame handled events should be put here #
             # Quit the game
@@ -610,7 +611,7 @@ def instance():
                     running = False
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
-                player.shoot(pygame.mouse.get_pos(), shootables)
+                player.shoot(mouseCoords, shootables)
             ###
 
         # Keys being held #
@@ -630,20 +631,25 @@ def instance():
             player.move('r', environmentSprites)
         ###
 
-        # Continuous functions #
-        mouseCoords = pygame.mouse.get_pos()
+        # Continuous Functions
+        for guard in guards: # this is where the brain will be called from
+            guard.goto(Point(player.virtualx, player.virtualy), environmentSprites)
+        ###
+
+        # Rendering functions #
         playerView.clear()
-        playerView.draw(player.viewMask(mouseCoords, 90, 100), (0,0))
+        playerView.draw(player.viewMask(mouseCoords, 90, 100), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
+        renderThese = player.selectToRender(playerView, allSprites) # decide what needs rendering
+        print(renderThese)
+
+        gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
 
-        gameDisplay.fill(white) # clean up old frames
-        guard.goto(Point(player.virtualx, player.virtualy), environmentSprites)
         #allSprites.draw(gameDisplay) # draw all visible sprites
-        renderThese = player.selectToRender(playerView, allSprites)
-        print(renderThese)
+
         renderThese.draw(gameDisplay)
 
-        player.drawCone(mouseCoords, 90, 100)
+        #player.drawCone(mouseCoords, 90, 100)
         player.drawCrosshair(mouseCoords)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         ###
@@ -654,7 +660,7 @@ def instance():
         """
 
         pygame.display.update()
-        clock.tick(framerate) # sets framerate to be 120
+        clock.tick(framerate) # manages fps game is displayed at
 
     pygame.quit()
 
