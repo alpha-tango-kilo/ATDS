@@ -54,7 +54,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.image = pygame.Surface([self.w, self.h])
         self.image.fill(self.colour) # creates a rectangular picture for the sprite using given parameters
-        #self.image.set_colorkey(white)
+        self.image.set_colorkey(white)
         self.rect = self.image.get_rect()
         self.rect.x = round(x) # accounts for float inputs
         self.rect.y = round(y)
@@ -246,17 +246,28 @@ class Player(Actor):
         gameDisplay.set_colorkey(white)
         renderArea = pygame.mask.from_surface(gameDisplay) # now we have to find all the sprites we need to draw within this cone
         #gameDisplay.set_colorkey(None)
-        print("Render area count: " + str(renderArea.count()))
+        #print("Render area count: " + str(renderArea.count()))
 
         return renderArea
 
     def selectToRender(self, playerViewMask, allSprites):
 
+        tempGroup = pygame.sprite.Group
         visibleSprites = pygame.sprite.Group()
 
+        virtualDisplay = pygame.Surface((displayWidth, displayHeight))
+        virtualDisplay.set_colorkey(white)
+
         for sprite in allSprites:
-            spriteMask = pygame.mask.from_surface(sprite.image)
-            #print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
+            virtualDisplay.fill(white)
+
+            tempGroup.add(sprite)
+            tempGroup.draw(virtualDisplay) # errors saying it hasn't been passed a surface to draw to (what)
+            spriteMask = pygame.mask.from_surface(virtualDisplay)
+            tempGroup.empty()
+
+            #print(sprite)
+            print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
 
             if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
                 visibleSprites.add(sprite)
@@ -558,18 +569,18 @@ def instance():
     gameBoundRight = Obstacle(displayWidth, 0, 100, displayHeight, False)
 
     player = Player()
-    guard = Guard(500, 500, 15, 15, [Point(100,650), Point(1180, 650)], 1.2, dan)
+    guard1 = Guard(500, 500, 15, 15, [Point(100,650), Point(1180, 650)], 1.2, dan)
     wall = Obstacle(200, 200, 300, 150, False)
     wall2 = Obstacle(700, 600, 200, 20, True)
 
     allSprites = pygame.sprite.Group() # used for drawing all visible sprites
-    allSprites.add(guard)
+    allSprites.add(guard1)
     allSprites.add(wall)
     allSprites.add(wall2)
 
     actors = pygame.sprite.Group()
     actors.add(player)
-    actors.add(guard)
+    actors.add(guard1)
 
     environmentSprites = pygame.sprite.Group() # used for collision checking
     environmentSprites.add(wall)
@@ -580,13 +591,13 @@ def instance():
     environmentSprites.add(gameBoundRight)
 
     guards = pygame.sprite.Group()
-    guards.add(guard)
+    guards.add(guard1)
 
     lonelyPlayer = pygame.sprite.Group() # used to draw the player (again)
     lonelyPlayer.add(player)
 
     shootables = pygame.sprite.Group() # objects that can be shot
-    shootables.add(guard)
+    shootables.add(guard1)
     shootables.add(wall)
     shootables.add(wall2)
 
@@ -641,20 +652,20 @@ def instance():
         # Rendering functions #
         playerView.clear()
         playerView.draw(player.viewMask(mouseCoords, 90, 100), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
-        renderThese = player.selectToRender(playerView, allSprites) # decide what needs rendering
-        #print(renderThese)
+        visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
+        #print(visibleSprites)
 
         gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
 
-        renderThese.draw(gameDisplay)
+        visibleSprites.draw(gameDisplay)
         #player.drawCone(mouseCoords, 90, 100)
         player.drawCrosshair(mouseCoords)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         ###
 
         """
-        collided = pygame.sprite.spritecollide(player, environmentSprites, False) # returns array of repr of objects collided with
+        collided = pygame.sprite.spritecollide(player, environmentSprites, False) # returns array of objects collided with
         guardHit = pygame.sprite.collide_rect(player, guard) # returns boolean
         """
 
