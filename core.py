@@ -243,7 +243,9 @@ class Player(Actor):
         arcRect = pygame.Rect(self.rect.x, self.rect.y, distance * 2, distance * 2)
         gameDisplay.fill(white)
         pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
+        gameDisplay.set_colorkey(white)
         renderArea = pygame.mask.from_surface(gameDisplay) # now we have to find all the sprites we need to draw within this cone
+        #gameDisplay.set_colorkey(None)
         print("Render area count: " + str(renderArea.count()))
 
         return renderArea
@@ -640,15 +642,12 @@ def instance():
         playerView.clear()
         playerView.draw(player.viewMask(mouseCoords, 90, 100), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
         renderThese = player.selectToRender(playerView, allSprites) # decide what needs rendering
-        print(renderThese)
+        #print(renderThese)
 
         gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
 
-        #allSprites.draw(gameDisplay) # draw all visible sprites
-
         renderThese.draw(gameDisplay)
-
         #player.drawCone(mouseCoords, 90, 100)
         player.drawCrosshair(mouseCoords)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
