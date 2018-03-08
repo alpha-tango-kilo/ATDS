@@ -258,19 +258,19 @@ class Player(Actor):
         virtualDisplay = pygame.Surface((displayWidth, displayHeight))
         virtualDisplay.set_colorkey(white)
 
-        for sprite in allSprites:
+        for spr in allSprites:
             virtualDisplay.fill(white)
 
-            tempGroup.add(sprite)
-            tempGroup.draw(virtualDisplay) # errors saying it hasn't been passed a surface to draw to (what)
+            tempGroup.add(spr)
+            #tempGroup.draw(virtualDisplay) # errors saying it hasn't been passed a surface to draw to (what)
             spriteMask = pygame.mask.from_surface(virtualDisplay)
-            tempGroup.empty()
+            #tempGroup.empty() # errors saying it requires one positional argument (self) (also what)
 
             #print(sprite)
             print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
 
             if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
-                visibleSprites.add(sprite)
+                visibleSprites.add(spr)
 
         return visibleSprites
 
