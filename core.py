@@ -5,7 +5,7 @@ import random as rng
 pygame.init()
 
 # Global constants #
-directions = ['u','l','d','r']
+directions = ['u','d','l','r']
 displayWidth = 1280
 displayHeight = 720
 framerate = 120
@@ -285,7 +285,7 @@ class Guard(Actor):
         # Navigation related variables
         self.eightDirs = [0,0] # x, y. Positive right/down
         self.wantToGoHere = [False for _ in range(4)] # udlr
-        self.wantToGoStack = []
+        self.wantToGoStack = [] # stack of direction indexes
         self.blocked = [False for _ in range(4)] # udlr
         self.tryThisDir = ''
         self.lastCoords = Point()
@@ -318,17 +318,21 @@ class Guard(Actor):
         return None
 
     def altRoute(self):
-        for thisWay in range(4):
-            if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay] and self.block[thisWay] == False: # last clause to prevent repeat appending
-                self.blocked[thisWay] = True # identify blocked routes
-                self.wantToGoStack.append(thisWay)
-
         if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
+            for thisWay in range(4):
+                if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay] and self.block[thisWay] == False: # last clause to prevent repeat appending
+                    self.blocked[thisWay] = True # identify blocked routes
+                    self.wantToGoStack.append(thisWay)
+
             self.oldDest = self.currentDest
-            cancer = [0, 2, 1, 3] # please, just stop thinking about this (translates udlr format into uldr format -_-)
-            self.dirToTry = (cancer[self.wantToGoStack[len(self.wantToGoStack) - 1]] + self.problemSolvingDirection) % 4
-        else:
+            #cancer = [0, 2, 1, 3] # please, just stop thinking about this (translates udlr format into uldr format -_-)
+            self.dirToTry = ([0, 2, 1, 3][self.wantToGoStack[len(self.wantToGoStack) - 1]] + self.problemSolvingDirection) % 4
+        elif self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]:
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
+        else: # if the latest direction I've been trying is now free
+            self.dirToTry = self.wantToGoStack.pop()
+            if len(self.wantToGoStack) == 0:
+                self.states[4] = False # this won't work as Guard.goto() will override immediately
 
         if self.dirToTry == 0: # up
             self.currentDest = Point(self.rect.x, self.rect.y - self.speed * 2)
