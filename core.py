@@ -327,12 +327,14 @@ class Guard(Actor):
             self.oldDest = self.currentDest
             #cancer = [0, 2, 1, 3] # please, just stop thinking about this (translates udlr format into uldr format -_-)
             self.dirToTry = ([0, 2, 1, 3][self.wantToGoStack[len(self.wantToGoStack) - 1]] + self.problemSolvingDirection) % 4
-        elif self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]:
+        elif self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the way I'm currently trying to go is blocked
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
         else: # if the latest direction I've been trying is now free
             self.dirToTry = self.wantToGoStack.pop()
-            if len(self.wantToGoStack) == 0:
-                self.states[4] = False # this won't work as Guard.goto() will override immediately
+            if len(self.wantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
+                self.states[4] = False # alt routing is no longer needed
+                self.currentDest = self.oldDest
+                return # return early to prevent the below if statements from changing the destination
 
         if self.dirToTry == 0: # up
             self.currentDest = Point(self.rect.x, self.rect.y - self.speed * 2)
@@ -446,13 +448,14 @@ class Guard(Actor):
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
     def brain(self, player, allyGroup, actorGroup, envObjs):
+
         self.lastCoords = Point(self.rect.x, self.rect.y)
         self.lookAround(actorGroup)
 
         if self.states[4]: # navigating around an obstacle to get to destination
             if self.bannedDirs[self.bannedDirs.index(self.tryThisDir)]: # if I can't move
                 self.blocked[directions.index(self.tryThisDir)] = True # ... the direction I just tried to move in must be blocked by something
-                self.altRoute() # time to find out where to go again
+                self.altRoute() # time to find out where to go again (yay!)
 
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
@@ -650,7 +653,8 @@ def instance():
 
         # Continuous Functions
         for guard in guards: # this is where the brain will be called from
-            guard.goto(Point(player.virtualx, player.virtualy), environmentSprites)
+            if guard.alive: # prevents the guard from moving if they're dead - quite useful
+                guard.goto(Point(player.virtualx, player.virtualy), environmentSprites) # brain will be called here
         ###
 
         # Rendering functions #
