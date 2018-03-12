@@ -39,7 +39,7 @@ class Point():
         return m.sqrt((self.x - point.x)**2 + (self.y - point.y)**2)
 
 class Actor(pygame.sprite.Sprite, World_Object):
-    def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black):
+    def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black, magSize = 6, shortReload = 3200, longReload = 4000):
         super().__init__() # inits pygame.sprite.Sprite
 
         """
@@ -61,6 +61,11 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.virtualx = x # allows for decimal movement
         self.virtualy = y
+
+        self.magSize = magSize # number of bullets in a full magazine
+        self.currentMag = magSize # number of bullets left in magazine
+        self.shortReload = shortReload # delat in milliseconds
+        self.longReload = longReload
 
     def __str__(self):
         """
@@ -122,8 +127,23 @@ class Actor(pygame.sprite.Sprite, World_Object):
             self.collisionCheck(sprGroup) # must go after co-ordinate rounding
 
     def shoot(self, target, sprGroup):
-        bullet = Projectile(self.virtualx + (self.w / 2) - 1, self.virtualy + (self.h / 2) - 1, target) # create a bullet, such that its centre is the actor's centre
-        bullet.go(sprGroup) # fires bullet (dramatically)
+        if self.currentMag > 0:
+            bullet = Projectile(self.virtualx + (self.w / 2) - 1, self.virtualy + (self.h / 2) - 1, target) # create a bullet, such that its centre is the actor's centre
+            self.currentMag -= 1
+            bullet.go(sprGroup) # fires bullet (dramatically)
+        else:
+            pass # empty magazine click sound?
+
+    def reload(self):
+        if self.currentMag != self.maxMag:
+            start = pygame.time.get_ticks()
+            if self.currentMag >= 1: # quick reload
+                while pygame.time.get_ticks() < (start + self.shortReload):
+                    pass # there's got to be a better way than this - will this pause the game?
+            else: # long reload
+                while pygame.time.get_ticks() < (start + self.longReload):
+                    pass # there's got to be a better way than this - will this pause the game?
+            self.currentMag = self.maxMag
 
     def drawCone(self, mouse, fov, distance):
         fov = m.radians(fov) # convert fov to radians
@@ -452,10 +472,13 @@ class Guard(Actor):
         self.lastCoords = Point(self.rect.x, self.rect.y)
         self.lookAround(actorGroup)
 
+        if pygame.sprite.collide_rect(player, self): # if guard is touching the player
+            print("Game Over!")
+
         if self.states[4]: # navigating around an obstacle to get to destination
             if self.bannedDirs[self.bannedDirs.index(self.tryThisDir)]: # if I can't move
                 self.blocked[directions.index(self.tryThisDir)] = True # ... the direction I just tried to move in must be blocked by something
-                self.altRoute() # time to find out where to go again (yay!)
+            self.altRoute() # I think this needs to be called every time, not within the above if statement
 
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
