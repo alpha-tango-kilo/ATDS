@@ -39,7 +39,7 @@ class Point():
         return m.sqrt((self.x - point.x)**2 + (self.y - point.y)**2)
 
 class Actor(pygame.sprite.Sprite, World_Object):
-    def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black, magSize = 6, shortReload = 3200, longReload = 4000):
+    def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black, magSize = 6, shortReload = 3200, longReload = 4000, bulletPen = False):
         super().__init__() # inits pygame.sprite.Sprite
 
         """
@@ -66,6 +66,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.currentMag = magSize # number of bullets left in magazine
         self.shortReload = shortReload # delat in milliseconds
         self.longReload = longReload
+        self.bulletPen = bulletPen # whether or not bullets carry on after hitting target
 
     def __str__(self):
         """
@@ -499,7 +500,7 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
     """
     Those things we love to hit our heads against
     """
-    def __init__(self, x, y, w, h, destructable = False):
+    def __init__(self, x = 0, y = 0, w = 250, h = 250, destructable = False):
         """
         Define the shape and destructability of the wall
         """
@@ -568,7 +569,7 @@ class Projectile(pygame.sprite.Sprite):
         self.virtualx = x
         self.virtualy = y
 
-    def go(self, sprGroup):
+    def go(self, sprGroup, bulletPen = False):
         while len(pygame.sprite.spritecollide(self, sprGroup, False)) == 0: # while the bullet has yet to hit anything
             self.virtualx += self.xStep # move bullet in repeated small increments
             self.virtualy += self.yStep
@@ -582,12 +583,17 @@ class Projectile(pygame.sprite.Sprite):
                 return None
 
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False) # list of all objects collided with from within the specified sprGroup
-        self.kill() # remove the bullet
-        print("Registered hit. Bullet removed.")
+
+        print("Registered hit.")
+
         for obj in collidedWith:
             obj.getShot() # registers hit for each object collided with in turn
 
-        return collidedWith
+        if not bulletPen or type(collidedWith[0]) == type(Obstacle()): # if there is no bullet penetration or the bullet hit a wall
+            self.kill() # remove the bullet
+        else:
+            sprGroup.remove(collidedWith[0]) # remove the sprite just hit from the group, so it won't be hit again
+            self.go(sprGroup, bulletPen) # recurse the function to allow bullet to continue travelling
 
 def instance():
     running = True
@@ -626,11 +632,6 @@ def instance():
     lonelyPlayer = pygame.sprite.Group() # used to draw the player (again)
     lonelyPlayer.add(player)
 
-    shootables = pygame.sprite.Group() # objects that can be shot
-    shootables.add(guard1)
-    shootables.add(wall)
-    shootables.add(wall2)
-
     # hide mouse
     pygame.mouse.set_visible(False)
 
@@ -656,7 +657,7 @@ def instance():
                     player.reload()
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
-                player.shoot(mouseCoords, shootables)
+                player.shoot(mouseCoords, allSprites)
             ###
 
         # Keys being held #
