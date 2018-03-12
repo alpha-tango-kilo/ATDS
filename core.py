@@ -649,9 +649,11 @@ def instance():
             # Key pressed (triggers once, even if held) #
             if event.type == pygame.KEYDOWN:
 
-                # close game if escape is pressed
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE: # close game if escape is pressed
                     running = False
+
+                elif event.key == pygame.K_r: # press R to reload
+                    player.reload()
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
                 player.shoot(mouseCoords, shootables)
