@@ -46,13 +46,13 @@ class Actor(pygame.sprite.Sprite, World_Object):
         Parameters provided allow for a better customisation of the player "model"
         """
 
-        self.w = w # width
-        self.h = h # height
+        self.width = w
+        self.height = h
         self.colour = colour
         self.speed = speed
         self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
 
-        self.image = pygame.Surface([self.w, self.h])
+        self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.colour) # creates a rectangular picture for the sprite using given parameters
         self.image.set_colorkey(white)
         self.rect = self.image.get_rect()
@@ -73,14 +73,14 @@ class Actor(pygame.sprite.Sprite, World_Object):
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.w, h = self.h)
+        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
 
     def __repr__(self):
         """
         Providing an str means that if you just type an object is called, this is what is
         returned
         """
-        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.w, h = self.h)
+        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
 
     def simpleMove(self, direction, distance):
         if direction == 'u': # up
@@ -98,7 +98,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
     def collisionCheck(self, sprGroup):
         keep = [False for _ in range(4)] # used to preserve banned directions if a test says the actor can't move up but another test says the actor can move up
         directions = ['u', 'd', 'l', 'r'] # we were never told we had to be proud of our solutions...
-        tActor = Actor(self.virtualx, self.virtualy, self.w, self.h, self.speed) # create a clone of the actor being tested, with the same key characteristics (colour is not important as tActor will never be drawn to screen)
+        tActor = Actor(self.virtualx, self.virtualy, self.width, self.height, self.speed) # create a clone of the actor being tested, with the same key characteristics (colour is not important as tActor will never be drawn to screen)
         for test in range(len(directions)): # iterates from 0 to 3
             tActor.rect.x = self.rect.x # resets all co-ordinates for each test
             tActor.rect.y = self.rect.y
@@ -129,7 +129,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
     def shoot(self, target, sprGroup):
         if self.currentMag > 0:
-            bullet = Projectile(self.virtualx + (self.w / 2) - 1, self.virtualy + (self.h / 2) - 1, target) # create a bullet, such that its centre is the actor's centre
+            bullet = Projectile(self.virtualx + (self.width / 2) - 1, self.virtualy + (self.height / 2) - 1, target) # create a bullet, such that its centre is the actor's centre
             self.currentMag -= 1
             bullet.go(sprGroup) # fires bullet (dramatically)
         else:
@@ -151,12 +151,12 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         # Mr. Marshall's code #
 
-        dx = mouse[0] - (self.rect.x + (self.w / 2))
-        dy = mouse[1] - (self.rect.y + (self.w / 2))
+        dx = mouse[0] - (self.rect.x + (self.width / 2))
+        dy = mouse[1] - (self.rect.y + (self.width / 2))
         mod_m = m.sqrt(dx**2 + dy**2)
         sf = distance/mod_m
-        centre_x = sf*dx + (self.rect.x + (self.w / 2))
-        centre_y = sf*dy + (self.rect.y + (self.w / 2))
+        centre_x = sf*dx + (self.rect.x + (self.width / 2))
+        centre_y = sf*dy + (self.rect.y + (self.width / 2))
 
         angle_sf = sf*m.tan(fov/2)
 
@@ -186,8 +186,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
         viewBox = pygame.Surface([(distance * 2), (distance * 2)]) # create large square upon which to draw arc (pygame things)
         viewBox.fill(white)
         arcRect = viewBox.get_rect()
-        arcRect.x = round(self.virtualx - distance + (self.w / 2)) # move square such that the centre of the player is at the centre of the square
-        arcRect.y = round(self.virtualy - distance + (self.h / 2))
+        arcRect.x = round(self.virtualx - distance + (self.width / 2)) # move square such that the centre of the player is at the centre of the square
+        arcRect.y = round(self.virtualy - distance + (self.height / 2))
 
         pygame.draw.rect(gameDisplay, black, arcRect, 2)
 
@@ -198,8 +198,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
         actorMask = pygame.mask.from_surface(viewBox) # create mask of arc *WORKING CORRECTLY*
         #print(actorMask.count())
 
-        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.w / 2)), (self.rect.y + (self.h / 2))), (corner1_x, corner1_y))
-        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.w / 2), self.rect.y + (self.h / 2)), (corner2_x, corner2_y))
+        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.width / 2)), (self.rect.y + (self.height / 2))), (corner1_x, corner1_y))
+        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.width / 2), self.rect.y + (self.height / 2)), (corner2_x, corner2_y))
 
         return actorMask
 
@@ -212,7 +212,7 @@ class Player(Actor):
 
     def drawCrosshair(self, mouse):
         # line to player
-        pygame.draw.aaline(gameDisplay, black, mouse, (self.virtualx + (self.w / 2), self.virtualy + (self.h / 2)), 2)
+        pygame.draw.aaline(gameDisplay, black, mouse, (self.virtualx + (self.width / 2), self.virtualy + (self.height / 2)), 2)
         # top hair
         pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] - 11, 4, 8]) # all hairs are outlined in white so they can be seen even when the cursor is over a black object
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] - 10, 2, 6])
@@ -231,12 +231,12 @@ class Player(Actor):
 
         # Mr. Marshall's code #
 
-        dx = mouse[0] - (self.rect.x + (self.w / 2))
-        dy = mouse[1] - (self.rect.y + (self.w / 2))
+        dx = mouse[0] - (self.rect.x + (self.width / 2))
+        dy = mouse[1] - (self.rect.y + (self.width / 2))
         mod_m = m.sqrt(dx**2 + dy**2)
         sf = distance/mod_m
-        centre_x = sf*dx + (self.rect.x + (self.w / 2))
-        centre_y = sf*dy + (self.rect.y + (self.w / 2))
+        centre_x = sf*dx + (self.rect.x + (self.width / 2))
+        centre_y = sf*dy + (self.rect.y + (self.width / 2))
 
         angle_sf = sf*m.tan(fov/2)
 
@@ -305,8 +305,8 @@ class Guard(Actor):
 
         # Navigation related variables
         self.eightDirs = [0,0] # x, y. Positive right/down
-        self.wantToGoHere = [False for _ in range(4)] # udlr
-        self.wantToGoStack = [] # stack of direction indexes
+        self.widthantToGoHere = [False for _ in range(4)] # udlr
+        self.widthantToGoStack = [] # stack of direction indexes
         self.blocked = [False for _ in range(4)] # udlr
         self.tryThisDir = ''
         self.lastCoords = Point()
@@ -316,7 +316,7 @@ class Guard(Actor):
 
         # Brain variables
         self.states = [False for _ in range(5)]
-        self.lastSeenCorpses = [] # used as stack
+        self.lastSeenCorpse = Point()
         self.lastSeenPlayer = None
         self.lastSeenGuards = []
         self.patrolPoints = patrolPoints
@@ -341,18 +341,18 @@ class Guard(Actor):
     def altRoute(self):
         if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
             for thisWay in range(4):
-                if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay] and self.block[thisWay] == False: # last clause to prevent repeat appending
+                if self.bannedDirs[thisWay] and self.widthantToGoHere[thisWay] and self.block[thisWay] == False: # last clause to prevent repeat appending
                     self.blocked[thisWay] = True # identify blocked routes
-                    self.wantToGoStack.append(thisWay)
+                    self.widthantToGoStack.append(thisWay)
 
             self.oldDest = self.currentDest
             #cancer = [0, 2, 1, 3] # please, just stop thinking about this (translates udlr format into uldr format -_-)
-            self.dirToTry = ([0, 2, 1, 3][self.wantToGoStack[len(self.wantToGoStack) - 1]] + self.problemSolvingDirection) % 4
-        elif self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the way I'm currently trying to go is blocked
+            self.dirToTry = ([0, 2, 1, 3][self.widthantToGoStack[len(self.widthantToGoStack) - 1]] + self.problemSolvingDirection) % 4
+        elif self.bannedDirs[self.widthantToGoStack[len(self.widthantToGoStack) - 1]]: # if the way I'm currently trying to go is blocked
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
         else: # if the latest direction I've been trying is now free
-            self.dirToTry = self.wantToGoStack.pop()
-            if len(self.wantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
+            self.dirToTry = self.widthantToGoStack.pop()
+            if len(self.widthantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
                 self.states[4] = False # alt routing is no longer needed
                 self.currentDest = self.oldDest
                 return # return early to prevent the below if statements from changing the destination
@@ -372,28 +372,28 @@ class Guard(Actor):
         """
 
         self.eightDirs = [0,0]
-        self.wantToGoHere = [False, False, False, False]
+        self.widthantToGoHere = [False, False, False, False]
 
         # x co-ordinate #
-        if abs(self.rect.x - dest.x) > self.w + self.speed:
+        if abs(self.rect.x - dest.x) > self.width + self.speed:
             if dest.x < self.virtualx:
-                self.wantToGoHere[2] = True
+                self.widthantToGoHere[2] = True
                 if not self.bannedDirs[2]:
                     self.virtualx -= self.speed
                     self.eightDirs[1] = -1
             elif dest.x > self.virtualx:
-                self.wantToGoHere[3] = True
+                self.widthantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx += self.speed
                     self.eightDirs[1] = 1
-        elif abs(self.virtualx - dest.x) <= self.w + self.speed and abs(self.virtualx - dest.x) >= self.w and sprGroup == None: # fine adjusment
+        elif abs(self.virtualx - dest.x) <= self.width + self.speed and abs(self.virtualx - dest.x) >= self.width and sprGroup == None: # fine adjusment
             if dest.x < self.virtualx:
-                self.wantToGoHere[2] = True # necessary?
+                self.widthantToGoHere[2] = True # necessary?
                 if not self.bannedDirs[2]:
                     self.virtualx -= 0.1
                     self.eightDirs[1] = -1
             elif dest.x > self.virtualx:
-                self.wantToGoHere[3] = True # necessary?
+                self.widthantToGoHere[3] = True # necessary?
                 if not self.bannedDirs[3]:
                     self.virtualx += 0.1
                     self.eightDirs[1] = 1
@@ -401,25 +401,25 @@ class Guard(Actor):
 
         # y co-ordinate #
         # could change such that moving up/down is determined before the distance moved is
-        if abs(self.rect.y - dest.y) > self.w + self.speed:
+        if abs(self.rect.y - dest.y) > self.width + self.speed:
             if dest.y < self.virtualy:
-                self.wantToGoHere[1] = True
+                self.widthantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= self.speed
                     self.eightDirs[0] = 1
             elif dest.y > self.virtualy:
-                self.wantToGoHere[0] = True
+                self.widthantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += self.speed
                     self.eightDirs[0] = -1
-        elif abs(self.virtualy - dest.y) <= self.w + self.speed and abs(self.virtualy - dest.y) >= self.w and sprGroup == None: # fine adjustment
+        elif abs(self.virtualy - dest.y) <= self.width + self.speed and abs(self.virtualy - dest.y) >= self.width and sprGroup == None: # fine adjustment
             if dest.y < self.virtualy:
-                self.wantToGoHere[1] = True
+                self.widthantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= 0.1
                     self.eightDirs[0] = 1
             elif dest.y > self.virtualy:
-                self.wantToGoHere[0] = True
+                self.widthantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += 0.1
                     self.eightDirs[0] = -1
@@ -452,13 +452,13 @@ class Guard(Actor):
         for actor in actors:
             if viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0)):
                 if type(actor) == type(Guard()) and actor != self:
-                    if actor.alive:
-                        if not alreadySeenAGuard:
-                            self.lastSeenGuards = []
+                    if actor.alive: # if the guard is alive
+                        if not alreadySeenAGuard: # if it's the first guard I've seen
+                            self.lastSeenGuards = [] # jettison all other previously know guard locations, to avoid duplicates
                             alreadySeenAGuard = True
                         self.lastSeenGuards.append(Point(actor.rect.x, actor.rect.y))
-                    else:
-                        self.lastSeenCorpses.append(Point(actor.rect.x, actor.rect.y))
+                    elif Point(actor.rect.x, actor.rect.y) not in self.patrolPoints and self.states[1] == False: # if the corpse isn't one I'm patrolling around already, and I'm not already taking a shuftie at another corpse already
+                        self.lastSeenCorpse = Point(actor.rect.x, actor.rect.y)
                         self.states[1] = True
                 elif type(actor) == type(Player()):
                     self.lastSeenPlayer = Point(actor.rect.x, actor.rect.y)
@@ -488,8 +488,13 @@ class Guard(Actor):
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
 
-        elif self.states[1]: # omg one of my friends is dead
-            self.currentDest = self.lastSeenCorpse.pop() # go to the last seen guard corpse
+        elif self.states[1]: # upon seeing a guard's corpse
+            self.currentDest = self.lastSeenCorpse # go to the last seen corpse
+
+            if abs((self.rect.x + self.width) - self.currentDest.x) <= self.width: # if within a body length of the corpse
+                # investigate corpse for time period, then look around
+                generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the corpse
+                self.patrol() # start patrolling routine
 
         else:
             self.patrol() # patrol as usual
@@ -506,8 +511,8 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         """
         super().__init__()
 
-        self.w = w
-        self.h = h
+        self.width = w
+        self.height = h
         self.destructable = destructable
 
         # Obstacle will be grey if you can break it
@@ -516,7 +521,7 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         else:
             self.colour = black
 
-        self.image = pygame.Surface([self.w, self.h])
+        self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.colour)
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -526,13 +531,13 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         """
         Providing an str means that if you just type an object is called, this is what is returned
         """
-        return "Obstacle at ({x}, {y}), with a width of {w} and height of {h}".format(x = self.rect.x, y = self.rect.y, w = self.w, h = self.h)
+        return "Obstacle at ({x}, {y}), with a width of {w} and height of {h}".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
 
     def __repr__(self):
         """
         Providing an str means that if you just type an object is called, this is what is returned
         """
-        return "Obstacle at ({x}, {y}), with a width of {w} and height of {h}".format(x = self.rect.x, y = self.rect.y, w = self.w, h = self.h)
+        return "Obstacle at ({x}, {y}), with a width of {w} and height of {h}".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
 
     def getShot(self):
         if self.destructable: # wall breaks
