@@ -267,7 +267,7 @@ class Player(Actor):
 
     def selectToRender(self, playerViewMask, allSprites):
 
-        tempGroup = pygame.sprite.Group()
+        tempGroup = pygame.sprite.GroupSingle()
         visibleSprites = pygame.sprite.Group()
 
         virtualDisplay = pygame.Surface((displayWidth, displayHeight))
@@ -275,15 +275,15 @@ class Player(Actor):
 
         for spr in allSprites:
             try:
-                if spr.mask.overlap_area(playerViewMask, (0,0)) > 0:
+                if spr.mask.overlap_area(playerViewMask, (0,0)) > 0: # tries to use sprites own premade mask, if it has one
                     visibleSprites.add(spr)
-            except AttributeError:
+
+            except AttributeError: # if the object doesn't have the attribute mask
                 virtualDisplay.fill(white)
 
                 tempGroup.add(spr)
                 tempGroup.draw(virtualDisplay)
                 spriteMask = pygame.mask.from_surface(virtualDisplay)
-                tempGroup.empty()
 
                 #print(spr)
                 print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
@@ -651,7 +651,7 @@ def instance():
     guards = pygame.sprite.Group()
     guards.add(guard1)
 
-    lonelyPlayer = pygame.sprite.Group() # used to draw the player (again)
+    lonelyPlayer = pygame.sprite.GroupSingle() # used to draw the player (again)
     lonelyPlayer.add(player)
 
     # hide mouse
