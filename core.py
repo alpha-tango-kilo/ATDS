@@ -39,6 +39,10 @@ class Point():
     def distance(self, point):
         return m.sqrt((self.x - point.x)**2 + (self.y - point.y)**2)
 
+    def round(self):
+        self.x = round(self.x)
+        self.y = round(self.y)
+
 class Actor(pygame.sprite.Sprite, World_Object):
     def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black, magSize = 6, shortReload = 3200, longReload = 4000, bulletPen = False):
         super().__init__() # inits pygame.sprite.Sprite
@@ -62,10 +66,11 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.virtualx = x # allows for decimal movement
         self.virtualy = y
+        self.cPos = Point(self.virtualx + self.width/2, self.virtualy + self.height/2)
 
         self.magSize = magSize # number of bullets in a full magazine
         self.currentMag = magSize # number of bullets left in magazine
-        self.shortReload = shortReload # delat in milliseconds
+        self.shortReload = shortReload # delau in milliseconds
         self.longReload = longReload
         self.bulletPen = bulletPen # whether or not bullets carry on after hitting target
 
@@ -83,6 +88,11 @@ class Actor(pygame.sprite.Sprite, World_Object):
         """
         return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
 
+    def posUpdate(self):
+        self.rect.x = round(self.virtualx) # update physical (pixel) co-ordinates
+        self.rect.y = round(self.virtualy)
+        self.cPos = Point(self.virtualx + self.width/2, self.virtualy + self.height/2)
+
     def simpleMove(self, direction, distance):
         if direction == 'u': # up
             self.virtualy -= distance
@@ -93,8 +103,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         elif direction == 'r':
             self.virtualx += distance # right
 
-        self.rect.x = round(self.virtualx) # update physical (pixel) co-ordinates
-        self.rect.y = round(self.virtualy)
+        self.posUpdate()
 
     def collisionCheck(self, sprGroup):
         keep = [False for _ in range(4)] # used to preserve banned directions if a test says the actor can't move up but another test says the actor can move up
@@ -122,15 +131,14 @@ class Actor(pygame.sprite.Sprite, World_Object):
         elif direction == 'r' and not self.bannedDirs[3]: # right
             self.virtualx += self.speed
 
-        self.rect.x = round(self.virtualx) # update physical co-ords
-        self.rect.y = round(self.virtualy)
+        self.posUpdate()
 
         if sprGroup:
-            self.collisionCheck(sprGroup) # must go after co-ordinate rounding
+            self.collisionCheck(sprGroup) # must go after position update
 
     def shoot(self, target, sprGroup):
         if self.currentMag > 0:
-            bullet = Projectile(self.virtualx + (self.width / 2) - 1, self.virtualy + (self.height / 2) - 1, target) # create a bullet, such that its centre is the actor's centre
+            bullet = Projectile(self.cPos.x - 1, self.cPos.y - 1, target) # create a bullet, such that its centre is the actor's centre
             self.currentMag -= 1
             bullet.go(sprGroup) # fires bullet (dramatically)
         else:
@@ -152,19 +160,18 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         # Mr. Marshall's code #
 
-        dx = mouse[0] - (self.rect.x + (self.width / 2))
-        dy = mouse[1] - (self.rect.y + (self.width / 2))
+        dx = mouse[0] - self.cPos.x
+        dy = mouse[1] - self.cPos.y
         mod_m = m.sqrt(dx**2 + dy**2)
         sf = distance/mod_m*2/3
-        centre_x = sf*dx + (self.rect.x + (self.width / 2))
-        centre_y = sf*dy + (self.rect.y + (self.width / 2))
+        centre = Point(sf*dx + self.cPos.x, sf*dy + self.cPos.y)
 
         angle_sf = sf*m.tan(fov/2)
 
         perp_dx = dy
         perp_dy = -dx
-        corner1 = Point(centre_x + angle_sf*perp_dx, centre_y + angle_sf*perp_dy)
-        corner2 = Point(centre_x - angle_sf*perp_dx, centre_y - angle_sf*perp_dy)
+        corner1 = Point(centre.x + angle_sf*perp_dx, centre.y + angle_sf*perp_dy)
+        corner2 = Point(centre.x - angle_sf*perp_dx, centre.y - angle_sf*perp_dy)
 
         # End Mr. Marshall magic #
 
@@ -182,13 +189,13 @@ class Actor(pygame.sprite.Sprite, World_Object):
         elif xDiff < 0: # looking exactly left
             angFromVert = 1.5 * m.pi
 
-        arcRect = pygame.Rect(round(self.virtualx - distance + (self.width / 2)), round(self.virtualy - distance + (self.height / 2)), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
+        arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
 
         #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
         pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1) # why is this not filled in properly
 
-        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.width / 2), self.rect.y + (self.height / 2)), (corner1.x, corner1.y))
-        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.width / 2), self.rect.y + (self.height / 2)), (corner2.x, corner2.y))
+        pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner1.x, corner1.y))
+        pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
 
 class Player(Actor):
     """
@@ -199,7 +206,7 @@ class Player(Actor):
 
     def drawCrosshair(self, mouse):
         # line to player
-        pygame.draw.aaline(gameDisplay, black, mouse, (self.virtualx + (self.width / 2), self.virtualy + (self.height / 2)), 2)
+        pygame.draw.aaline(gameDisplay, black, mouse, (self.cPos.x, self.cPos.y), 2)
         # top hair
         pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] - 11, 4, 8]) # all hairs are outlined in white so they can be seen even when the cursor is over a black object
         pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] - 10, 2, 6])
@@ -412,8 +419,8 @@ class Guard(Actor):
                     self.eightDirs[0] = -1
         ###
 
-        self.rect.x = round(self.virtualx)
-        self.rect.y = round(self.virtualy)
+        self.posUpdate()
+
         if sprGroup:
             self.collisionCheck(sprGroup)
 
@@ -430,12 +437,12 @@ class Guard(Actor):
     def generatePatrol(self, focus, radius):
         # method creates a random 3 point patrol given a central point and radius
         # currently does not check to ensure the path is possible
+        focus.round()
         udlr = [rng.choice([-1,1]), rng.choice([-1,1])] # chooses -1 or 1 randomly
-        self.patrolPoints[Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
-        self.currentDest = focus
+        self.patrolPoints = [Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
 
     def lookAround(self, actors):
-        viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100) # could use currentDest instead for more accurate view?
+        viewMask = self.drawCone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # could use currentDest instead for more accurate view?
         alreadySeenAGuard = False
 
         for actor in actors:
@@ -445,7 +452,7 @@ class Guard(Actor):
                         if not alreadySeenAGuard: # if it's the first guard I've seen
                             self.lastSeenGuards = [] # ... jettison all other previously know guard locations, to avoid duplicates
                             alreadySeenAGuard = True
-                        self.lastSeenGuards.append(Point(actor.rect.x, actor.rect.y))
+                        self.lastSeenGuards.append(Point(actor.cPos.x, actor.cPos.y))
                     elif Point(actor.rect.x, actor.rect.y) not in self.patrolPoints and self.states[1] == False: # if the corpse isn't one I'm patrolling around already, and I'm not already taking a shuftie at another corpse already
                         self.lastSeenCorpse = Point(actor.rect.x, actor.rect.y)
                         self.states[1] = True
@@ -454,7 +461,7 @@ class Guard(Actor):
                     self.states[0] = True
 
     def quickLook(self, actor):
-        viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100) # see comment on line 451
+        viewMask = self.drawCone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # see comment on line 451
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
     def brain(self, player, allyGroup, actorGroup, envObjs):
@@ -481,7 +488,7 @@ class Guard(Actor):
         elif self.states[1]: # upon seeing a guard's corpse
             self.currentDest = self.lastSeenCorpse # go to the last seen corpse
 
-            if abs((self.rect.x + self.width) - self.currentDest.x) <= self.width: # if within a body length of the corpse
+            if abs(self.cPos.x - self.currentDest.x) <= self.width and abs(self.cPos.y - self.currentDest.y) <= self.height: # if within a body length of the corpse
                 self.states[3] = True # investigating around a point
                 self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the corpse
 
