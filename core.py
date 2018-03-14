@@ -715,7 +715,10 @@ def instance():
         gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
 
+        # Text draws #
         gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (mouse.x + 10, mouse.y + 10))
+        gameDisplay.blit(drawText(round(clock.get_fps())), (0,0))
+        ###
 
         visibleSprites.draw(gameDisplay)
         player.drawCone(mouse, 90, 200)
