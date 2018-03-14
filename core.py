@@ -500,10 +500,11 @@ class Guard(Actor):
         if self.states[3]: # if investigating a point, assuming self.currentDest is the thing we're interested in
             pass
 
-        else:
+        elif not self.states[0] and not self.states[1] and not self.states[4]: # if I'm not doing anything that would mean I wouldn't be following my patrol
             self.patrol() # patrol as usual
 
-        self.goto(self.currentDest)
+        if not self.states[3]: # if I'm not standing around for investigatory purposes
+            self.goto(self.currentDest) # ... I suppose I ought to walk around
 
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
