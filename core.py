@@ -448,15 +448,15 @@ class Guard(Actor):
         self.currentDest = focus
 
     def lookAround(self, actors):
-        viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100)
+        viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100) # could use currentDest instead for more accurate view?
         alreadySeenAGuard = False
 
         for actor in actors:
             if viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0)):
-                if type(actor) == type(Guard()) and actor != self:
+                if type(actor) == type(Guard()) and actor != self: # don't know if the second part of this clause will work
                     if actor.alive: # if the guard is alive
                         if not alreadySeenAGuard: # if it's the first guard I've seen
-                            self.lastSeenGuards = [] # jettison all other previously know guard locations, to avoid duplicates
+                            self.lastSeenGuards = [] # ... jettison all other previously know guard locations, to avoid duplicates
                             alreadySeenAGuard = True
                         self.lastSeenGuards.append(Point(actor.rect.x, actor.rect.y))
                     elif Point(actor.rect.x, actor.rect.y) not in self.patrolPoints and self.states[1] == False: # if the corpse isn't one I'm patrolling around already, and I'm not already taking a shuftie at another corpse already
@@ -467,7 +467,7 @@ class Guard(Actor):
                     self.states[0] = True
 
     def quickLook(self, actor):
-        viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100)
+        viewMask = self.drawCone((self.virtualx + (5 * self.eightDirs[1]), self.virtualy + (5 * self.eightDirs[0])), 90, 100) # see comment on line 451
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
     def brain(self, player, allyGroup, actorGroup, envObjs):
