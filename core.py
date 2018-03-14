@@ -437,6 +437,8 @@ class Guard(Actor):
     def patrol(self):
         if self.rect.x == self.currentDest.x and self.rect.y == self.currentDest.y:
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # sets destination to be next point in patrol points list
+        elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point
+            self.currentDest = self.patrolPoints[rng.randint(0, len(self.patrolPoints) - 1)] # ... pick a random one and start heading there
 
     def generatePatrol(self, focus, radius):
         # method creates a random 3 point patrol given a central point and radius
@@ -494,7 +496,6 @@ class Guard(Actor):
 
             if abs((self.rect.x + self.width) - self.currentDest.x) <= self.width: # if within a body length of the corpse
                 self.states[3] = True # investigating around a point
-                # investigate corpse for time period, then look around
                 self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the corpse
 
         if self.states[3]: # if investigating a point, assuming self.currentDest is the thing we're interested in
