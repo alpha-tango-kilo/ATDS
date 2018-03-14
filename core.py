@@ -274,18 +274,22 @@ class Player(Actor):
         virtualDisplay.set_colorkey(white)
 
         for spr in allSprites:
-            virtualDisplay.fill(white)
+            try:
+                if spr.mask.overlap_area(playerViewMask, (0,0)) > 0:
+                    visibleSprites.add(spr)
+            except AttributeError:
+                virtualDisplay.fill(white)
 
-            tempGroup.add(spr)
-            tempGroup.draw(virtualDisplay)
-            spriteMask = pygame.mask.from_surface(virtualDisplay)
-            tempGroup.empty()
+                tempGroup.add(spr)
+                tempGroup.draw(virtualDisplay)
+                spriteMask = pygame.mask.from_surface(virtualDisplay)
+                tempGroup.empty()
 
-            #print(spr)
-            print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
+                #print(spr)
+                print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
 
-            if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
-                visibleSprites.add(spr)
+                if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
+                    visibleSprites.add(spr)
 
         return visibleSprites
 
@@ -526,6 +530,15 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.cPos = Point(self.rect.x + self.width/2, self.rect.y + self.height/2)
+
+        virtualDisplay = pygame.Surface((displayWidth, displayHeight))
+        virtualDisplay.set_colorkey(white)
+        virtualDisplay.fill(white)
+        tempGroup = pygame.sprite.Group()
+        tempGroup.add(self)
+        tempGroup.draw(virtualDisplay)
+        self.mask = pygame.mask.from_surface(virtualDisplay) # pre calculating masks on game load saves having to calculate them every frame
 
     def __str__(self):
         """
