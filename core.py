@@ -137,7 +137,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             pass # empty magazine click sound?
 
     def reload(self):
-        if self.currentMag != self.maxMag:
+        if self.currentMag != self.magSize:
             start = pygame.time.get_ticks()
             if self.currentMag >= 1: # quick reload
                 while pygame.time.get_ticks() < (start + self.shortReload):
@@ -145,7 +145,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             else: # long reload
                 while pygame.time.get_ticks() < (start + self.longReload):
                     pass # there's got to be a better way than this - will this pause the game?
-            self.currentMag = self.maxMag
+            self.currentMag = self.magSize
 
     def drawCone(self, mouse, fov, distance):
         fov = m.radians(fov) # convert fov to radians
@@ -274,7 +274,7 @@ class Player(Actor):
 
     def selectToRender(self, playerViewMask, allSprites):
 
-        tempGroup = pygame.sprite.Group
+        tempGroup = pygame.sprite.Group()
         visibleSprites = pygame.sprite.Group()
 
         virtualDisplay = pygame.Surface((displayWidth, displayHeight))
@@ -284,11 +284,11 @@ class Player(Actor):
             virtualDisplay.fill(white)
 
             tempGroup.add(spr)
-            #tempGroup.draw(virtualDisplay) # errors saying it hasn't been passed a surface to draw to (what)
+            tempGroup.draw(virtualDisplay) # errors saying it hasn't been passed a surface to draw to (what)
             spriteMask = pygame.mask.from_surface(virtualDisplay)
-            #tempGroup.empty() # errors saying it requires one positional argument (self) (also what)
+            tempGroup.empty() # errors saying it requires one positional argument (self) (also what)
 
-            #print(sprite)
+            print(spr)
             print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
 
             if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
@@ -708,7 +708,7 @@ def instance():
         gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
 
-        gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.maxMag)), (0,0,0)
+        gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (0,0))
 
         visibleSprites.draw(gameDisplay)
         #player.drawCone(mouseCoords, 90, 100)
