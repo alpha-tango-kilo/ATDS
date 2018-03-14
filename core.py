@@ -155,7 +155,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         dx = mouse[0] - (self.rect.x + (self.width / 2))
         dy = mouse[1] - (self.rect.y + (self.width / 2))
         mod_m = m.sqrt(dx**2 + dy**2)
-        sf = distance/mod_m
+        sf = distance/mod_m*2/3
         centre_x = sf*dx + (self.rect.x + (self.width / 2))
         centre_y = sf*dy + (self.rect.y + (self.width / 2))
 
@@ -163,19 +163,17 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         perp_dx = dy
         perp_dy = -dx
-        corner1_x = centre_x + angle_sf*perp_dx
-        corner1_y = centre_y + angle_sf*perp_dy
-        corner2_x = centre_x - angle_sf*perp_dx
-        corner2_y = centre_y - angle_sf*perp_dy
+        corner1 = Point(centre_x + angle_sf*perp_dx, centre_y + angle_sf*perp_dy)
+        corner2 = Point(centre_x - angle_sf*perp_dx, centre_y - angle_sf*perp_dy)
 
         # End Mr. Marshall magic #
 
-        xDiff = corner1_x - self.virtualx # work out difference from point to actor
-        yDiff = self.virtualy - corner1_y
+        xDiff = corner1.x - self.virtualx # work out difference from point to actor
+        yDiff = self.virtualy - corner1.y
         angFromVert = 0.0 # initialise as float
 
         if yDiff != 0: # to prevent 0 division errors
-            if corner1_y < self.rect.y: # I don't know, it just works
+            if corner1.y < self.rect.y: # I don't know, it just works
                 angFromVert = -1 * m.atan(xDiff / yDiff)
             else:
                 angFromVert = -1 * m.atan(xDiff / yDiff) + m.pi
@@ -184,25 +182,13 @@ class Actor(pygame.sprite.Sprite, World_Object):
         elif xDiff < 0: # looking exactly left
             angFromVert = 1.5 * m.pi
 
-        viewBox = pygame.Surface([(distance * 2), (distance * 2)]) # create large square upon which to draw arc (pygame things)
-        viewBox.fill(white)
-        arcRect = viewBox.get_rect()
-        arcRect.x = round(self.virtualx - distance + (self.width / 2)) # move square such that the centre of the player is at the centre of the square
-        arcRect.y = round(self.virtualy - distance + (self.height / 2))
+        arcRect = pygame.Rect(round(self.virtualx - distance + (self.width / 2)), round(self.virtualy - distance + (self.height / 2)), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
 
-        pygame.draw.rect(gameDisplay, black, arcRect, 2)
+        #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
+        pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1) # why is this not filled in properly
 
-        pygame.draw.arc(viewBox, black, arcRect, angFromVert, angFromVert + fov, round(distance)) # draw the arc to the virtual surface, for mask creation purposes
-        pygame.draw.arc(gameDisplay, lightgrey, arcRect, angFromVert, angFromVert + fov, round(distance)) # why is this not filled in properly
-
-        viewBox.set_colorkey(white)
-        actorMask = pygame.mask.from_surface(viewBox) # create mask of arc *WORKING CORRECTLY*
-        #print(actorMask.count())
-
-        pygame.draw.aaline(gameDisplay, black, ((self.rect.x + (self.width / 2)), (self.rect.y + (self.height / 2))), (corner1_x, corner1_y))
-        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.width / 2), self.rect.y + (self.height / 2)), (corner2_x, corner2_y))
-
-        return actorMask
+        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.width / 2), self.rect.y + (self.height / 2)), (corner1.x, corner1.y))
+        pygame.draw.aaline(gameDisplay, black, (self.rect.x + (self.width / 2), self.rect.y + (self.height / 2)), (corner2.x, corner2.y))
 
 class Player(Actor):
     """
@@ -284,11 +270,11 @@ class Player(Actor):
             virtualDisplay.fill(white)
 
             tempGroup.add(spr)
-            tempGroup.draw(virtualDisplay) # errors saying it hasn't been passed a surface to draw to (what)
+            tempGroup.draw(virtualDisplay)
             spriteMask = pygame.mask.from_surface(virtualDisplay)
-            tempGroup.empty() # errors saying it requires one positional argument (self) (also what)
+            tempGroup.empty()
 
-            print(spr)
+            #print(spr)
             print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
 
             if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
@@ -711,7 +697,7 @@ def instance():
         gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (0,0))
 
         visibleSprites.draw(gameDisplay)
-        #player.drawCone(mouseCoords, 90, 100)
+        player.drawCone(mouseCoords, 90, 200)
         player.drawCrosshair(mouseCoords)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         ###
