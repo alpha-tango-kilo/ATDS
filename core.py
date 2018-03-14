@@ -3,6 +3,7 @@ import math as m
 import random as rng
 
 pygame.init()
+pygame.font.init()
 
 # Global constants #
 directions = ['u','d','l','r']
@@ -606,6 +607,10 @@ class Projectile(pygame.sprite.Sprite):
             sprGroup.remove(collidedWith[0]) # remove the sprite just hit from the group, so it won't be hit again
             self.go(sprGroup, bulletPen) # recurse the function to allow bullet to continue travelling
 
+def drawText(text, colour = (0,0,0), font = "Comic Sans MS", fontSize = 14):
+    theFont = pygame.font.SysFont(font, fontSize)
+    return theFont.render(str(text), True, colour)
+
 def instance():
     running = True
 
@@ -702,6 +707,8 @@ def instance():
 
         gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
+
+        gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.maxMag)), (0,0,0)
 
         visibleSprites.draw(gameDisplay)
         #player.drawCone(mouseCoords, 90, 100)
