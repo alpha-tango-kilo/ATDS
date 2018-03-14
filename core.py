@@ -225,37 +225,36 @@ class Player(Actor):
 
         # Mr. Marshall's code #
 
-        dx = mouse.x - (self.rect.x + (self.width / 2))
-        dy = mouse.y - (self.rect.y + (self.width / 2))
+        dx = mouse.x - self.cPos.x
+        dy = mouse.y - self.cPos.y
         mod_m = m.sqrt(dx**2 + dy**2)
-        sf = distance/mod_m
-        centre_x = sf*dx + (self.rect.x + (self.width / 2))
-        centre_y = sf*dy + (self.rect.y + (self.width / 2))
+        sf = distance/mod_m*2/3
+        centre = Point(sf*dx + self.cPos.x, sf*dy + self.cPos.y)
 
         angle_sf = sf*m.tan(fov/2)
 
         perp_dx = dy
         perp_dy = -dx
-        corner1_x = centre_x + angle_sf*perp_dx
-        corner1_y = centre_y + angle_sf*perp_dy
+        corner1 = Point(centre.x + angle_sf*perp_dx, centre.y + angle_sf*perp_dy)
+        corner2 = Point(centre.x - angle_sf*perp_dx, centre.y - angle_sf*perp_dy)
 
         # End Mr. Marshall magic #
 
-        xDiff = corner1_x - self.virtualx # work out difference from point to actor
-        yDiff = self.virtualy - corner1_y
+        xDiff = corner1.x - self.virtualx # work out difference from point to actor
+        yDiff = self.virtualy - corner1.y
         angFromVert = 0.0 # initialise as float
 
         if yDiff != 0: # to prevent 0 division errors
-            if corner1_y < self.rect.y: # magic?
+            if corner1.y < self.rect.y: # I don't know, it just works
                 angFromVert = -1 * m.atan(xDiff / yDiff)
             else:
-                angFromVert = -1 * m.atan(xDiff / yDiff) + m.pi # why adding pi solves everything is still unknown to this day
+                angFromVert = -1 * m.atan(xDiff / yDiff) + m.pi
         elif xDiff > 0: # looking exactly right
             angFromVert = 0.5 * m.pi
         elif xDiff < 0: # looking exactly left
             angFromVert = 1.5 * m.pi
 
-        arcRect = pygame.Rect(self.rect.x, self.rect.y, distance * 2, distance * 2)
+        arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2)
         gameDisplay.fill(white)
         pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
         gameDisplay.set_colorkey(white)
