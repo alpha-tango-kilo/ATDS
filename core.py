@@ -1,4 +1,5 @@
 import pygame
+#import pygame.gfxdraw # interesting how you must import this separately
 import math as m
 import random as rng
 
@@ -192,8 +193,12 @@ class Actor(pygame.sprite.Sprite, World_Object):
         arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
 
         if returnMask:
+            #fov = m.degrees(fov)
+            #angFromVert = m.degrees(angFromVert)
             gameDisplay.fill(white)
+            #self.cPos.round()
             pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
+            #pygame.gfxdraw.pie(gameDisplay, self.cPos.x, self.cPos.y, distance, angFromVert, angFromVert + fov, black) # both coords and angles have to be ints. I think angles might even work in degrees *sigh*
             gameDisplay.set_colorkey(white)
             renderArea = pygame.mask.from_surface(gameDisplay) # now we have to find all the sprites we need to draw within this cone
             #print("Render area count: " + str(renderArea.count()))
@@ -201,7 +206,6 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         else:
             #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
-
             pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1) # why is this not filled in properly
             pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner1.x, corner1.y))
             pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
