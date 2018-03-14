@@ -155,7 +155,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
                     pass # there's got to be a better way than this - will this pause the game?
             self.currentMag = self.magSize
 
-    def drawCone(self, mouse, fov, distance):
+    def cone(self, mouse, fov, distance, returnMask = False):
         fov = m.radians(fov) # convert fov to radians
 
         # Mr. Marshall's code #
@@ -163,7 +163,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         dx = mouse.x - self.cPos.x
         dy = mouse.y - self.cPos.y
         mod_m = m.sqrt(dx**2 + dy**2)
-        sf = distance/mod_m*2/3
+        sf = distance/mod_m*2/3 # my lovely addition, multiplying by two thirds
         centre = Point(sf*dx + self.cPos.x, sf*dy + self.cPos.y)
 
         angle_sf = sf*m.tan(fov/2)
@@ -191,11 +191,21 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
 
-        #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
-        pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1) # why is this not filled in properly
+        if returnMask:
+            gameDisplay.fill(white)
+            pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
+            gameDisplay.set_colorkey(white)
+            renderArea = pygame.mask.from_surface(gameDisplay) # now we have to find all the sprites we need to draw within this cone
+            #print("Render area count: " + str(renderArea.count()))
+            return renderArea
 
-        pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner1.x, corner1.y))
-        pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
+        else:
+            #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
+
+            pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1) # why is this not filled in properly
+            pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner1.x, corner1.y))
+            pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
+            return
 
 class Player(Actor):
     """
@@ -219,50 +229,6 @@ class Player(Actor):
         # right hair
         pygame.draw.rect(gameDisplay, white, [mouse.x + 3, mouse.y - 2, 8, 4])
         pygame.draw.rect(gameDisplay, black, [mouse.x + 4, mouse.y - 1, 6, 2])
-
-    def viewMask(self, mouse, fov, distance):
-        fov = m.radians(fov) # convert fov to radians
-
-        # Mr. Marshall's code #
-
-        dx = mouse.x - self.cPos.x
-        dy = mouse.y - self.cPos.y
-        mod_m = m.sqrt(dx**2 + dy**2)
-        sf = distance/mod_m*2/3
-        centre = Point(sf*dx + self.cPos.x, sf*dy + self.cPos.y)
-
-        angle_sf = sf*m.tan(fov/2)
-
-        perp_dx = dy
-        perp_dy = -dx
-        corner1 = Point(centre.x + angle_sf*perp_dx, centre.y + angle_sf*perp_dy)
-        corner2 = Point(centre.x - angle_sf*perp_dx, centre.y - angle_sf*perp_dy)
-
-        # End Mr. Marshall magic #
-
-        xDiff = corner1.x - self.virtualx # work out difference from point to actor
-        yDiff = self.virtualy - corner1.y
-        angFromVert = 0.0 # initialise as float
-
-        if yDiff != 0: # to prevent 0 division errors
-            if corner1.y < self.rect.y: # I don't know, it just works
-                angFromVert = -1 * m.atan(xDiff / yDiff)
-            else:
-                angFromVert = -1 * m.atan(xDiff / yDiff) + m.pi
-        elif xDiff > 0: # looking exactly right
-            angFromVert = 0.5 * m.pi
-        elif xDiff < 0: # looking exactly left
-            angFromVert = 1.5 * m.pi
-
-        arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2)
-        gameDisplay.fill(white)
-        pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
-        gameDisplay.set_colorkey(white)
-        renderArea = pygame.mask.from_surface(gameDisplay) # now we have to find all the sprites we need to draw within this cone
-        #gameDisplay.set_colorkey(None)
-        #print("Render area count: " + str(renderArea.count()))
-
-        return renderArea
 
     def selectToRender(self, playerViewMask, allSprites):
 
@@ -445,7 +411,7 @@ class Guard(Actor):
         self.patrolPoints = [Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
 
     def lookAround(self, actors):
-        viewMask = self.drawCone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # could use currentDest instead for more accurate view?
+        viewMask = self.cone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # could use currentDest instead for more accurate view?
         alreadySeenAGuard = False
 
         for actor in actors:
@@ -464,7 +430,7 @@ class Guard(Actor):
                     self.states[0] = True
 
     def quickLook(self, actor):
-        viewMask = self.drawCone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # see comment on line 451
+        viewMask = self.cone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # see comment on line 451
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
     def brain(self, player, allyGroup, actorGroup, envObjs):
@@ -707,7 +673,7 @@ def instance():
 
         # Rendering functions #
         playerView.clear()
-        playerView.draw(player.viewMask(mouse, 90, 100), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
+        playerView.draw(player.cone(mouse, 90, 100, True), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
         visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
         #print(visibleSprites)
 
@@ -721,7 +687,7 @@ def instance():
         ###
 
         visibleSprites.draw(gameDisplay)
-        player.drawCone(mouse, 90, 200)
+        player.cone(mouse, 90, 200)
         player.drawCrosshair(mouse)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         ###
