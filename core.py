@@ -732,4 +732,5 @@ def instance():
 
     pygame.quit()
 
-instance()
+if __name__ == "__main__":
+    instance()
