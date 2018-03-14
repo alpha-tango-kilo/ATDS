@@ -716,8 +716,9 @@ def instance():
         #print(playerView.count())
 
         # Text draws #
-        gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (mouse.x + 10, mouse.y + 10))
-        gameDisplay.blit(drawText(round(clock.get_fps())), (0,0))
+        gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
+        gameDisplay.blit(drawText("FPS: {fps}".format(fps = round(clock.get_fps()))), (2,0)) # fps counter
+        gameDisplay.blit(drawText("Frame Time: {ft}".format(ft = clock.get_rawtime())), (2,18)) # frame time
         ###
 
         visibleSprites.draw(gameDisplay)
