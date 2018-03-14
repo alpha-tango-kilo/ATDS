@@ -160,8 +160,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         # Mr. Marshall's code #
 
-        dx = mouse[0] - self.cPos.x
-        dy = mouse[1] - self.cPos.y
+        dx = mouse.x - self.cPos.x
+        dy = mouse.y - self.cPos.y
         mod_m = m.sqrt(dx**2 + dy**2)
         sf = distance/mod_m*2/3
         centre = Point(sf*dx + self.cPos.x, sf*dy + self.cPos.y)
@@ -206,27 +206,27 @@ class Player(Actor):
 
     def drawCrosshair(self, mouse):
         # line to player
-        pygame.draw.aaline(gameDisplay, black, mouse, (self.cPos.x, self.cPos.y), 2)
+        pygame.draw.aaline(gameDisplay, black, (mouse.x, mouse.y), (self.cPos.x, self.cPos.y), 2)
         # top hair
-        pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] - 11, 4, 8]) # all hairs are outlined in white so they can be seen even when the cursor is over a black object
-        pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] - 10, 2, 6])
+        pygame.draw.rect(gameDisplay, white, [mouse.x - 2, mouse.y - 11, 4, 8]) # all hairs are outlined in white so they can be seen even when the cursor is over a black object
+        pygame.draw.rect(gameDisplay, black, [mouse.x - 1, mouse.y - 10, 2, 6])
         # bottom hair
-        pygame.draw.rect(gameDisplay, white, [mouse[0] - 2, mouse[1] + 3, 4, 8])
-        pygame.draw.rect(gameDisplay, black, [mouse[0] - 1, mouse[1] + 4, 2, 6])
+        pygame.draw.rect(gameDisplay, white, [mouse.x - 2, mouse.y + 3, 4, 8])
+        pygame.draw.rect(gameDisplay, black, [mouse.x - 1, mouse.y + 4, 2, 6])
         # left hair
-        pygame.draw.rect(gameDisplay, white, [mouse[0] - 11, mouse[1] - 2, 8, 4])
-        pygame.draw.rect(gameDisplay, black, [mouse[0] - 10, mouse[1] - 1, 6, 2])
+        pygame.draw.rect(gameDisplay, white, [mouse.x - 11, mouse.y - 2, 8, 4])
+        pygame.draw.rect(gameDisplay, black, [mouse.x - 10, mouse.y - 1, 6, 2])
         # right hair
-        pygame.draw.rect(gameDisplay, white, [mouse[0] + 3, mouse[1] - 2, 8, 4])
-        pygame.draw.rect(gameDisplay, black, [mouse[0] + 4, mouse[1] - 1, 6, 2])
+        pygame.draw.rect(gameDisplay, white, [mouse.x + 3, mouse.y - 2, 8, 4])
+        pygame.draw.rect(gameDisplay, black, [mouse.x + 4, mouse.y - 1, 6, 2])
 
     def viewMask(self, mouse, fov, distance):
         fov = m.radians(fov) # convert fov to radians
 
         # Mr. Marshall's code #
 
-        dx = mouse[0] - (self.rect.x + (self.width / 2))
-        dy = mouse[1] - (self.rect.y + (self.width / 2))
+        dx = mouse.x - (self.rect.x + (self.width / 2))
+        dy = mouse.y - (self.rect.y + (self.width / 2))
         mod_m = m.sqrt(dx**2 + dy**2)
         sf = distance/mod_m
         centre_x = sf*dx + (self.rect.x + (self.width / 2))
@@ -567,8 +567,8 @@ class Projectile(pygame.sprite.Sprite):
     """
     def __init__(self, x, y, mouse):
         super().__init__()
-        self.xStep = mouse[0] - x # finds difference in co-ords
-        self.yStep = mouse[1] - y
+        self.xStep = mouse.x - x # finds difference in co-ords
+        self.yStep = mouse.y - y
 
         # makes smaller difference to be 1, and scales the other value appropriately
         if self.xStep < self.yStep:
@@ -661,7 +661,8 @@ def instance():
     playerView = pygame.mask.from_surface(gameDisplay)
 
     while running:
-        mouseCoords = pygame.mouse.get_pos()
+        mouse = pygame.mouse.get_pos()
+        mouse = Point(mouse[0], mouse[1])
 
         for event in pygame.event.get():
             # Any pygame handled events should be put here #
@@ -679,7 +680,7 @@ def instance():
                     player.reload()
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
-                player.shoot(mouseCoords, allSprites)
+                player.shoot(mouse, allSprites)
             ###
 
         # Keys being held #
@@ -707,18 +708,18 @@ def instance():
 
         # Rendering functions #
         playerView.clear()
-        playerView.draw(player.viewMask(mouseCoords, 90, 100), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
+        playerView.draw(player.viewMask(mouse, 90, 100), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
         visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
         #print(visibleSprites)
 
         gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
 
-        gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (0,0))
+        gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (mouse.x + 10, mouse.y + 10))
 
         visibleSprites.draw(gameDisplay)
-        player.drawCone(mouseCoords, 90, 200)
-        player.drawCrosshair(mouseCoords)
+        player.drawCone(mouse, 90, 200)
+        player.drawCrosshair(mouse)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         ###
 
