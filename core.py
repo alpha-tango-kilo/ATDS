@@ -487,7 +487,7 @@ class Guard(Actor):
             if self.rect.x == self.lastSeenPlayer.x and self.rect.y == self.lastSeenPlayer.y and self.quickLook(player) == False: # lost the player
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
-                generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the player's last known location
+                self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the player's last known location
 
         elif self.states[1]: # upon seeing a guard's corpse
             self.currentDest = self.lastSeenCorpse # go to the last seen corpse
@@ -495,7 +495,7 @@ class Guard(Actor):
             if abs((self.rect.x + self.width) - self.currentDest.x) <= self.width: # if within a body length of the corpse
                 self.states[3] = True # investigating around a point
                 # investigate corpse for time period, then look around
-                generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the corpse
+                self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the corpse
 
         if self.states[3]: # if investigating a point, assuming self.currentDest is the thing we're interested in
             pass
