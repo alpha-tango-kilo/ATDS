@@ -600,7 +600,7 @@ def drawMask(mask, colour = (0,0,0)):
     for i in range(displayWidth):
         for j in range(displayHeight):
             if mask.get_at((i, j)) != 0:
-                pygame.gfxdraw.pixel(gameDisplay, i, j, black)
+                pygame.gfxdraw.pixel(gameDisplay, i, j, colour)
 
 def instance():
     running = True
@@ -701,7 +701,8 @@ def instance():
         gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
 
-        #drawMask(playerView.invert(), black # can be used to draw mask if needed, makes frame time go up to ~500)
+        playerView.invert()
+        drawMask(playerView, lightgrey) # can be used to draw mask if needed, makes frame time go up to ~500
 
         # Text draws #
         gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
