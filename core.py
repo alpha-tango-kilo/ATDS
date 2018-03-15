@@ -1,5 +1,5 @@
 import pygame
-#import pygame.gfxdraw # interesting how you must import this separately
+import pygame.gfxdraw # interesting how you must import this separately
 import math as m
 import random as rng
 
@@ -253,8 +253,11 @@ class Player(Actor):
             try:
                 if spr.mask.overlap_area(playerViewMask, (0,0)) > 0: # tries to use sprites own premade mask, if it has one
                     visibleSprites.add(spr)
+                    print("Mask from memory")
+                print("Used sprite mask from memory")
 
             except AttributeError: # if the object doesn't have the attribute mask
+                print("Creating mask...")
                 virtualDisplay.fill(white)
 
                 tempGroup.add(spr)
@@ -262,9 +265,9 @@ class Player(Actor):
                 spriteMask = pygame.mask.from_surface(virtualDisplay)
 
                 #print(spr)
-                print("Sprite mask count: " + str(spriteMask.count()) + " overlaps " + str(spriteMask.overlap_area(playerViewMask, (0,0))) + " pixels.")
 
                 if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
+                    print(spr + " Overlaps the player view mask")
                     visibleSprites.add(spr)
 
         return visibleSprites
@@ -593,6 +596,12 @@ def drawText(text, colour = (0,0,0), font = "Comic Sans MS", fontSize = 14):
     theFont = pygame.font.SysFont(font, fontSize)
     return theFont.render(str(text), True, colour)
 
+def drawMask(mask, colour = (0,0,0)):
+    for i in range(displayWidth):
+        for j in range(displayHeight):
+            if mask.get_at((i, j)) != 0:
+                pygame.gfxdraw.pixel(gameDisplay, i, j, black)
+
 def instance():
     running = True
 
@@ -686,10 +695,13 @@ def instance():
         playerView.clear()
         playerView.draw(player.cone(mouse, 90, 100, True), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
         visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
+
         #print(visibleSprites)
 
         gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
+
+        #drawMask(playerView.invert(), black # can be used to draw mask if needed, makes frame time go up to ~500)
 
         # Text draws #
         gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
