@@ -38,11 +38,18 @@ class Point():
         self.y = y
 
     def distance(self, point):
+        """
+        Returns the distance between itself and another given point.
+        Type returned: float
+        """
         return m.sqrt((self.x - point.x)**2 + (self.y - point.y)**2)
 
     def round(self):
-        self.x = round(self.x)
-        self.y = round(self.y)
+        """
+        Returns a Point of the rounded co-ordinates.
+        Type returned: Point
+        """
+        return Point(round(self.x), round(self.y))
 
 class Actor(pygame.sprite.Sprite, World_Object):
     def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black, magSize = 6, shortReload = 3200, longReload = 4000, bulletPen = False):
@@ -196,9 +203,9 @@ class Actor(pygame.sprite.Sprite, World_Object):
             #fov = m.degrees(fov)
             #angFromVert = m.degrees(angFromVert)
             gameDisplay.fill(white)
-            #self.cPos.round()
+            #temp = self.cPos.round()
             pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
-            #pygame.gfxdraw.pie(gameDisplay, self.cPos.x, self.cPos.y, distance, angFromVert, angFromVert + fov, black) # both coords and angles have to be ints. I think angles might even work in degrees *sigh*
+            #pygame.gfxdraw.pie(gameDisplay, temp.x, temp.y, distance, angFromVert, angFromVert + fov, black) # both coords and angles have to be ints. I think angles might even work in degrees *sigh*
             gameDisplay.set_colorkey(white)
             renderArea = pygame.mask.from_surface(gameDisplay) # now we have to find all the sprites we need to draw within this cone
             #print("Render area count: " + str(renderArea.count()))
@@ -410,7 +417,7 @@ class Guard(Actor):
     def generatePatrol(self, focus, radius):
         # method creates a random 3 point patrol given a central point and radius
         # currently does not check to ensure the path is possible
-        focus.round()
+        focus = focus.round()
         udlr = [rng.choice([-1,1]), rng.choice([-1,1])] # chooses -1 or 1 randomly
         self.patrolPoints = [Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
 
