@@ -11,6 +11,10 @@ directions = ['u','d','l','r']
 displayWidth = 1280
 displayHeight = 720
 framerate = 120
+# Textures #
+guardAlive = pygame.image.load("./assets/Actor/Guard/alive.png")
+guardDead = pygame.image.load("./assets/Actor/Guard/dead.png")
+playerAlive = pygame.image.load("./assets/Actor/Player/alive.png")
 # Colours #
 black = (0,0,0)
 grey = (105,105,105)
@@ -18,8 +22,7 @@ white = (255,255,255)
 red = (255,0,0)
 dan = (42,117,225)
 lightgrey = (230,230,230)
-###
-###
+#########
 
 gameDisplay = pygame.display.set_mode((displayWidth, displayHeight), pygame.NOFRAME)
 pygame.display.set_caption("ATDS")
