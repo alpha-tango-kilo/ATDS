@@ -1,17 +1,16 @@
 import pygame
-import pygame.gfxdraw # interesting how you must import this separately
+import pygame.gfxdraw # not always needed, but used in drawMask
 import math as m
 import random as rng
 
 pygame.init()
 pygame.font.init()
 
-# Global constants #
+# Global variables #
 directions = ['u','d','l','r']
 displayWidth = 1280
 displayHeight = 720
 framerate = 120
-myfont = pygame.font.SysFont("monospace", 16)
 # Colours #
 black = (0,0,0)
 grey = (105,105,105)
@@ -244,21 +243,19 @@ class Player(Actor):
             try:
                 if spr.mask.overlap_area(playerViewMask, (0,0)) > 0: # tries to use sprites own premade mask, if it has one
                     visibleSprites.add(spr)
-                    print("Mask from memory")
-                print("Used sprite mask from memory")
+                    #print("Mask from memory")
+                #print("Used sprite mask from memory")
 
             except AttributeError: # if the object doesn't have the attribute mask
-                print("Creating mask...")
+                #print("Creating mask...")
                 virtualDisplay.fill(white)
 
                 tempGroup.add(spr)
                 tempGroup.draw(virtualDisplay)
                 spriteMask = pygame.mask.from_surface(virtualDisplay)
 
-                #print(spr)
-
                 if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
-                    print(str(spr) + " Overlaps the player view mask")
+                    #print(str(spr) + " overlaps the player view mask")
                     visibleSprites.add(spr)
 
         return visibleSprites
@@ -595,6 +592,7 @@ def drawMask(mask, colour = (0,0,0)):
 
 def instance():
     running = True
+    devMode = False
 
     RELOAD = pygame.USEREVENT + 1
     #reloadEvent = pygame.event.Event(RELOAD)
@@ -627,7 +625,7 @@ def instance():
     environmentSprites.add(gameBoundLeft)
     environmentSprites.add(gameBoundRight)
 
-    guards = pygame.sprite.Group()
+    guards = pygame.sprite.Group() # used to call their bot routines
     guards.add(guard1)
 
     lonelyPlayer = pygame.sprite.GroupSingle() # used to draw the player (again)
@@ -655,13 +653,16 @@ def instance():
                 if event.key == pygame.K_ESCAPE: # close game if escape is pressed
                     running = False
 
-                elif event.key == pygame.K_r: # press R to reload
+                if event.key == pygame.K_r: # press R to reload
                     if player.currentMag < player.magSize:
                         if player.currentMag >= 1: # short reload
                             pygame.time.set_timer(RELOAD, player.shortReload) # start the reload
                             player.currentMag = 1 # immersion science
                         else: # long reload
                             pygame.time.set_timer(RELOAD, player.longReload) # start the reload
+
+                if event.key == pygame.K_RIGHTBRACKET:
+                    devMode = not devMode
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
                 player.shoot(mouse, allSprites)
@@ -705,7 +706,7 @@ def instance():
         gameDisplay.fill(white) # clean up arc drawings
         #print(playerView.count())
 
-        playerView.invert()
+        #playerView.invert()
         #drawMask(playerView, lightgrey) # can be used to draw mask if needed, makes frame time go up to ~500
 
         # Text draws #
@@ -713,8 +714,10 @@ def instance():
         gameDisplay.blit(drawText("FPS: {fps}".format(fps = round(clock.get_fps()))), (2,0)) # fps counter
         gameDisplay.blit(drawText("Frame Time: {ft}".format(ft = clock.get_rawtime())), (2,18)) # frame time
         ###
-
-        visibleSprites.draw(gameDisplay)
+        if not devMode:
+            visibleSprites.draw(gameDisplay)
+        else:
+            allSprites.draw(gameDisplay)
         player.cone(mouse, 90, 200)
         player.drawCrosshair(mouse)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
