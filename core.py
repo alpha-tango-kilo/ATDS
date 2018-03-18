@@ -83,15 +83,13 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
     def __str__(self):
         """
-        Providing an str means that if you just type an object is called, this is what is
-        returned
+        Providing an str means that if you just type an object is called, this is what is returned.
         """
         return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
 
     def __repr__(self):
         """
-        Providing an str means that if you just type an object is called, this is what is
-        returned
+        Providing an str means that if you just type an object is called, this is what is returned.
         """
         return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
 
@@ -114,13 +112,11 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
     def collisionCheck(self, sprGroup):
         keep = [False for _ in range(4)] # used to preserve banned directions if a test says the actor can't move up but another test says the actor can move up
-        directions = ['u', 'd', 'l', 'r'] # we were never told we had to be proud of our solutions...
         tActor = Actor(self.virtualx, self.virtualy, self.width, self.height, self.speed) # create a clone of the actor being tested, with the same key characteristics (colour is not important as tActor will never be drawn to screen)
-        for test in range(len(directions)): # iterates from 0 to 3
-            tActor.rect.x = self.rect.x # resets all co-ordinates for each test
-            tActor.rect.y = self.rect.y
-            tActor.virtualx = self.virtualx
+        for test in range(4): # iterates from 0 to 3
+            tActor.virtualx = self.virtualx # resets all co-ordinates for each test
             tActor.virtualy = self.virtualy
+            tActor.posUpdate()
             tActor.simpleMove(directions[test], self.speed) # uses movement function without collision checking
             if len(pygame.sprite.spritecollide(tActor, sprGroup, False)) > 0: # checks if an objects are collided with from sprGroup (typically environmentSprites)
                 self.bannedDirs[test] = True # bans direction
@@ -128,7 +124,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             elif len(pygame.sprite.spritecollide(tActor, sprGroup, False)) == 0 and not keep[test]: # if there are no collisions and the direction has no already been banned in this test battery...
                 self.bannedDirs[test] = False # ...allow movement in this direction
 
-    def move(self, direction, sprGroup):
+    def move(self, direction, sprGroup = None):
         if direction == 'u' and not self.bannedDirs[0]: # up
             self.virtualy -= self.speed
         elif direction == 'd' and not self.bannedDirs[1]: # down
@@ -151,7 +147,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         else:
             pass # empty magazine click sound?
 
-    def reload(self):
+    def reload(self): # assumes the delay/wait has already occurred
         self.currentMag = self.magSize
 
     def cone(self, mouse, fov, distance, returnMask = False):
@@ -413,7 +409,7 @@ class Guard(Actor):
         self.patrolPoints = [Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
 
     def lookAround(self, actors):
-        viewMask = self.cone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # could use currentDest instead for more accurate view?
+        viewMask = self.cone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100, True) # could use currentDest instead for more accurate view?
         alreadySeenAGuard = False
 
         for actor in actors:
@@ -432,7 +428,7 @@ class Guard(Actor):
                     self.states[0] = True
 
     def quickLook(self, actor):
-        viewMask = self.cone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # see comment on line 451
+        viewMask = self.cone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # could just look at currentDest?
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
     def brain(self, player, allyGroup, actorGroup, envObjs):
@@ -584,7 +580,7 @@ def drawText(text, colour = (0,0,0), font = "Comic Sans MS", fontSize = 14):
     theFont = pygame.font.SysFont(font, fontSize)
     return theFont.render(str(text), True, colour)
 
-def drawMask(mask, colour = (0,0,0)):
+def drawMask(mask, colour = (0,0,0)): # alternative name is destroyFPS()
     for i in range(displayWidth):
         for j in range(displayHeight):
             if mask.get_at((i, j)) != 0:
@@ -595,7 +591,6 @@ def instance():
     devMode = False
 
     RELOAD = pygame.USEREVENT + 1
-    #reloadEvent = pygame.event.Event(RELOAD)
 
     # Used to prevent player from leaving the screen
     gameBoundTop = Obstacle(0, -100, displayWidth, 100, False)
@@ -662,7 +657,7 @@ def instance():
                             pygame.time.set_timer(RELOAD, player.longReload) # start the reload
 
                 if event.key == pygame.K_RIGHTBRACKET:
-                    devMode = not devMode
+                    devMode = not devMode # python is magical sometimes
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
                 player.shoot(mouse, allSprites)
@@ -714,10 +709,12 @@ def instance():
         gameDisplay.blit(drawText("FPS: {fps}".format(fps = round(clock.get_fps()))), (2,0)) # fps counter
         gameDisplay.blit(drawText("Frame Time: {ft}".format(ft = clock.get_rawtime())), (2,18)) # frame time
         ###
+
         if not devMode:
             visibleSprites.draw(gameDisplay)
         else:
             allSprites.draw(gameDisplay)
+
         player.cone(mouse, 90, 200)
         player.drawCrosshair(mouse)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
