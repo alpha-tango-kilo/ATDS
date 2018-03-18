@@ -658,12 +658,14 @@ def instance():
                 elif event.key == pygame.K_r: # press R to reload
                     if player.currentMag < player.magSize:
                         if player.currentMag >= 1: # short reload
-                            pygame.time.set_timer(RELOAD, player.shortReload)
+                            pygame.time.set_timer(RELOAD, player.shortReload) # start the reload
+                            player.currentMag = 1 # immersion science
                         else: # long reload
-                            pygame.time.set_timer(RELOAD, player.longReload)
+                            pygame.time.set_timer(RELOAD, player.longReload) # start the reload
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
                 player.shoot(mouse, allSprites)
+                pygame.time.set_timer(RELOAD, 0) # cancels a reload upon shooting
 
             if event.type == RELOAD:
                 pygame.time.set_timer(RELOAD, 0) # prevents re-reloading chain (just pygame things)
