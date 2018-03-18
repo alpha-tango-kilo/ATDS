@@ -52,7 +52,7 @@ class Point():
         return Point(round(self.x), round(self.y))
 
 class Actor(pygame.sprite.Sprite, World_Object):
-    def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black, magSize = 6, shortReload = 3200, longReload = 4000, bulletPen = False):
+    def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black, magSize = 6, shortReload = 2000, longReload = 2500, bulletPen = False):
         super().__init__() # inits pygame.sprite.Sprite
 
         """
@@ -78,8 +78,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.magSize = magSize # number of bullets in a full magazine
         self.currentMag = magSize # number of bullets left in magazine
-        self.shortReload = shortReload # delau in milliseconds
-        self.longReload = longReload
+        self.shortReload = shortReload # delay in milliseconds
+        self.longReload = longReload # delay in milliseconds
         self.bulletPen = bulletPen # whether or not bullets carry on after hitting target
 
     def __str__(self):
@@ -153,15 +153,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             pass # empty magazine click sound?
 
     def reload(self):
-        if self.currentMag != self.magSize:
-            start = pygame.time.get_ticks()
-            if self.currentMag >= 1: # quick reload
-                while pygame.time.get_ticks() < (start + self.shortReload):
-                    pass # there's got to be a better way than this - will this pause the game?
-            else: # long reload
-                while pygame.time.get_ticks() < (start + self.longReload):
-                    pass # there's got to be a better way than this - will this pause the game?
-            self.currentMag = self.magSize
+        self.currentMag = self.magSize
 
     def cone(self, mouse, fov, distance, returnMask = False):
         fov = m.radians(fov) # convert fov to radians
@@ -198,6 +190,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             angFromVert = 1.5 * m.pi
 
         arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
+        pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
 
         if returnMask:
             #fov = m.degrees(fov)
@@ -212,11 +205,9 @@ class Actor(pygame.sprite.Sprite, World_Object):
             return renderArea
 
         else:
-            #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
             pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1) # why is this not filled in properly
             pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner1.x, corner1.y))
             pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
-            return
 
 class Player(Actor):
     """
@@ -267,7 +258,7 @@ class Player(Actor):
                 #print(spr)
 
                 if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
-                    print(spr + " Overlaps the player view mask")
+                    print(str(spr) + " Overlaps the player view mask")
                     visibleSprites.add(spr)
 
         return visibleSprites
@@ -605,6 +596,9 @@ def drawMask(mask, colour = (0,0,0)):
 def instance():
     running = True
 
+    RELOAD = pygame.USEREVENT + 1
+    #reloadEvent = pygame.event.Event(RELOAD)
+
     # Used to prevent player from leaving the screen
     gameBoundTop = Obstacle(0, -100, displayWidth, 100, False)
     gameBoundBottom = Obstacle(0, displayHeight, displayWidth, 100, False)
@@ -662,10 +656,18 @@ def instance():
                     running = False
 
                 elif event.key == pygame.K_r: # press R to reload
-                    player.reload()
+                    if player.currentMag < player.magSize:
+                        if player.currentMag >= 1: # short reload
+                            pygame.time.set_timer(RELOAD, player.shortReload)
+                        else: # long reload
+                            pygame.time.set_timer(RELOAD, player.longReload)
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
                 player.shoot(mouse, allSprites)
+
+            if event.type == RELOAD:
+                pygame.time.set_timer(RELOAD, 0) # prevents re-reloading chain (just pygame things)
+                player.reload()
             ###
 
         # Keys being held #
@@ -702,7 +704,7 @@ def instance():
         #print(playerView.count())
 
         playerView.invert()
-        drawMask(playerView, lightgrey) # can be used to draw mask if needed, makes frame time go up to ~500
+        #drawMask(playerView, lightgrey) # can be used to draw mask if needed, makes frame time go up to ~500
 
         # Text draws #
         gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
