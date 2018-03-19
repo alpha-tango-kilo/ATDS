@@ -436,7 +436,7 @@ class Guard(Actor):
         self.lastCoords = Point(self.rect.x, self.rect.y)
 
         #viewMask = self.cone(Point(self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100, True) # could use currentDest instead for more accurate view?
-        viewMask = self.cone(self.currentDest, 90, 100, True)
+        viewMask = self.cone(self.currentDest, 90, 100, True) # creating this mask now saves CPU time as sometimes it would have been made twice, but is always needed at least once
         self.lookAround(viewMask, actorGroup)
 
         if pygame.sprite.collide_rect(player, self): # if guard is touching the player
@@ -447,7 +447,7 @@ class Guard(Actor):
                 self.blocked[directions.index(self.tryThisDir)] = True # ... the direction I just tried to move in must be blocked by something
             self.altRoute() # I think this needs to be called every time, not within the above if statement
             if devMode:
-                drawText("Alt-routing", (self.rect.x + 10, self.rect.y + 10))
+                drawText("Alt-routing", (self.rect.x + 10, self.rect.y + 14))
 
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
@@ -457,9 +457,9 @@ class Guard(Actor):
                 self.states[3] = True # investigate around last known point
                 self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the player's last known location
                 if devMode:
-                    drawText("Searching for player", (self.rect.x + 10, self.rect.y + 20))
+                    drawText("Searching for player", (self.rect.x + 10, self.rect.y + 28))
             elif devMode:
-                drawText("Chasing player", (self.rect.x + 10, self.rect.y + 20))
+                drawText("Chasing player", (self.rect.x + 10, self.rect.y + 28))
 
         elif self.states[1]: # upon seeing a guard's corpse
             self.currentDest = self.lastSeenCorpse # go to the last seen corpse
@@ -467,12 +467,20 @@ class Guard(Actor):
             if abs(self.cPos.x - self.currentDest.x) <= self.width and abs(self.cPos.y - self.currentDest.y) <= self.height: # if within a body length of the corpse
                 self.states[3] = True # investigating around a point
                 self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the corpse
+                self.states[1] = False # stops this routine running next frame
+                if devMode:
+                    drawText("At corpse, new patrol made", (self.rect.x + 10, self.rect.y + 42))
+            elif devMode:
+                drawText("Seen corpse", (self.rect.x + 10, self.rect.y + 42))
 
         if self.states[3]: # if investigating a point, assuming self.currentDest is the thing we're interested in
-            pass
+            if devMode:
+                drawText("Investigating here", (self.rect.x + 10, self.rect.y + 56))
 
         elif not self.states[0] and not self.states[1] and not self.states[4]: # if I'm not doing anything that would mean I wouldn't be following my patrol
             self.patrol() # patrol as usual
+            if devMode:
+                drawText("Patrolling normally", (self.rect.x + 10, self.rect.y + 70))
 
         if not self.states[3]: # if I'm not standing around for investigatory purposes
             self.goto(self.currentDest) # ... I suppose I ought to walk around
@@ -585,9 +593,11 @@ class Projectile(pygame.sprite.Sprite):
             sprGroup.remove(collidedWith[0]) # remove the sprite just hit from the group, so it won't be hit again
             self.go(sprGroup, bulletPen) # recurse the function to allow bullet to continue travelling
 
-def drawText(text, colour = (0,0,0), font = "Comic Sans MS", fontSize = 14):
+def drawText(text, loc, colour = (0,0,0), font = "Comic Sans MS", fontSize = 14):
     theFont = pygame.font.SysFont(font, fontSize)
-    return theFont.render(str(text), True, colour)
+    textRender = theFont.render(str(text), True, colour)
+    gameDisplay.blit(textRender, loc)
+    return textRender
 
 def drawMask(mask, colour = (0,0,0)): # alternative name is destroyFPS()
     for i in range(displayWidth):
@@ -711,13 +721,13 @@ def instance():
         for guard in guards: # this is where the brain will be called from
             if guard.alive: # prevents the guard from moving if they're dead - quite useful
                 #guard.goto(Point(player.virtualx, player.virtualy), environmentSprites) # brain will be called here
-                guard.brain(player, guards, actors)
+                guard.brain(player, guards, actors, devMode)
         ###
 
         # Text draws #
-        gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
-        gameDisplay.blit(drawText("FPS: {fps}".format(fps = round(clock.get_fps()))), (2,0)) # fps counter
-        gameDisplay.blit(drawText("Frame Time: {ft}".format(ft = clock.get_rawtime())), (2,18)) # frame time
+        drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
+        drawText("FPS: {fps}".format(fps = round(clock.get_fps())), (2,0)) # fps counter
+        drawText("Frame Time: {ft}".format(ft = clock.get_rawtime()), (2,18)) # frame time
         ###
 
         if not devMode:
