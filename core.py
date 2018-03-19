@@ -188,7 +188,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             angFromVert = 1.5 * m.pi
 
         arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
-        pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
+        #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
 
         if returnMask:
             #fov = m.degrees(fov)
@@ -411,8 +411,7 @@ class Guard(Actor):
         udlr = [rng.choice([-1,1]), rng.choice([-1,1])] # chooses -1 or 1 randomly
         self.patrolPoints = [Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
 
-    def lookAround(self, actors):
-        viewMask = self.cone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100, True) # could use currentDest instead for more accurate view?
+    def lookAround(self, viewMask, actors):
         alreadySeenAGuard = False
 
         for actor in actors:
@@ -430,14 +429,16 @@ class Guard(Actor):
                     self.lastSeenPlayer = Point(actor.rect.x, actor.rect.y)
                     self.states[0] = True
 
-    def quickLook(self, actor):
-        viewMask = self.cone((self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100) # could just look at currentDest?
+    def quickLook(self, viewMask, actor):
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
-    def brain(self, player, allyGroup, actorGroup, envObjs):
+    def brain(self, player, allyGroup, actorGroup):
 
         self.lastCoords = Point(self.rect.x, self.rect.y)
-        self.lookAround(actorGroup)
+
+        #viewMask = self.cone(Point(self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100, True) # could use currentDest instead for more accurate view?
+        viewMask = self.cone(self.currentDest, 90, 100, True)
+        self.lookAround(viewMask, actorGroup)
 
         if pygame.sprite.collide_rect(player, self): # if guard is touching the player
             print("Game Over!")
@@ -450,7 +451,7 @@ class Guard(Actor):
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
 
-            if self.rect.x == self.lastSeenPlayer.x and self.rect.y == self.lastSeenPlayer.y and self.quickLook(player) == False: # lost the player
+            if self.rect.x == self.lastSeenPlayer.x and self.rect.y == self.lastSeenPlayer.y and self.quickLook(viewMask, player) == False: # lost the player
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
                 self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the player's last known location
@@ -591,7 +592,7 @@ def drawMask(mask, colour = (0,0,0)): # alternative name is destroyFPS()
 
 def instance():
     running = True
-    devMode = False
+    devMode = True
 
     RELOAD = pygame.USEREVENT + 1
 
@@ -691,7 +692,8 @@ def instance():
         # Continuous Functions
         for guard in guards: # this is where the brain will be called from
             if guard.alive: # prevents the guard from moving if they're dead - quite useful
-                guard.goto(Point(player.virtualx, player.virtualy), environmentSprites) # brain will be called here
+                #guard.goto(Point(player.virtualx, player.virtualy), environmentSprites) # brain will be called here
+                guard.brain(player, guards, actors)
         ###
 
         # Rendering functions #
