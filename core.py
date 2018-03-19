@@ -197,14 +197,14 @@ class Actor(pygame.sprite.Sprite, World_Object):
         if returnMask:
             #fov = m.degrees(fov)
             #angFromVert = m.degrees(angFromVert)
-            gameDisplay.fill(white)
+            virtualDisplay = pygame.Surface((displayWidth, displayHeight))
+            virtualDisplay.set_colorkey(white)
             #temp = self.cPos.round()
-            pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
+            pygame.draw.arc(virtualDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
             #pygame.gfxdraw.pie(gameDisplay, temp.x, temp.y, distance, angFromVert, angFromVert + fov, black) # both coords and angles have to be ints. I think angles might even work in degrees *sigh*
-            gameDisplay.set_colorkey(white)
-            renderArea = pygame.mask.from_surface(gameDisplay) # now we have to find all the sprites we need to draw within this cone
+            viewArea = pygame.mask.from_surface(virtualDisplay) # now we have to find all the sprites we need to draw within this cone
             #print("Render area count: " + str(renderArea.count()))
-            return renderArea
+            return viewArea
 
 class Player(Actor):
     """
@@ -268,8 +268,8 @@ class Guard(Actor):
 
         # Navigation related variables
         self.eightDirs = [0,0] # x, y. Positive right/down
-        self.widthantToGoHere = [False for _ in range(4)] # udlr
-        self.widthantToGoStack = [] # stack of direction indexes
+        self.wantToGoHere = [False for _ in range(4)] # udlr
+        self.wantToGoStack = [] # stack of direction indexes
         self.blocked = [False for _ in range(4)] # udlr
         self.tryThisDir = ''
         self.lastCoords = Point()
@@ -304,18 +304,18 @@ class Guard(Actor):
     def altRoute(self):
         if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
             for thisWay in range(4):
-                if self.bannedDirs[thisWay] and self.widthantToGoHere[thisWay] and self.block[thisWay] == False: # last clause to prevent repeat appending
+                if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay] and self.block[thisWay] == False: # last clause to prevent repeat appending
                     self.blocked[thisWay] = True # identify blocked routes
-                    self.widthantToGoStack.append(thisWay)
+                    self.wantToGoStack.append(thisWay)
 
             self.oldDest = self.currentDest
             #cancer = [0, 2, 1, 3] # please, just stop thinking about this (translates udlr format into uldr format -_-)
-            self.dirToTry = ([0, 2, 1, 3][self.widthantToGoStack[len(self.widthantToGoStack) - 1]] + self.problemSolvingDirection) % 4
-        elif self.bannedDirs[self.widthantToGoStack[len(self.widthantToGoStack) - 1]]: # if the way I'm currently trying to go is blocked
+            self.dirToTry = ([0, 2, 1, 3][self.wantToGoStack[len(self.wantToGoStack) - 1]] + self.problemSolvingDirection) % 4
+        elif self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the way I'm currently trying to go is blocked
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
         else: # if the latest direction I've been trying is now free
-            self.dirToTry = self.widthantToGoStack.pop()
-            if len(self.widthantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
+            self.dirToTry = self.wantToGoStack.pop()
+            if len(self.wantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
                 self.states[4] = False # alt routing is no longer needed
                 self.currentDest = self.oldDest
                 return # return early to prevent the below if statements from changing the destination
@@ -335,28 +335,28 @@ class Guard(Actor):
         """
 
         self.eightDirs = [0,0]
-        self.widthantToGoHere = [False, False, False, False]
+        self.wantToGoHere = [False, False, False, False]
 
         # x co-ordinate #
         if abs(self.rect.x - dest.x) > self.width + self.speed:
             if dest.x < self.virtualx:
-                self.widthantToGoHere[2] = True
+                self.wantToGoHere[2] = True
                 if not self.bannedDirs[2]:
                     self.virtualx -= self.speed
                     self.eightDirs[1] = -1
             elif dest.x > self.virtualx:
-                self.widthantToGoHere[3] = True
+                self.wantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx += self.speed
                     self.eightDirs[1] = 1
         elif abs(self.virtualx - dest.x) <= self.width + self.speed and abs(self.virtualx - dest.x) >= self.width and sprGroup == None: # fine adjusment
             if dest.x < self.virtualx:
-                self.widthantToGoHere[2] = True # necessary?
+                self.wantToGoHere[2] = True # necessary?
                 if not self.bannedDirs[2]:
                     self.virtualx -= 0.1
                     self.eightDirs[1] = -1
             elif dest.x > self.virtualx:
-                self.widthantToGoHere[3] = True # necessary?
+                self.wantToGoHere[3] = True # necessary?
                 if not self.bannedDirs[3]:
                     self.virtualx += 0.1
                     self.eightDirs[1] = 1
@@ -366,23 +366,23 @@ class Guard(Actor):
         # could change such that moving up/down is determined before the distance moved is
         if abs(self.rect.y - dest.y) > self.width + self.speed:
             if dest.y < self.virtualy:
-                self.widthantToGoHere[1] = True
+                self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= self.speed
                     self.eightDirs[0] = 1
             elif dest.y > self.virtualy:
-                self.widthantToGoHere[0] = True
+                self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += self.speed
                     self.eightDirs[0] = -1
         elif abs(self.virtualy - dest.y) <= self.width + self.speed and abs(self.virtualy - dest.y) >= self.width and sprGroup == None: # fine adjustment
             if dest.y < self.virtualy:
-                self.widthantToGoHere[1] = True
+                self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= 0.1
                     self.eightDirs[0] = 1
             elif dest.y > self.virtualy:
-                self.widthantToGoHere[0] = True
+                self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += 0.1
                     self.eightDirs[0] = -1
@@ -431,7 +431,7 @@ class Guard(Actor):
     def quickLook(self, viewMask, actor):
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
-    def brain(self, player, allyGroup, actorGroup):
+    def brain(self, player, allyGroup, actorGroup, devMode = False):
 
         self.lastCoords = Point(self.rect.x, self.rect.y)
 
@@ -446,6 +446,8 @@ class Guard(Actor):
             if self.bannedDirs[self.bannedDirs.index(self.tryThisDir)]: # if I can't move
                 self.blocked[directions.index(self.tryThisDir)] = True # ... the direction I just tried to move in must be blocked by something
             self.altRoute() # I think this needs to be called every time, not within the above if statement
+            if devMode:
+                drawText("Alt-routing", (self.rect.x + 10, self.rect.y + 10))
 
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
@@ -454,6 +456,10 @@ class Guard(Actor):
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
                 self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the player's last known location
+                if devMode:
+                    drawText("Searching for player", (self.rect.x + 10, self.rect.y + 20))
+            elif devMode:
+                drawText("Chasing player", (self.rect.x + 10, self.rect.y + 20))
 
         elif self.states[1]: # upon seeing a guard's corpse
             self.currentDest = self.lastSeenCorpse # go to the last seen corpse
@@ -688,13 +694,6 @@ def instance():
             player.move('r', environmentSprites)
         ###
 
-        # Continuous Functions
-        for guard in guards: # this is where the brain will be called from
-            if guard.alive: # prevents the guard from moving if they're dead - quite useful
-                #guard.goto(Point(player.virtualx, player.virtualy), environmentSprites) # brain will be called here
-                guard.brain(player, guards, actors)
-        ###
-
         # Rendering functions #
         playerView.clear()
         playerView.draw(player.cone(mouse, 90, 100, True), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
@@ -707,6 +706,13 @@ def instance():
 
         #playerView.invert()
         #drawMask(playerView, lightgrey) # can be used to draw mask if needed, makes frame time go up to ~500
+
+        # Continuous Functions #
+        for guard in guards: # this is where the brain will be called from
+            if guard.alive: # prevents the guard from moving if they're dead - quite useful
+                #guard.goto(Point(player.virtualx, player.virtualy), environmentSprites) # brain will be called here
+                guard.brain(player, guards, actors)
+        ###
 
         # Text draws #
         gameDisplay.blit(drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize)), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
