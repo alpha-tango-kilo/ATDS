@@ -190,6 +190,10 @@ class Actor(pygame.sprite.Sprite, World_Object):
         arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
         #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
 
+        pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1) # why is this not filled in properly
+        pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner1.x, corner1.y))
+        pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
+
         if returnMask:
             #fov = m.degrees(fov)
             #angFromVert = m.degrees(angFromVert)
@@ -201,11 +205,6 @@ class Actor(pygame.sprite.Sprite, World_Object):
             renderArea = pygame.mask.from_surface(gameDisplay) # now we have to find all the sprites we need to draw within this cone
             #print("Render area count: " + str(renderArea.count()))
             return renderArea
-
-        else:
-            pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1) # why is this not filled in properly
-            pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner1.x, corner1.y))
-            pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
 
 class Player(Actor):
     """
