@@ -198,6 +198,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             #fov = m.degrees(fov)
             #angFromVert = m.degrees(angFromVert)
             virtualDisplay = pygame.Surface((displayWidth, displayHeight))
+            virtualDisplay.fill(white)
             virtualDisplay.set_colorkey(white)
             #temp = self.cPos.round()
             pygame.draw.arc(virtualDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
