@@ -431,7 +431,7 @@ class Guard(Actor):
     def quickLook(self, viewMask, actor):
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
-    def brain(self, player, allyGroup, actorGroup, devMode = False):
+    def brain(self, player, allyGroup, actorGroup, envGroup, devMode = False):
 
         self.lastCoords = Point(self.rect.x, self.rect.y)
 
@@ -483,7 +483,7 @@ class Guard(Actor):
                 drawText("Patrolling normally", (self.rect.x + 10, self.rect.y + 70))
 
         if not self.states[3]: # if I'm not standing around for investigatory purposes
-            self.goto(self.currentDest) # ... I suppose I ought to walk around
+            self.goto(self.currentDest, envGroup) # ... I suppose I ought to walk around
 
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
@@ -721,7 +721,7 @@ def instance():
         for guard in guards: # this is where the brain will be called from
             if guard.alive: # prevents the guard from moving if they're dead - quite useful
                 #guard.goto(Point(player.virtualx, player.virtualy), environmentSprites) # brain will be called here
-                guard.brain(player, guards, actors, devMode)
+                guard.brain(player, guards, actors, environmentSprites, devMode)
         ###
 
         # Text draws #
