@@ -311,7 +311,7 @@ class Guard(Actor):
 
             self.oldDest = self.currentDest
             #cancer = [0, 2, 1, 3] # please, just stop thinking about this (translates udlr format into uldr format -_-)
-            self.dirToTry = ([0, 2, 1, 3][self.wantToGoStack[len(self.wantToGoStack) - 1]] + self.problemSolvingDirection) % 4
+            self.dirToTry = [0, 2, 1, 3][self.wantToGoStack[(len(self.wantToGoStack) - 1 + self.problemSolvingDirection) % 4]]
         elif self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the way I'm currently trying to go is blocked
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
         else: # if the latest direction I've been trying is now free
