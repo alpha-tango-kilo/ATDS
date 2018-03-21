@@ -304,14 +304,7 @@ class Guard(Actor):
 
     def altRoute(self):
         if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
-            for thisWay in range(4):
-                if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay] and self.block[thisWay] == False: # last clause to prevent repeat appending
-                    self.blocked[thisWay] = True # identify blocked routes
-                    self.wantToGoStack.append(thisWay)
-
-            self.oldDest = self.currentDest
-            #cancer = [0, 2, 1, 3] # please, just stop thinking about this (translates udlr format into uldr format -_-)
-            self.dirToTry = [0, 2, 1, 3][self.wantToGoStack[(len(self.wantToGoStack) - 1 + self.problemSolvingDirection) % 4]]
+            self.dirToTry = [0, 2, 1, 3][self.wantToGoStack[len(self.wantToGoStack) - 1] + self.problemSolvingDirection % 4]
         elif self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the way I'm currently trying to go is blocked
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
         else: # if the latest direction I've been trying is now free
@@ -335,7 +328,6 @@ class Guard(Actor):
         Stopping in close proximity (as opposed to on top of the target) only works if the 2 squares are the same width
         """
 
-        self.eightDirs = [0,0]
         self.wantToGoHere = [False, False, False, False]
 
         # x co-ordinate #
@@ -344,23 +336,19 @@ class Guard(Actor):
                 self.wantToGoHere[2] = True
                 if not self.bannedDirs[2]:
                     self.virtualx -= self.speed
-                    self.eightDirs[1] = -1
             elif dest.x > self.virtualx:
                 self.wantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx += self.speed
-                    self.eightDirs[1] = 1
-        elif abs(self.virtualx - dest.x) <= self.width + self.speed and abs(self.virtualx - dest.x) >= self.width and sprGroup == None: # fine adjusment
+        elif abs(self.virtualx - dest.x) <= self.width + self.speed and abs(self.virtualx - dest.x) >= self.width: #and sprGroup == None: # fine adjusment
             if dest.x < self.virtualx:
                 self.wantToGoHere[2] = True # necessary?
                 if not self.bannedDirs[2]:
                     self.virtualx -= 0.1
-                    self.eightDirs[1] = -1
             elif dest.x > self.virtualx:
                 self.wantToGoHere[3] = True # necessary?
                 if not self.bannedDirs[3]:
                     self.virtualx += 0.1
-                    self.eightDirs[1] = 1
         ###
 
         # y co-ordinate #
@@ -370,23 +358,19 @@ class Guard(Actor):
                 self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= self.speed
-                    self.eightDirs[0] = 1
             elif dest.y > self.virtualy:
                 self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += self.speed
-                    self.eightDirs[0] = -1
-        elif abs(self.virtualy - dest.y) <= self.width + self.speed and abs(self.virtualy - dest.y) >= self.width and sprGroup == None: # fine adjustment
+        elif abs(self.virtualy - dest.y) <= self.width + self.speed and abs(self.virtualy - dest.y) >= self.width: #and sprGroup == None: # fine adjustment
             if dest.y < self.virtualy:
                 self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= 0.1
-                    self.eightDirs[0] = 1
             elif dest.y > self.virtualy:
                 self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += 0.1
-                    self.eightDirs[0] = -1
         ###
 
         self.posUpdate()
@@ -394,12 +378,20 @@ class Guard(Actor):
         if sprGroup:
             self.collisionCheck(sprGroup)
 
-            if self.lastCoords.distance(Point(self.rect.x, self.rect.y)) == 0: # if guard hasn't moved since last time procedure was called
-                self.altRoute()
-                self.states[4] = True # must be left after the above to prevent the original destination being overwritten
+            for thisWay in range(4):
+                if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay] and not self.blocked[thisWay]: # last clause to prevent repeat appending
+                    self.blocked[thisWay] = True # identify blocked routes
+                    self.wantToGoStack.append(thisWay) # if found to be blocked, direction added as somewhere the guard originally wanted to go
+
+
+
+                if len(self.wantToGoStack) > 0: # validates that altRoute has indeed found an issue
+                    self.oldDest = self.currentDest
+                    self.altRoute()
+                    self.states[4] = True # must be left after the above to prevent the original destination being overwritten
 
     def patrol(self):
-        if self.rect.x == self.currentDest.x and self.rect.y == self.currentDest.y:
+        if self.currentDest.distance(Point(self.rect.x, self.rect.y)) < 22: # if close to my destination (I don't know why this has to be 22 to work)
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # sets destination to be next point in patrol points list
         elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point
             self.currentDest = self.patrolPoints[rng.randint(0, len(self.patrolPoints) - 1)] # ... pick a random one and start heading there
@@ -434,7 +426,7 @@ class Guard(Actor):
 
     def brain(self, player, allyGroup, actorGroup, envGroup, devMode = False):
 
-        self.lastCoords = Point(self.rect.x, self.rect.y)
+        self.lastCoords = Point(self.virtualx, self.virtualy)
 
         #viewMask = self.cone(Point(self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100, True) # could use currentDest instead for more accurate view?
         viewMask = self.cone(self.currentDest, 90, 100, True) # creating this mask now saves CPU time as sometimes it would have been made twice, but is always needed at least once
@@ -477,14 +469,14 @@ class Guard(Actor):
         if self.states[3]: # if investigating a point, assuming self.currentDest is the thing we're interested in
             if devMode:
                 drawText("Investigating here", (self.rect.x + 10, self.rect.y + 56))
+            return
 
         elif not self.states[0] and not self.states[1] and not self.states[4]: # if I'm not doing anything that would mean I wouldn't be following my patrol
             self.patrol() # patrol as usual
             if devMode:
                 drawText("Patrolling normally", (self.rect.x + 10, self.rect.y + 70))
 
-        if not self.states[3]: # if I'm not standing around for investigatory purposes
-            self.goto(self.currentDest, envGroup) # ... I suppose I ought to walk around
+        self.goto(self.currentDest, envGroup) # ... I suppose I ought to walk around
 
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
@@ -619,7 +611,7 @@ def instance():
     gameBoundRight = Obstacle(displayWidth, 0, 100, displayHeight, False)
 
     player = Player()
-    guard1 = Guard(500, 500, 15, 15, [Point(100,650), Point(1180, 650)], 1.2, dan)
+    guard1 = Guard(500, 500, 15, 15, [Point(100,650), Point(1180, 650), Point(500, 20)], 1.2, dan)
     wall = Obstacle(200, 200, 300, 150, False)
     wall2 = Obstacle(700, 600, 200, 20, True)
 
@@ -707,7 +699,7 @@ def instance():
 
         # Rendering functions #
         playerView.clear()
-        playerView.draw(player.cone(mouse, 90, 100, True), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
+        playerView.draw(player.cone(mouse, 90, 200, True), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
         visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
 
         #print(visibleSprites)
