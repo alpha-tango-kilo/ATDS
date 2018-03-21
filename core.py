@@ -430,6 +430,7 @@ class Guard(Actor):
 
         #viewMask = self.cone(Point(self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100, True) # could use currentDest instead for more accurate view?
         viewMask = self.cone(self.currentDest, 90, 100, True) # creating this mask now saves CPU time as sometimes it would have been made twice, but is always needed at least once
+        drawMask(viewMask, lightgrey)
         self.lookAround(viewMask, actorGroup)
 
         if pygame.sprite.collide_rect(player, self): # if guard is touching the player
