@@ -722,8 +722,7 @@ def instance():
         ###
 
         # Rendering functions #
-        playerView.clear()
-        playerView.draw(player.cone(mouse, 90, 200, True), (0,0))
+        playerView = player.cone(mouse, 90, 200, True)
 
         if not devMode:
             visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
