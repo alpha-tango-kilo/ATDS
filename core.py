@@ -383,8 +383,6 @@ class Guard(Actor):
                     self.blocked[thisWay] = True # identify blocked routes
                     self.wantToGoStack.append(thisWay) # if found to be blocked, direction added as somewhere the guard originally wanted to go
 
-
-
                 if len(self.wantToGoStack) > 0: # validates that altRoute has indeed found an issue
                     self.oldDest = self.currentDest
                     self.altRoute()
@@ -406,8 +404,13 @@ class Guard(Actor):
     def lookAround(self, viewMask, actors):
         alreadySeenAGuard = False
 
+        virtualDisplay = pygame.Surface((displayWidth, displayHeight))
+        virtualDisplay.set_colorkey(white)
+
         for actor in actors:
-            if viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0)):
+            virtualDisplay.fill(white)
+            virtualDisplay.blit(actor.image, (actor.rect.x, actor.rect.y))
+            if viewMask.overlap(pygame.mask.from_surface(virtualDisplay), (0,0)):
                 if type(actor) == type(Guard()) and actor != self: # don't know if the second part of this clause will work
                     if actor.alive: # if the guard is alive
                         if not alreadySeenAGuard: # if it's the first guard I've seen
@@ -430,7 +433,9 @@ class Guard(Actor):
 
         #viewMask = self.cone(Point(self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100, True) # could use currentDest instead for more accurate view?
         viewMask = self.cone(self.currentDest, 90, 100, True) # creating this mask now saves CPU time as sometimes it would have been made twice, but is always needed at least once
-        drawMask(viewMask, lightgrey)
+
+        #drawMask(viewMask, lightgrey)
+
         self.lookAround(viewMask, actorGroup)
 
         if pygame.sprite.collide_rect(player, self): # if guard is touching the player
