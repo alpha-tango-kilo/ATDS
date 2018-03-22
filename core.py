@@ -67,7 +67,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.speed = speed
         self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
 
-        self.image = pygame.Surface([self.width, self.height])
+        self.image = pygame.Surface([self.width, self.height], pygame.SRCALPHA, 32)
         self.image.fill(self.colour) # creates a rectangular picture for the sprite using given parameters
         self.image.set_colorkey(white)
         self.rect = self.image.get_rect()
@@ -214,6 +214,9 @@ class Player(Actor):
     """
     def __init__(self, x = 10, y = 10, w = 15, h = 15, colour = red):
         super().__init__(x, y, w, h, 1, colour)
+        self.image.fill(white)
+        self.image.blit(playerAlive, (0,0))
+        self.image = self.image.convert_alpha()
 
     def drawCrosshair(self, mouse):
         # line to player
@@ -266,6 +269,11 @@ class Guard(Actor):
     """
     def __init__(self, x = 10, y = 10, w = 15, h = 15, patrolPoints = [Point(10,10)], speed = 1.2, colour = black):
         super().__init__(x, y, w, h, speed, colour)
+
+        self.image.fill(white)
+        self.image.blit(guardAlive, (0,0))
+        self.image = self.image.convert_alpha()
+
         self.alive = True
 
         # Navigation related variables
@@ -301,6 +309,8 @@ class Guard(Actor):
     def getShot(self):
         print("Guard hit. They didn't appreciate it.")
         self.alive = False
+        self.image.fill((0,0,0,0)) # make image blank
+        self.image.blit(guardDead, (0,0)) # draw on dead guard texture
         return None
 
     def altRoute(self):
