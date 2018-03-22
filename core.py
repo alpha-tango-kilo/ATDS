@@ -32,7 +32,6 @@ clock = pygame.time.Clock()
 class World_Object(): # any object that is visible to and interactive with the player should inherit from this class
     def getShot(self): # a default case for any object rendered to the screen being shot, needed otherwise projectiles will error
         print("World_Object says 'ow!'")
-        return None
 
 class Point():
     def __init__(self, x = 0, y = 0):
@@ -311,7 +310,6 @@ class Guard(Actor):
         self.alive = False
         self.image.fill((0,0,0,0)) # make image blank
         self.image.blit(guardDead, (0,0)) # draw on dead guard texture
-        return None
 
     def altRoute(self):
         if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
@@ -550,10 +548,8 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         if self.destructable: # wall breaks
             self.kill() # removes sprite
             print("Wall shot. Wall dead.")
-            return None
         else:
             print("Wall shot. Wall smiles.")
-            return None
 
 class Projectile(pygame.sprite.Sprite):
     """
