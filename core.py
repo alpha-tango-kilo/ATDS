@@ -153,7 +153,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
     def reload(self): # assumes the delay/wait has already occurred
         self.currentMag = self.magSize
 
-    def cone(self, mouse, fov, distance, returnMask = False):
+    def cone(self, mouse, fov, distance, drawCone = False, returnMask = False):
         fov = m.radians(fov) # convert fov to radians
 
         # Mr. Marshall's code #
@@ -190,9 +190,10 @@ class Actor(pygame.sprite.Sprite, World_Object):
         arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
         #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
 
-        pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1) # why is this not filled in properly
-        pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner1.x, corner1.y))
-        pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
+        if drawCone:
+            pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1)
+            pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner1.x, corner1.y))
+            pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
 
         if returnMask:
             #fov = m.degrees(fov)
@@ -280,8 +281,8 @@ class Guard(Actor):
 
         # Brain variables
         self.states = [False for _ in range(5)]
-        self.lastSeenCorpse = Point()
-        self.lastSeenPlayer = None
+        self.lastSeenCorpse = None # uses rect.x and rect.y
+        self.lastSeenPlayer = None # uses rect.x and rect.y
         self.lastSeenGuards = []
         self.patrolPoints = patrolPoints
         self.currentDest = self.patrolPoints[0]
@@ -404,6 +405,8 @@ class Guard(Actor):
     def lookAround(self, viewMask, actors):
         alreadySeenAGuard = False
 
+        actors.remove(self) # don't look at yourself silly (also saves an iteration in the below for loop)
+
         virtualDisplay = pygame.Surface((displayWidth, displayHeight))
         virtualDisplay.set_colorkey(white)
 
@@ -411,8 +414,8 @@ class Guard(Actor):
             virtualDisplay.fill(white)
             virtualDisplay.blit(actor.image, (actor.rect.x, actor.rect.y))
             if viewMask.overlap(pygame.mask.from_surface(virtualDisplay), (0,0)):
-                if type(actor) == type(Guard()) and actor != self: # don't know if the second part of this clause will work
-                    if actor.alive: # if the guard is alive
+                try: # EAFP for checking if actor is guard or player
+                    if actor.alive: # if the guard is alive - will throw AttributeError is this is the player
                         if not alreadySeenAGuard: # if it's the first guard I've seen
                             self.lastSeenGuards = [] # ... jettison all other previously know guard locations, to avoid duplicates
                             alreadySeenAGuard = True
@@ -420,19 +423,21 @@ class Guard(Actor):
                     elif Point(actor.rect.x, actor.rect.y) not in self.patrolPoints and self.states[1] == False: # if the corpse isn't one I'm patrolling around already, and I'm not already taking a shuftie at another corpse already
                         self.lastSeenCorpse = Point(actor.rect.x, actor.rect.y)
                         self.states[1] = True
-                elif type(actor) == type(Player()):
+                except AttributeError: # must be the player
                     self.lastSeenPlayer = Point(actor.rect.x, actor.rect.y)
                     self.states[0] = True
 
     def quickLook(self, viewMask, actor):
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
-    def brain(self, player, allyGroup, actorGroup, envGroup, devMode = False):
+    def brain(self, player, allyGroup, actorGroup, envGroup, amVisible, devMode = False):
 
         self.lastCoords = Point(self.virtualx, self.virtualy)
 
-        #viewMask = self.cone(Point(self.cPos.x + (5 * self.eightDirs[1]), self.cPos.y + (5 * self.eightDirs[0])), 90, 100, True) # could use currentDest instead for more accurate view?
-        viewMask = self.cone(self.currentDest, 90, 100, True) # creating this mask now saves CPU time as sometimes it would have been made twice, but is always needed at least once
+        if devMode or amVisible: # if I should be seen
+            viewMask = self.cone(self.currentDest, 90, 100, True, True) # ... draw the cone so that it can be seen
+        else: # ... or don't
+            viewMask = self.cone(self.currentDest, 90, 100, False, True) # creating this mask now saves CPU time as sometimes it would have been made twice, but is always needed at least once
 
         #drawMask(viewMask, lightgrey)
 
@@ -641,6 +646,8 @@ def instance():
     guards = pygame.sprite.Group() # used to call their bot routines
     guards.add(guard1)
 
+    visibleSprites = pygame.sprite.Group() # shouldn't have to add anything here, game should handle it
+
     lonelyPlayer = pygame.sprite.GroupSingle() # used to draw the player (again)
     lonelyPlayer.add(player)
 
@@ -708,13 +715,6 @@ def instance():
         #playerView.invert()
         #drawMask(playerView, lightgrey) # can be used to draw mask if needed, makes frame time go up to ~500
 
-        # Continuous Functions #
-        for guard in guards: # this is where the brain will be called from
-            if guard.alive: # prevents the guard from moving if they're dead - quite useful
-                #guard.goto(Point(player.virtualx, player.virtualy), environmentSprites) # brain will be called here
-                guard.brain(player, guards, actors, environmentSprites, devMode)
-        ###
-
         # Text draws #
         drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
         drawText("FPS: {fps}".format(fps = round(clock.get_fps())), (2,0)) # fps counter
@@ -722,10 +722,17 @@ def instance():
         ###
 
         # Rendering functions #
-        playerView = player.cone(mouse, 90, 200, True)
+        playerView = player.cone(mouse, 90, 200, True, True)
+        visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
+
+        for guard in guards: # this is where the brain should be called from
+            if guard.alive: # prevents the guard from moving if they're dead - quite useful
+                if guard in visibleSprites:
+                    guard.brain(player, guards, actors, environmentSprites, True, devMode)
+                else:
+                    guard.brain(player, guards, actors, environmentSprites, False, devMode)
 
         if not devMode:
-            visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
             visibleSprites.draw(gameDisplay)
         else:
             allSprites.draw(gameDisplay)
