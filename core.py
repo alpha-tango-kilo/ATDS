@@ -698,15 +698,7 @@ def instance():
             player.move('r', environmentSprites)
         ###
 
-        # Rendering functions #
-        playerView.clear()
-        playerView.draw(player.cone(mouse, 90, 200, True), (0,0)) # this will whiteout the screen and put an arc on it, always clear screen after
-        visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
-
-        #print(visibleSprites)
-
         gameDisplay.fill(white) # clean up arc drawings
-        #print(playerView.count())
 
         #playerView.invert()
         #drawMask(playerView, lightgrey) # can be used to draw mask if needed, makes frame time go up to ~500
@@ -724,12 +716,16 @@ def instance():
         drawText("Frame Time: {ft}".format(ft = clock.get_rawtime()), (2,18)) # frame time
         ###
 
+        # Rendering functions #
+        playerView.clear()
+        playerView.draw(player.cone(mouse, 90, 200, True), (0,0))
+
         if not devMode:
+            visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
             visibleSprites.draw(gameDisplay)
         else:
             allSprites.draw(gameDisplay)
 
-        player.cone(mouse, 90, 200)
         player.drawCrosshair(mouse)
         lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         ###
