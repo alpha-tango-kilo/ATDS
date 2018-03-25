@@ -682,7 +682,7 @@ def instance():
 
     while running:
         mouse = pygame.mouse.get_pos()
-        mouse = Point(mouse[0], mouse[1])
+        mouse = Point(mouse[0], mouse[1]) # for sake of consistency throughout program
 
         for event in pygame.event.get():
             # Any pygame handled events should be put here #
@@ -741,7 +741,8 @@ def instance():
         # Text draws #
         drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
         drawText("FPS: {fps}".format(fps = round(clock.get_fps())), (2,0)) # fps counter
-        drawText("Frame Time: {ft}".format(ft = clock.get_rawtime()), (2,18)) # frame time
+        if devMode:
+            drawText("Frame Time: {ft}".format(ft = clock.get_rawtime()), (2,18)) # frame time
         ###
 
         # Rendering functions #
@@ -750,10 +751,7 @@ def instance():
 
         for guard in guards: # this is where the brain should be called from
             if guard.alive: # prevents the guard from moving if they're dead - quite useful
-                if guard in visibleSprites:
-                    guard.brain(player, guards, actors, environmentSprites, True, devMode)
-                else:
-                    guard.brain(player, guards, actors, environmentSprites, False, devMode)
+                guard.brain(player, guards, actors, environmentSprites, (guard in visibleSprites), devMode)
 
         if not devMode:
             visibleSprites.draw(gameDisplay)
