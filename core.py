@@ -29,6 +29,24 @@ pygame.display.set_caption("ATDS")
 
 clock = pygame.time.Clock()
 
+class Level(): # I'd like to think this is pretty self explanatory
+    def __init__(self): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
+        self.player = None
+        self.guards = []
+        self.obstacles = []
+
+    def loadFromFile(self, path): # look examiner! file storage!
+        """
+        File format is intended to work as follows, all parameters will be separated by a space/tab (depending on which I feel like, hopefully I'll update this comment):
+        line 1 - player parameters
+        line 2 - guard parameters, all guards will be on this single line, all parameters must be given so the program doesn't barf
+        line 3 - obstacle parameters, relying on the same basis as above
+        """
+        raw = open(path, "r").read().splitlines() # open the file as read only. using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
+        for lineNo in range(len(raw) - 1):
+            raw = raw[lineNo].split(" ") # could use tabs instead for readability, this may change but is essentially unimportant
+            # at this point raw should be a 2D list of lists, just how I like them
+
 class World_Object(): # any object that is visible to and interactive with the player should inherit from this class
     def getShot(self): # a default case for any object rendered to the screen being shot, needed otherwise projectiles will error
         print("World_Object says 'ow!'")
@@ -527,7 +545,7 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         virtualDisplay = pygame.Surface((displayWidth, displayHeight))
         virtualDisplay.set_colorkey(white)
         virtualDisplay.fill(white)
-        tempGroup = pygame.sprite.Group()
+        tempGroup = pygame.sprite.GroupSingle()
         tempGroup.add(self)
         tempGroup.draw(virtualDisplay)
         self.mask = pygame.mask.from_surface(virtualDisplay) # pre calculating masks on game load saves having to calculate them every frame
