@@ -35,17 +35,36 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.guards = []
         self.obstacles = []
 
+        # all sprite groups can be created here!
+        self.playerGroup        = pygame.sprite.GroupSingle()
+        self.guardGroup         = pygame.sprite.Group()
+        self.actorGroup         = pygame.sprite.Group()
+        self.environmentGroup   = pygame.sprite.Group()
+        self.visibleGroup       = pygame.sprite.Group()
+
     def loadFromFile(self, path): # look examiner! file storage!
         """
-        File format is intended to work as follows, all parameters will be separated by a space/tab (depending on which I feel like, hopefully I'll update this comment):
-        line 1 - player parameters
-        line 2 - guard parameters, all guards will be on this single line, all parameters must be given so the program doesn't barf
-        line 3 - obstacle parameters, relying on the same basis as above
+        File format is intended to work as follows, all parameters must be given and will be separated by a space/tab (depending on which I feel like, hopefully I'll update this comment):
+        line 1 - player parameters (x, y)
+        line 2 - guard parameters (x, y, patrolPoints, speed), all guards will be on this single line. Guard patrol points are sown together by dashes (-), so they aren't separated until we're ready for that sweet O(n^2) processing
+        line 3 - obstacle parameters (x, y, width, height, destructable), relying on the same basis as above
         """
-        raw = open(path, "r").read().splitlines() # open the file as read only. using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
+        raw = open(path, "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
         for lineNo in range(len(raw) - 1):
-            raw = raw[lineNo].split(" ") # could use tabs instead for readability, this may change but is essentially unimportant
+            raw[lineNo] = raw[lineNo].split(" ") # could use tabs instead for readability, this may change but is essentially unimportant
             # at this point raw should be a 2D list of lists, just how I like them
+
+        self.player = Player(float(raw[0][0]), float(raw[0][1])) # create player
+
+        for guardNo in range(len(raw[1]) / 4): # loops for the number of guards
+            rawPatrol = raw[1][guardNo].split("-") # see docstring
+            patrolPoints = [] # initialise variable
+            for pointNo in range(len(rawPatrol) / 2): # loops for the number of patrol points
+                patrolPoints.append(Point(int(rawPatrol[pointNo]), int(rawPatrol[pointNo + 1]))) # adds each patrol point to the list, ensuring everything is an int first
+            self.guards.append(Guard(int(raw[1][guardNo]), int(raw[1][guardNo + 1]), patrolPoints, float(raw[1][guardNo + 3]))) # creates guards, adding them to the list
+
+        for obstacleNo in range(len(raw[2]) / 5): # loops for the number of obstacles
+            self.obstacles.append(Obstacle(int(raw[2][obstacleNo]), int(raw[2][obstacleNo + 1]), int(raw[2][obstacleNo + 2]), int(raw[2][obstacleNo + 3]), raw[2][obstacleNo + 4] is "True")) # creates obstacle objects, adding them to the list
 
 class World_Object(): # any object that is visible to and interactive with the player should inherit from this class
     def getShot(self): # a default case for any object rendered to the screen being shot, needed otherwise projectiles will error
