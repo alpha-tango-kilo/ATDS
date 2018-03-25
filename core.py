@@ -71,21 +71,20 @@ class Point():
         return Point(round(self.x), round(self.y))
 
 class Actor(pygame.sprite.Sprite, World_Object):
-    def __init__(self, x = 10, y = 10, w = 15, h = 15, speed = 1, colour = black, magSize = 6, shortReload = 2000, longReload = 2500, bulletPen = False):
+    def __init__(self, x = 10, y = 10, speed = 1, magSize = 6, shortReload = 2000, longReload = 2500, bulletPen = False):
         super().__init__() # inits pygame.sprite.Sprite
 
         """
         Parameters provided allow for a better customisation of the player "model"
         """
 
-        self.width = w
-        self.height = h
-        self.colour = colour
+        self.width = 15
+        self.height = 15
         self.speed = speed
         self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
 
         self.image = pygame.Surface([self.width, self.height], pygame.SRCALPHA, 32)
-        self.image.fill(self.colour) # creates a rectangular picture for the sprite using given parameters
+        self.image.fill(black) # creates a rectangular picture for the sprite using given parameters
         self.image.set_colorkey(white)
         self.rect = self.image.get_rect()
         self.rect.x = round(x) # accounts for float inputs
@@ -229,8 +228,8 @@ class Player(Actor):
     """
     This is the player's actor
     """
-    def __init__(self, x = 10, y = 10, w = 15, h = 15, colour = red):
-        super().__init__(x, y, w, h, 1, colour)
+    def __init__(self, x = 10, y = 10):
+        super().__init__(x, y, 1)
         self.image.fill(white)
         self.image.blit(playerAlive, (0,0))
         self.image = self.image.convert_alpha()
@@ -284,8 +283,8 @@ class Guard(Actor):
     """
     These are the bad guys
     """
-    def __init__(self, x = 10, y = 10, w = 15, h = 15, patrolPoints = [Point(10,10)], speed = 1.2, colour = black):
-        super().__init__(x, y, w, h, speed, colour)
+    def __init__(self, x = 10, y = 10, patrolPoints = [Point(10,10)], speed = 1.2):
+        super().__init__(x, y, speed)
 
         self.image.fill(white)
         self.image.blit(guardAlive, (0,0))
@@ -586,7 +585,7 @@ class Projectile(pygame.sprite.Sprite):
             self.xStep = self.xStep / abs(self.yStep)
             self.yStep = self.yStep / abs(self.yStep) # consider optimising this
 
-        self.image = pygame.Surface([2, 2])
+        self.image = pygame.Surface([2, 2]) # does a projectile even need an image?
         self.image.fill(black) # bullets are 2x2
         self.rect = self.image.get_rect()
 
@@ -646,7 +645,7 @@ def instance():
     gameBoundRight = Obstacle(displayWidth, 0, 100, displayHeight, False)
 
     player = Player()
-    guard1 = Guard(500, 500, 15, 15, [Point(100,650), Point(1180, 650), Point(500, 20)], 1.2, dan)
+    guard1 = Guard(500, 500, [Point(100,650), Point(1180, 650), Point(500, 20)], 1.2)
     wall = Obstacle(200, 200, 300, 150, False)
     wall2 = Obstacle(700, 600, 200, 20, True)
 
