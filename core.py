@@ -41,12 +41,14 @@ class Level(): # I'd like to think this is pretty self explanatory
         # all sprite groups can be created here!
         self.playerGroup        = pygame.sprite.GroupSingle()
         self.guardGroup         = pygame.sprite.Group()
-        self.actorGroup         = pygame.sprite.Group()
-        self.environmentGroup   = pygame.sprite.Group()
+        self.actorGroup         = pygame.sprite.Group() # any actors, player included
+        self.environmentGroup   = pygame.sprite.Group() # anything you don't want to walk through
+        self.allGroup           = pygame.sprite.Group() # everything except player
         self.visibleGroup       = pygame.sprite.Group()
 
         for obstacle in self.obstacles:
             self.environmentGroup.add(obstacle)
+            self.allGroup.add(obstacle)
 
     def loadFromFile(self, number): # look examiner! file storage!
         """
@@ -55,21 +57,22 @@ class Level(): # I'd like to think this is pretty self explanatory
         line 2 - guard parameters (x, y, patrolPoints, speed), all guards will be on this single line. Guard patrol points are sown together by dashes (-), so they aren't separated until we're ready for that sweet O(n^2) processing
         line 3 - obstacle parameters (x, y, width, height, destructable), relying on the same basis as above
         """
-        raw = open("./levels/{no}.level".format(no = number), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
-        for lineNo in range(len(raw) - 1):
+        raw = open("./levels/{no}.level".format(no = str(number)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
+
+        for lineNo in range(len(raw)):
             raw[lineNo] = raw[lineNo].split(" ") # could use tabs instead for readability, this may change but is essentially unimportant
             # at this point raw should be a 2D list of lists, just how I like them
 
         self.player = Player(float(raw[0][0]), float(raw[0][1])) # create player
 
-        for guardNo in range(len(raw[1]) / 4): # loops for the number of guards
-            rawPatrol = raw[1][guardNo].split("-") # see docstring
+        for guardNo in range(0, int(len(raw[1]) / 4), 4): # loops for the number of guards
+            rawPatrol = raw[1][guardNo + 2].split("-") # see docstring
             patrolPoints = [] # initialise variable
-            for pointNo in range(len(rawPatrol) / 2): # loops for the number of patrol points
+            for pointNo in range(int(len(rawPatrol) / 2)): # loops for the number of patrol points
                 patrolPoints.append(Point(int(rawPatrol[pointNo]), int(rawPatrol[pointNo + 1]))) # adds each patrol point to the list, ensuring everything is an int first
             self.guards.append(Guard(int(raw[1][guardNo]), int(raw[1][guardNo + 1]), patrolPoints, float(raw[1][guardNo + 3]))) # creates guards, adding them to the list
 
-        for obstacleNo in range(len(raw[2]) / 5): # loops for the number of obstacles
+        for obstacleNo in range(0, int(len(raw[2]) / 5), 5): # loops for the number of obstacles
             self.obstacles.append(Obstacle(int(raw[2][obstacleNo]), int(raw[2][obstacleNo + 1]), int(raw[2][obstacleNo + 2]), int(raw[2][obstacleNo + 3]), raw[2][obstacleNo + 4] is "True")) # creates obstacle objects, adding them to the list
 
         self.updateGroups()
@@ -80,8 +83,10 @@ class Level(): # I'd like to think this is pretty self explanatory
         for guard in self.guards:
             self.guardGroup.add(guard)
             self.actorGroup.add(guard)
+            self.allGroup.add(guard)
         for obstacleIndex in range(4, len(self.obstacles) - 1): # runs for every wall, excluding the game bounds as they're already added
             self.environmentGroup.add(self.obstacles[obstacleIndex])
+            self.allGroup.add(self.obstacles[obstacleIndex])
 
     def clear(self):
         self.__init__()
@@ -677,6 +682,7 @@ def instance():
 
     RELOAD = pygame.USEREVENT + 1
 
+    """
     # Used to prevent player from leaving the screen
     gameBoundTop = Obstacle(0, -100, displayWidth, 100, False)
     gameBoundBottom = Obstacle(0, displayHeight, displayWidth, 100, False)
@@ -712,6 +718,10 @@ def instance():
 
     lonelyPlayer = pygame.sprite.GroupSingle() # used to draw the player (again)
     lonelyPlayer.add(player)
+    """
+
+    level = Level()
+    level.loadFromFile(1)
 
     # hide mouse
     pygame.mouse.set_visible(False)
@@ -736,23 +746,23 @@ def instance():
                     running = False
 
                 if event.key == pygame.K_r: # press R to reload
-                    if player.currentMag < player.magSize:
-                        if player.currentMag >= 1: # short reload
-                            pygame.time.set_timer(RELOAD, player.shortReload) # start the reload
-                            player.currentMag = 1 # immersion science
+                    if level.player.currentMag < level.player.magSize:
+                        if level.player.currentMag >= 1: # short reload
+                            pygame.time.set_timer(RELOAD, level.player.shortReload) # start the reload
+                            level.player.currentMag = 1 # immersion science
                         else: # long reload
-                            pygame.time.set_timer(RELOAD, player.longReload) # start the reload
+                            pygame.time.set_timer(RELOAD, level.player.longReload) # start the reload
 
                 if event.key == pygame.K_RIGHTBRACKET:
                     devMode = not devMode # python is magical sometimes
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
-                player.shoot(mouse, allSprites)
+                level.player.shoot(mouse, level.allGroup)
                 pygame.time.set_timer(RELOAD, 0) # cancels a reload upon shooting
 
             if event.type == RELOAD:
                 pygame.time.set_timer(RELOAD, 0) # prevents re-reloading chain (just pygame things)
-                player.reload()
+                level.player.reload()
             ###
 
         # Keys being held #
@@ -760,16 +770,16 @@ def instance():
 
         # W
         if keys[pygame.K_w]:
-            player.move('u', environmentSprites)
+            level.player.move('u', level.environmentGroup)
         # A
         if keys[pygame.K_a]:
-            player.move('l', environmentSprites)
+            level.player.move('l', level.environmentGroup)
         # S
         if keys[pygame.K_s]:
-            player.move('d', environmentSprites)
+            level.player.move('d', level.environmentGroup)
         # D
         if keys[pygame.K_d]:
-            player.move('r', environmentSprites)
+            level.player.move('r', level.environmentGroup)
         ###
 
         gameDisplay.fill(white) # clean up arc drawings
@@ -778,27 +788,27 @@ def instance():
         #drawMask(playerView, lightgrey) # can be used to draw mask if needed, makes frame time go up to ~500
 
         # Text draws #
-        drawText("{pewsLeft} / {pews}".format(pewsLeft = player.currentMag, pews = player.magSize), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
+        drawText("{pewsLeft} / {pews}".format(pewsLeft = level.player.currentMag, pews = level.player.magSize), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
         drawText("FPS: {fps}".format(fps = round(clock.get_fps())), (2,0)) # fps counter
         if devMode:
             drawText("Frame Time: {ft}".format(ft = clock.get_rawtime()), (2,18)) # frame time
         ###
 
         # Rendering functions #
-        playerView = player.cone(mouse, 90, 200, True, True)
-        visibleSprites = player.selectToRender(playerView, allSprites) # decide what needs rendering
+        playerView = level.player.cone(mouse, 90, 200, True, True)
+        level.visibleGroup = level.player.selectToRender(playerView, level.allGroup) # decide what needs rendering
 
-        for guard in guards: # this is where the brain should be called from
+        for guard in level.guards: # this is where the brain should be called from
             if guard.alive: # prevents the guard from moving if they're dead - quite useful
-                guard.brain(player, guards, actors, environmentSprites, (guard in visibleSprites), devMode)
+                guard.brain(level.player, level.guardGroup, level.actorGroup, level.environmentGroup, (guard in level.visibleGroup), devMode)
 
         if not devMode:
-            visibleSprites.draw(gameDisplay)
+            level.visibleGroup.draw(gameDisplay)
         else:
-            allSprites.draw(gameDisplay)
+            level.allGroup.draw(gameDisplay)
 
-        player.drawCrosshair(mouse)
-        lonelyPlayer.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
+        level.player.drawCrosshair(mouse)
+        level.playerGroup.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         ###
 
         """
