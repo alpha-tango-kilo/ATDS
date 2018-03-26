@@ -31,12 +31,9 @@ clock = pygame.time.Clock()
 
 class Level(): # I'd like to think this is pretty self explanatory
     def __init__(self): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
-        self.player =       None
-        self.guards =       []
-        self.obstacles =    [Obstacle(0, -100, displayWidth, 100, False),
-                            Obstacle(0, displayHeight, displayWidth, 100, False),
-                            Obstacle(-100, 0, 100, displayHeight, False),
-                            Obstacle(displayWidth, 0, 100, displayHeight, False)]
+        self.player = None
+        self.guards = []
+        self.obstacles = [Obstacle(0, -100, displayWidth, 100, False), Obstacle(0, displayHeight, displayWidth, 100, False), Obstacle(-100, 0, 100, displayHeight, False), Obstacle(displayWidth, 0, 100, displayHeight, False)]
 
         # all sprite groups can be created here!
         self.playerGroup        = pygame.sprite.GroupSingle()
@@ -57,25 +54,34 @@ class Level(): # I'd like to think this is pretty self explanatory
         line 2 - guard parameters (x, y, patrolPoints, speed), all guards will be on this single line. Guard patrol points are sown together by dashes (-), so they aren't separated until we're ready for that sweet O(n^2) processing
         line 3 - obstacle parameters (x, y, width, height, destructable), relying on the same basis as above
         """
+        print("Loading level...\n\n")
         raw = open("./levels/{no}.level".format(no = str(number)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
+        print("Level file read\n")
 
         for lineNo in range(len(raw)):
             raw[lineNo] = raw[lineNo].split(" ") # could use tabs instead for readability, this may change but is essentially unimportant
             # at this point raw should be a 2D list of lists, just how I like them
 
         self.player = Player(float(raw[0][0]), float(raw[0][1])) # create player
+        print("Loaded player\n")
 
-        for guardNo in range(0, int(len(raw[1]) / 4), 4): # loops for the number of guards
+        for guardNo in range(0, int((len(raw[1]) / 4) + 4), 4): # loops for the number of guards
             rawPatrol = raw[1][guardNo + 2].split("-") # see docstring
             patrolPoints = [] # initialise variable
             for pointNo in range(int(len(rawPatrol) / 2)): # loops for the number of patrol points
                 patrolPoints.append(Point(int(rawPatrol[pointNo]), int(rawPatrol[pointNo + 1]))) # adds each patrol point to the list, ensuring everything is an int first
             self.guards.append(Guard(int(raw[1][guardNo]), int(raw[1][guardNo + 1]), patrolPoints, float(raw[1][guardNo + 3]))) # creates guards, adding them to the list
+            print("Loaded guard")
+        print("Finished loading guards:\t{n} in total\n".format(n = str(int(len(raw[1]) / 4))))
 
-        for obstacleNo in range(0, int(len(raw[2]) / 5), 5): # loops for the number of obstacles
+        for obstacleNo in range(0, int((len(raw[2]) / 5) + 5), 5): # loops for the number of obstacles
             self.obstacles.append(Obstacle(int(raw[2][obstacleNo]), int(raw[2][obstacleNo + 1]), int(raw[2][obstacleNo + 2]), int(raw[2][obstacleNo + 3]), raw[2][obstacleNo + 4] is "True")) # creates obstacle objects, adding them to the list
+            print("Loaded obstacle")
+        print("Finished loading obstacles:\t{n} in total\n".format(n = str(int(len(raw[2]) / 5))))
 
+        print("Updating groups...\n")
         self.updateGroups()
+        print("Groups updated\n\nLevel loaded")
 
     def updateGroups(self):
         self.playerGroup.add(self.player)
