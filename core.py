@@ -31,9 +31,12 @@ clock = pygame.time.Clock()
 
 class Level(): # I'd like to think this is pretty self explanatory
     def __init__(self): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
-        self.player = None
-        self.guards = []
-        self.obstacles = []
+        self.player =       None
+        self.guards =       []
+        self.obstacles =    [Obstacle(0, -100, displayWidth, 100, False),
+                            Obstacle(0, displayHeight, displayWidth, 100, False),
+                            Obstacle(-100, 0, 100, displayHeight, False),
+                            Obstacle(displayWidth, 0, 100, displayHeight, False)]
 
         # all sprite groups can be created here!
         self.playerGroup        = pygame.sprite.GroupSingle()
@@ -41,6 +44,9 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.actorGroup         = pygame.sprite.Group()
         self.environmentGroup   = pygame.sprite.Group()
         self.visibleGroup       = pygame.sprite.Group()
+
+        for obstacle in self.obstacles:
+            self.environmentGroup.add(obstacle)
 
     def loadFromFile(self, number): # look examiner! file storage!
         """
@@ -65,6 +71,20 @@ class Level(): # I'd like to think this is pretty self explanatory
 
         for obstacleNo in range(len(raw[2]) / 5): # loops for the number of obstacles
             self.obstacles.append(Obstacle(int(raw[2][obstacleNo]), int(raw[2][obstacleNo + 1]), int(raw[2][obstacleNo + 2]), int(raw[2][obstacleNo + 3]), raw[2][obstacleNo + 4] is "True")) # creates obstacle objects, adding them to the list
+
+        self.updateGroups()
+
+    def updateGroups(self):
+        self.playerGroup.add(self.player)
+        self.actorGroup.add(self.player)
+        for guard in self.guards:
+            self.guardGroup.add(guard)
+            self.actorGroup.add(guard)
+        for obstacleIndex in range(4, len(self.obstacles) - 1): # runs for every wall, excluding the game bounds as they're already added
+            self.environmentGroup.add(self.obstacles[obstacleIndex])
+
+    def clear(self):
+        self.__init__()
 
 class World_Object(): # any object that is visible to and interactive with the player should inherit from this class
     def getShot(self): # a default case for any object rendered to the screen being shot, needed otherwise projectiles will error
