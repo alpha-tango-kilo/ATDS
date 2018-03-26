@@ -83,8 +83,6 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.updateGroups()
         print("Groups updated\n\nLevel loaded")
 
-        self.printLevel()
-
     def updateGroups(self):
         # empty all sprite groups first (playerGroup doesn't have to be done as it's a GroupSingle)
         self.guardGroup.empty()
@@ -760,6 +758,10 @@ def instance():
 
                 if event.key == pygame.K_RIGHTBRACKET:
                     devMode = not devMode # python is magical sometimes
+
+                if event.key == pygame.K_l and devMode: # prints out the level debug into console if the user is in devMode
+                    level.printLevel()
+                    running = False
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
                 level.player.shoot(mouse, level.allGroup)
