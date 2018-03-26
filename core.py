@@ -118,11 +118,11 @@ class Level(): # I'd like to think this is pretty self explanatory
             print("\tWidth:\t{w}\tHeight:\t{h}".format(w = obstacle.width, h = obstacle.height))
             print("\tDestructable:\t{yorn}\n".format(yorn = obstacle.destructable))
         print("Sprite groups:")
-        print("\tguardGroup:\t{n}".format(n = len(self.guardGroup)))
-        print("\tactorGroup:\t{n}".format(n = len(self.actorGroup)))
+        print("\tguardGroup:\t\t{n}".format(n = len(self.guardGroup)))
+        print("\tactorGroup:\t\t{n}".format(n = len(self.actorGroup)))
         print("\tenvironmentGroup:\t{n}".format(n = len(self.environmentGroup)))
-        print("\tallGroup:\t{n}".format(n = len(self.allGroup)))
-        print("\tvisibleGroup:\t{n}\n".format(n = len(self.visibleGroup)))
+        print("\tallGroup:\t\t{n}".format(n = len(self.allGroup)))
+        print("\tvisibleGroup:\t\t{n}\n".format(n = len(self.visibleGroup)))
         print("~~ PRINT COMPLETE ~~")
 
     def clear(self):
@@ -136,6 +136,12 @@ class Point():
     def __init__(self, x = 0, y = 0):
         self.x = x
         self.y = y
+
+    def __str__(self):
+        return "({x},{y})".format(x = self.x, y = self.y)
+
+    def __repr__(self):
+        return "({x},{y})".format(x = self.x, y = self.y)
 
     def distance(self, point):
         """
