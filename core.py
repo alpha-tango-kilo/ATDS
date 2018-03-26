@@ -42,14 +42,14 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.environmentGroup   = pygame.sprite.Group()
         self.visibleGroup       = pygame.sprite.Group()
 
-    def loadFromFile(self, path): # look examiner! file storage!
+    def loadFromFile(self, number): # look examiner! file storage!
         """
         File format is intended to work as follows, all parameters must be given and will be separated by a space/tab (depending on which I feel like, hopefully I'll update this comment):
         line 1 - player parameters (x, y)
         line 2 - guard parameters (x, y, patrolPoints, speed), all guards will be on this single line. Guard patrol points are sown together by dashes (-), so they aren't separated until we're ready for that sweet O(n^2) processing
         line 3 - obstacle parameters (x, y, width, height, destructable), relying on the same basis as above
         """
-        raw = open(path, "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
+        raw = open("./levels/{no}.level".format(no = number), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
         for lineNo in range(len(raw) - 1):
             raw[lineNo] = raw[lineNo].split(" ") # could use tabs instead for readability, this may change but is essentially unimportant
             # at this point raw should be a 2D list of lists, just how I like them
