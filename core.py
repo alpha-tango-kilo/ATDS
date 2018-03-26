@@ -83,7 +83,17 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.updateGroups()
         print("Groups updated\n\nLevel loaded")
 
+        self.printLevel()
+
     def updateGroups(self):
+        # empty all sprite groups first (playerGroup doesn't have to be done as it's a GroupSingle)
+        self.guardGroup.empty()
+        self.actorGroup.empty()
+        self.environmentGroup.empty()
+        self.allGroup.empty()
+        self.visibleGroup.empty()
+
+        # start re-adding everything
         self.playerGroup.add(self.player)
         self.actorGroup.add(self.player)
         for guard in self.guards:
@@ -93,6 +103,27 @@ class Level(): # I'd like to think this is pretty self explanatory
         for obstacleIndex in range(4, len(self.obstacles) - 1): # runs for every wall, excluding the game bounds as they're already added
             self.environmentGroup.add(self.obstacles[obstacleIndex])
             self.allGroup.add(self.obstacles[obstacleIndex])
+
+    def printLevel(self): # see what's in the level, so it can be debugged (I wonder why I wrote this)
+        print("~~ PRINT START ~~\n")
+        print(self.player)
+        print("\nGuards ({n1} in array, {n2} in guardGroup):".format(n1 = len(self.guards), n2 = len(self.guardGroup)))
+        for guard in self.guards:
+            print("\tSpawned at:\t({x},{y})".format(x = guard.rect.x, y = guard.rect.y))
+            print("\tPatrol points:\t{pts}".format(pts = guard.patrolPoints))
+            print("\tSpeed:\t{spd}\n".format(spd = guard.speed))
+        print("Obstacles ({n1} in array, {n2} in environmentGroup):".format(n1 = len(self.obstacles), n2 = len(self.environmentGroup)))
+        for obstacle in self.obstacles:
+            print("\tPlaced at:\t({x},{y})".format(x = obstacle.rect.x, y = obstacle.rect.y))
+            print("\tWidth:\t{w}\tHeight:\t{h}".format(w = obstacle.width, h = obstacle.height))
+            print("\tDestructable:\t{yorn}\n".format(yorn = obstacle.destructable))
+        print("Sprite groups:")
+        print("\tguardGroup:\t{n}".format(n = len(self.guardGroup)))
+        print("\tactorGroup:\t{n}".format(n = len(self.actorGroup)))
+        print("\tenvironmentGroup:\t{n}".format(n = len(self.environmentGroup)))
+        print("\tallGroup:\t{n}".format(n = len(self.allGroup)))
+        print("\tvisibleGroup:\t{n}\n".format(n = len(self.visibleGroup)))
+        print("~~ PRINT COMPLETE ~~")
 
     def clear(self):
         self.__init__()
@@ -687,44 +718,6 @@ def instance():
     devMode = True
 
     RELOAD = pygame.USEREVENT + 1
-
-    """
-    # Used to prevent player from leaving the screen
-    gameBoundTop = Obstacle(0, -100, displayWidth, 100, False)
-    gameBoundBottom = Obstacle(0, displayHeight, displayWidth, 100, False)
-    gameBoundLeft = Obstacle(-100, 0, 100, displayHeight, False)
-    gameBoundRight = Obstacle(displayWidth, 0, 100, displayHeight, False)
-
-    player = Player()
-    guard1 = Guard(500, 500, [Point(100,650), Point(1180, 650), Point(500, 20)], 1.2)
-    wall = Obstacle(200, 200, 300, 150, False)
-    wall2 = Obstacle(700, 600, 200, 20, True)
-
-    allSprites = pygame.sprite.Group() # used for drawing all visible sprites
-    allSprites.add(guard1)
-    allSprites.add(wall)
-    allSprites.add(wall2)
-
-    actors = pygame.sprite.Group()
-    actors.add(player)
-    actors.add(guard1)
-
-    environmentSprites = pygame.sprite.Group() # add any sprites you don't want to walk through
-    environmentSprites.add(wall)
-    environmentSprites.add(wall2)
-    environmentSprites.add(gameBoundTop)
-    environmentSprites.add(gameBoundBottom)
-    environmentSprites.add(gameBoundLeft)
-    environmentSprites.add(gameBoundRight)
-
-    guards = pygame.sprite.Group() # used to call their bot routines
-    guards.add(guard1)
-
-    visibleSprites = pygame.sprite.Group() # shouldn't have to add anything here, game should handle it
-
-    lonelyPlayer = pygame.sprite.GroupSingle() # used to draw the player (again)
-    lonelyPlayer.add(player)
-    """
 
     level = Level()
     level.loadFromFile(1)
