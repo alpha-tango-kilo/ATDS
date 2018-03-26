@@ -75,8 +75,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         print("Finished loading guards:\t{n} in total\n".format(n = str(int(len(raw[1]) / 4))))
 
         for obstacleNo in range(0, int((len(raw[2]) / 5) + 5), 5): # loops for the number of obstacles
-            print(raw[2][obstacleNo + 4] is "True")
-            self.obstacles.append(Obstacle(int(raw[2][obstacleNo]), int(raw[2][obstacleNo + 1]), int(raw[2][obstacleNo + 2]), int(raw[2][obstacleNo + 3]), raw[2][obstacleNo + 4] is "True")) # creates obstacle objects, adding them to the list
+            self.obstacles.append(Obstacle(int(raw[2][obstacleNo]), int(raw[2][obstacleNo + 1]), int(raw[2][obstacleNo + 2]), int(raw[2][obstacleNo + 3]), (raw[2][obstacleNo + 4] == "True"))) # creates obstacle objects, adding them to the list
             print("Loaded obstacle")
         print("Finished loading obstacles:\t{n} in total\n".format(n = str(int(len(raw[2]) / 5))))
 
@@ -101,7 +100,7 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.guardGroup.add(guard)
             self.actorGroup.add(guard)
             self.allGroup.add(guard)
-        for obstacleIndex in range(4, len(self.obstacles) - 1): # runs for every wall, excluding the game bounds as they're already added
+        for obstacleIndex in range(len(self.obstacles)): # runs for every wall, excluding the game bounds as they're already added
             self.environmentGroup.add(self.obstacles[obstacleIndex])
             self.allGroup.add(self.obstacles[obstacleIndex])
 
