@@ -140,7 +140,7 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.environmentGroup.add(obstacle)
             self.allGroup.add(obstacle)
 
-class World_Object(): # any object that is visible to and interactive with the player should inherit from this class
+class World_Object(): # any object that is visible to and interactive with the player should inherit from this class, as an insurance policy
     def getShot(self): # a default case for any object rendered to the screen being shot, needed otherwise projectiles will error
         print("World_Object says 'ow!'")
 
@@ -150,10 +150,10 @@ class Point():
         self.y = y
 
     def __str__(self):
-        return "({x},{y})".format(x = self.x, y = self.y)
+        return "({x}, {y})".format(x = self.x, y = self.y)
 
     def __repr__(self):
-        return "({x},{y})".format(x = self.x, y = self.y)
+        return "({x}, {y})".format(x = self.x, y = self.y)
 
     def distance(self, point):
         """
@@ -164,7 +164,7 @@ class Point():
 
     def round(self):
         """
-        Returns a Point of the rounded co-ordinates.
+        Returns a Point of the rounded co-ordinates of the Point calling the method.
         Type returned: Point
         """
         return Point(round(self.x), round(self.y))
@@ -547,16 +547,16 @@ class Guard(Actor):
                     self.lastSeenPlayer = Point(actor.rect.x, actor.rect.y)
                     self.states[0] = True
 
-        actors.add(self)
+        actors.add(self) # so you don't bamboozle the next guard running this loop
 
-    def quickLook(self, viewMask, actor):
+    def quickLook(self, viewMask, actor): # probably doesn't work as it doesn't use virtualDisplay generation technology (tm)
         return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
 
     def brain(self, player, allyGroup, actorGroup, envGroup, amVisible, devMode = False):
 
         self.lastCoords = Point(self.virtualx, self.virtualy)
 
-        if devMode or amVisible: # if I should be seen
+        if devMode or amVisible: # if I should be seen and be seen looking
             viewMask = self.cone(self.currentDest, 90, 100, True, True) # ... draw the cone so that it can be seen
         else: # ... or don't
             viewMask = self.cone(self.currentDest, 90, 100, False, True) # creating this mask now saves CPU time as sometimes it would have been made twice, but is always needed at least once
@@ -700,21 +700,21 @@ class Projectile(pygame.sprite.Sprite):
             self.rect.y = round(self.virtualy)
 
             if self.rect.x > displayWidth or self.rect.x + 2 < 0 or self.rect.y > displayHeight or self.rect.y < 0: # if the bullet is out of bounds
-                print("Giving up")
+                print("Bullet out of bounds. Removing")
                 self.kill()
-                return None
+                return
 
         collidedWith = pygame.sprite.spritecollide(self, sprGroup, False) # list of all objects collided with from within the specified sprGroup
 
-        print("Registered hit.")
+        print("Registered hit")
 
         for obj in collidedWith:
             obj.getShot() # registers hit for each object collided with in turn
 
-        if not bulletPen or type(collidedWith[0]) == type(Obstacle()): # if there is no bullet penetration or the bullet hit a wall
+        if not bulletPen or type(collidedWith[0]) == type(Obstacle()): # if there is no bullet penetration or the bullet hit a wall || 2ND CLAUSE MAY NOT WORK
             self.kill() # remove the bullet
         else:
-            sprGroup.remove(collidedWith[0]) # remove the sprite just hit from the group, so it won't be hit again
+            sprGroup.remove(collidedWith[0]) # remove the sprite just hit from the group, so it won't be hit again || THIS MAY CAUSE ISSUES IF NOT READDED
             self.go(sprGroup, bulletPen) # recurse the function to allow bullet to continue travelling
 
 def drawText(text, loc, colour = (0,0,0), font = "Comic Sans MS", fontSize = 14):
