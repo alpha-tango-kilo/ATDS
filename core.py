@@ -43,7 +43,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.allGroup           = pygame.sprite.Group() # everything except player
         self.visibleGroup       = pygame.sprite.Group()
 
-        for obstacle in self.obstacles:
+        for obstacle in self.obstacles: # could use self.updateGroups?
             self.environmentGroup.add(obstacle)
             self.allGroup.add(obstacle)
 
@@ -54,6 +54,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         line 2 - guard parameters (x, y, patrolPoints, speed), all guards will be on this single line. Guard patrol points are sown together by dashes (-), so they aren't separated until we're ready for that sweet O(n^2) processing
         line 3 - obstacle parameters (x, y, width, height, destructable), relying on the same basis as above
         """
+        self.clear()
         print("Loading level...\n\n")
         raw = open("./levels/{no}.level".format(no = str(number)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
         print("Level file read\n")
@@ -124,7 +125,20 @@ class Level(): # I'd like to think this is pretty self explanatory
         print("~~ PRINT COMPLETE ~~")
 
     def clear(self):
-        self.__init__()
+        self.player = None
+        self.guards = []
+        self.obstacles = [Obstacle(0, -100, displayWidth, 100, False), Obstacle(0, displayHeight, displayWidth, 100, False), Obstacle(-100, 0, 100, displayHeight, False), Obstacle(displayWidth, 0, 100, displayHeight, False)]
+
+        self.playerGroup.empty()
+        self.guardGroup.empty()
+        self.actorGroup.empty()
+        self.environmentGroup.empty()
+        self.allGroup.empty()
+        self.visibleGroup.empty()
+
+        for obstacle in self.obstacles:
+            self.environmentGroup.add(obstacle)
+            self.allGroup.add(obstacle)
 
 class World_Object(): # any object that is visible to and interactive with the player should inherit from this class
     def getShot(self): # a default case for any object rendered to the screen being shot, needed otherwise projectiles will error
@@ -169,8 +183,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
 
         self.image = pygame.Surface([self.width, self.height], pygame.SRCALPHA, 32)
-        self.image.fill(black) # creates a rectangular picture for the sprite using given parameters
-        self.image.set_colorkey(white)
+        self.image.fill((0,0,0,0))
         self.rect = self.image.get_rect()
         self.rect.x = round(x) # accounts for float inputs
         self.rect.y = round(y)
@@ -315,7 +328,6 @@ class Player(Actor):
     """
     def __init__(self, x = 10, y = 10):
         super().__init__(x, y, 1)
-        self.image.fill(white)
         self.image.blit(playerAlive, (0,0))
         self.image = self.image.convert_alpha()
 
@@ -371,19 +383,17 @@ class Guard(Actor):
     def __init__(self, x = 10, y = 10, patrolPoints = [Point(10,10)], speed = 1.2):
         super().__init__(x, y, speed)
 
-        self.image.fill(white)
         self.image.blit(guardAlive, (0,0))
         self.image = self.image.convert_alpha()
 
         self.alive = True
 
         # Navigation related variables
-        self.eightDirs = [0,0] # x, y. Positive right/down
         self.wantToGoHere = [False for _ in range(4)] # udlr
         self.wantToGoStack = [] # stack of direction indexes
         self.blocked = [False for _ in range(4)] # udlr
         self.tryThisDir = ''
-        self.lastCoords = Point()
+        self.lastCoords = Point(self.virtualx, self.virtualy)
         self.problemSolvingDirection = rng.choice([-1,1])
         self.oldDest = Point()
         self.dirToTry = 0 # udlr indexes
@@ -624,8 +634,8 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.colour)
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.x = round(x)
+        self.rect.y = round(y)
         self.cPos = Point(self.rect.x + self.width/2, self.rect.y + self.height/2)
 
         virtualDisplay = pygame.Surface((displayWidth, displayHeight))
