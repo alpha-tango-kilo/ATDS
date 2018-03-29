@@ -229,9 +229,9 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
     def collisionCheck(self, sprGroup):
         keep = [False for _ in range(4)] # used to preserve banned directions if a test says the actor can't move up but another test says the actor can move up
-        tActor = Actor(self.virtualx, self.virtualy, self.width, self.height, self.speed) # create a clone of the actor being tested, with the same key characteristics (colour is not important as tActor will never be drawn to screen)
+        tActor = Actor(self.virtualx, self.virtualy, self.speed) # create a clone of the actor being tested, with the same key characteristics
         for test in range(4): # iterates from 0 to 3
-            tActor.virtualx = self.virtualx # resets all co-ordinates for each test
+            tActor.virtualx = self.virtualx # resets all co-ordinates to the sprite running it for each test
             tActor.virtualy = self.virtualy
             tActor.posUpdate()
             tActor.simpleMove(directions[test], self.speed) # uses movement function without collision checking
