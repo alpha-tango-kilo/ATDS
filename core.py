@@ -229,7 +229,6 @@ class Actor(pygame.sprite.Sprite, World_Object):
         self.posUpdate()
 
     def collisionCheck(self, sprGroup):
-        keep = [False for _ in range(4)] # used to preserve banned directions if a test says the actor can't move up but another test says the actor can move up
         tActor = Actor(self.virtualx, self.virtualy, self.speed) # create a clone of the actor being tested, with the same key characteristics
         for test in range(4): # iterates from 0 to 3
             tActor.virtualx = self.virtualx # resets all co-ordinates to the sprite running it for each test
@@ -238,8 +237,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             tActor.simpleMove(directions[test], self.speed) # uses movement function without collision checking
             if len(pygame.sprite.spritecollide(tActor, sprGroup, False)) > 0: # checks if an objects are collided with from sprGroup (typically environmentSprites)
                 self.bannedDirs[test] = True # bans direction
-                keep[test] = True # ensures that banned direction is not overwritten
-            elif len(pygame.sprite.spritecollide(tActor, sprGroup, False)) == 0 and not keep[test]: # if there are no collisions and the direction has no already been banned in this test battery...
+            elif len(pygame.sprite.spritecollide(tActor, sprGroup, False)) == 0:# if there are no collisions...
                 self.bannedDirs[test] = False # ...allow movement in this direction
 
     def move(self, direction, sprGroup = None):
