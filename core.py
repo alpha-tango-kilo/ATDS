@@ -69,7 +69,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         for guardNo in range(0, len(raw[1]), 4): # loops for the number of guards
             rawPatrol = raw[1][guardNo + 2].split("-") # see docstring
             patrolPoints = [] # initialise variable
-            for pointNo in range(0, int(len(rawPatrol) / 2) + 2, 2): # loops for the number of patrol points
+            for pointNo in range(0, len(rawPatrol), 2): # loops for the number of patrol points
                 patrolPoints.append(Point(int(rawPatrol[pointNo]), int(rawPatrol[pointNo + 1]))) # adds each patrol point to the list, ensuring everything is an int first
             self.guards.append(Guard(int(raw[1][guardNo]), int(raw[1][guardNo + 1]), patrolPoints, float(raw[1][guardNo + 3]))) # creates guards, adding them to the list
             print("Loaded guard")
@@ -297,7 +297,6 @@ class Actor(pygame.sprite.Sprite, World_Object):
             angFromVert = 1.5 * m.pi
 
         arcRect = pygame.Rect(round(self.cPos.x - distance), round(self.cPos.y - distance), distance * 2, distance * 2) # creates a square such that the player is at the center and the side length is the arc's diameter
-        #pygame.draw.rect(gameDisplay, black, arcRect, 2) # draws arcRect
 
         if drawCone:
             pygame.draw.arc(gameDisplay, black, arcRect, angFromVert, angFromVert + fov, 1)
