@@ -66,7 +66,8 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.player = Player(float(raw[0][0]), float(raw[0][1])) # create player
         print("Loaded player\n")
 
-        for guardNo in range(0, int((len(raw[1]) / 4) + 4), 4): # loops for the number of guards
+        print(len(raw[1]))
+        for guardNo in range(0, len(raw[1]), 4): # loops for the number of guards
             rawPatrol = raw[1][guardNo + 2].split("-") # see docstring
             patrolPoints = [] # initialise variable
             for pointNo in range(0, int(len(rawPatrol) / 2) + 2, 2): # loops for the number of patrol points
@@ -75,7 +76,7 @@ class Level(): # I'd like to think this is pretty self explanatory
             print("Loaded guard")
         print("Finished loading guards:\t{n} in total\n".format(n = str(int(len(raw[1]) / 4))))
 
-        for obstacleNo in range(0, int((len(raw[2]) / 5) + 5), 5): # loops for the number of obstacles
+        for obstacleNo in range(0, len(raw[2]), 5): # loops for the number of obstacles
             self.obstacles.append(Obstacle(int(raw[2][obstacleNo]), int(raw[2][obstacleNo + 1]), int(raw[2][obstacleNo + 2]), int(raw[2][obstacleNo + 3]), (raw[2][obstacleNo + 4] == "True"))) # creates obstacle objects, adding them to the list
             print("Loaded obstacle")
         print("Finished loading obstacles:\t{n} in total\n".format(n = str(int(len(raw[2]) / 5))))
@@ -392,7 +393,6 @@ class Guard(Actor):
         self.wantToGoHere = [False for _ in range(4)] # udlr
         self.wantToGoStack = [] # stack of direction indexes
         self.blocked = [False for _ in range(4)] # udlr
-        self.tryThisDir = ''
         self.lastCoords = Point(self.virtualx, self.virtualy)
         self.problemSolvingDirection = rng.choice([-1,1])
         self.oldDest = Point()
@@ -425,7 +425,7 @@ class Guard(Actor):
 
     def altRoute(self):
         if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
-            self.dirToTry = [0, 2, 1, 3][self.wantToGoStack[len(self.wantToGoStack) - 1] + self.problemSolvingDirection % 4]
+            self.dirToTry = [0, 2, 1, 3][(self.wantToGoStack[len(self.wantToGoStack) - 1] + self.problemSolvingDirection) % 4]
         elif self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the way I'm currently trying to go is blocked
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
         else: # if the latest direction I've been trying is now free
@@ -569,8 +569,8 @@ class Guard(Actor):
             print("Game Over!")
 
         if self.states[4]: # navigating around an obstacle to get to destination
-            if self.bannedDirs[self.bannedDirs.index(self.tryThisDir)]: # if I can't move
-                self.blocked[directions.index(self.tryThisDir)] = True # ... the direction I just tried to move in must be blocked by something
+            if self.bannedDirs[self.dirToTry]: # if I can't move
+                self.blocked[self.dirToTry] = True # ... the direction I just tried to move in must be blocked by something
             self.altRoute() # I think this needs to be called every time, not within the above if statement
             if devMode:
                 drawText("Alt-routing", (self.rect.x + 10, self.rect.y + 14))
