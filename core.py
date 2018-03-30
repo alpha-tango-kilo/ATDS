@@ -66,7 +66,6 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.player = Player(float(raw[0][0]), float(raw[0][1])) # create player
         print("Loaded player\n")
 
-        print(len(raw[1]))
         for guardNo in range(0, len(raw[1]), 4): # loops for the number of guards
             rawPatrol = raw[1][guardNo + 2].split("-") # see docstring
             patrolPoints = [] # initialise variable
@@ -235,10 +234,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
             tActor.virtualy = self.virtualy
             tActor.posUpdate()
             tActor.simpleMove(directions[test], self.speed) # uses movement function without collision checking
-            if len(pygame.sprite.spritecollide(tActor, sprGroup, False)) > 0: # checks if an objects are collided with from sprGroup (typically environmentSprites)
-                self.bannedDirs[test] = True # bans direction
-            elif len(pygame.sprite.spritecollide(tActor, sprGroup, False)) == 0:# if there are no collisions...
-                self.bannedDirs[test] = False # ...allow movement in this direction
+            self.bannedDirs[test] = len(pygame.sprite.spritecollide(tActor, sprGroup, False)) > 0 # bans direction if there are collisions, otherwise it unbans the direction
 
     def move(self, direction, sprGroup = None):
         if direction == 'u' and not self.bannedDirs[0]: # up
