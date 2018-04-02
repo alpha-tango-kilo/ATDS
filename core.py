@@ -190,7 +190,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.virtualx = x # allows for decimal movement
         self.virtualy = y
-        self.cPos = Point(self.virtualx + self.width/2, self.virtualy + self.height/2)
+        self.cPos = Point(self.virtualx + self.width/2, self.virtualy + self.height/2) # uses floats
 
         self.magSize = magSize # number of bullets in a full magazine
         self.currentMag = magSize # number of bullets left in magazine
@@ -282,8 +282,8 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         # End Mr. Marshall magic #
 
-        xDiff = corner1.x - self.virtualx # work out difference from point to actor
-        yDiff = self.virtualy - corner1.y
+        xDiff = corner1.x - self.cPos.x # work out difference from point to actor
+        yDiff = self.cPos.y - corner1.y
         angFromVert = 0.0 # initialise as float
 
         if yDiff != 0: # to prevent 0 division errors
