@@ -287,7 +287,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         angFromVert = 0.0 # initialise as float
 
         if yDiff != 0: # to prevent 0 division errors
-            if corner1.y < self.rect.y: # I don't know, it just works
+            if corner1.y < self.cPos.y: # I don't know, it just works
                 angFromVert = -1 * m.atan(xDiff / yDiff)
             else:
                 angFromVert = -1 * m.atan(xDiff / yDiff) + m.pi
