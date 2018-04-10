@@ -658,6 +658,10 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         else:
             print("Wall shot. Wall smiles.")
 
+class Objective(Obstacle):
+    def __init__(self, x = 0, y = 0, w = 250, h = 250):
+        super().__init__(x, y, w, h, False)
+
 class Projectile(pygame.sprite.Sprite):
     """
     The pew pew things
