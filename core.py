@@ -249,11 +249,10 @@ class Actor(pygame.sprite.Sprite, World_Object):
         """
 
         self.width = 15
-        self.height = 15
         self.speed = speed
         self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
 
-        self.image = pygame.Surface([self.width, self.height], pygame.SRCALPHA, 32)
+        self.image = pygame.Surface([self.width, self.width], pygame.SRCALPHA, 32)
         self.image.fill((0,0,0,0))
         self.rect = self.image.get_rect()
         self.rect.x = round(x) # accounts for float inputs
@@ -261,7 +260,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.virtualx = x # allows for decimal movement
         self.virtualy = y
-        self.cPos = Point(self.virtualx + self.width/2, self.virtualy + self.height/2) # uses floats
+        self.cPos = Point(self.virtualx + self.width/2, self.virtualy + self.width/2) # uses floats
 
         self.magSize = magSize # number of bullets in a full magazine
         self.currentMag = magSize # number of bullets left in magazine
@@ -273,18 +272,18 @@ class Actor(pygame.sprite.Sprite, World_Object):
         """
         Providing an str means that if you just type an object is called, this is what is returned.
         """
-        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
+        return "Actor is at ({x},{y}), and is {w} x {w} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.width)
 
     def __repr__(self):
         """
         Providing an str means that if you just type an object is called, this is what is returned.
         """
-        return "Actor is at ({x},{y}), and is {w} x {h} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
+        return "Actor is at ({x},{y}), and is {w} x {w} pixels.".format(x = self.rect.x, y = self.rect.y, w = self.width)
 
     def posUpdate(self):
         self.rect.x = round(self.virtualx) # update physical (pixel) co-ordinates
         self.rect.y = round(self.virtualy)
-        self.cPos = Point(self.virtualx + self.width/2, self.virtualy + self.height/2)
+        self.cPos = Point(self.virtualx + self.width/2, self.virtualy + self.width/2)
 
     def simpleMove(self, direction, distance):
         if direction == 'u': # up
@@ -422,7 +421,7 @@ class Player(Actor):
                     #print("Mask from memory")
                 #print("Used sprite mask from memory")
 
-            except AttributeError: # if the object doesn't have the attribute mask
+            except AttributeError: # if the object doesn't have the attribute mask, whip one up real fast
                 #print("Creating mask...")
 
                 virtualDisplay.fill(white)
@@ -506,29 +505,25 @@ class Guard(Actor):
         elif self.dirToTry == 3: # right
             self.currentDest = Point(self.rect.x + self.speed * 2, self.rect.y)
 
-    def goto(self, dest, sprGroup = None):
-        """
-        Stopping in close proximity (as opposed to on top of the target) only works if the 2 squares are the same width
-        """
-
+    def walk(self, sprGroup = None):
         self.wantToGoHere = [False, False, False, False]
 
         # x co-ordinate #
-        if abs(self.rect.x - dest.x) > self.width + self.speed:
-            if dest.x < self.virtualx:
+        if abs(self.cPos.x - self.currentDest.x) > self.width + self.speed:
+            if self.currentDest.x < self.virtualx:
                 self.wantToGoHere[2] = True
                 if not self.bannedDirs[2]:
                     self.virtualx -= self.speed
-            elif dest.x > self.virtualx:
+            elif self.currentDest.x > self.virtualx:
                 self.wantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx += self.speed
-        elif abs(self.virtualx - dest.x) <= self.width + self.speed and abs(self.virtualx - dest.x) >= self.width: #and sprGroup == None: # fine adjusment
-            if dest.x < self.virtualx:
+        elif abs(self.virtualx - self.currentDest.x) <= self.width + self.speed and abs(self.virtualx - self.currentDest.x) >= self.width: #and sprGroup == None: # fine adjusment
+            if self.currentDest.x < self.virtualx:
                 self.wantToGoHere[2] = True # necessary?
                 if not self.bannedDirs[2]:
                     self.virtualx -= 0.1
-            elif dest.x > self.virtualx:
+            elif self.currentDest.x > self.virtualx:
                 self.wantToGoHere[3] = True # necessary?
                 if not self.bannedDirs[3]:
                     self.virtualx += 0.1
@@ -536,21 +531,21 @@ class Guard(Actor):
 
         # y co-ordinate #
         # could change such that moving up/down is determined before the distance moved is
-        if abs(self.rect.y - dest.y) > self.width + self.speed:
-            if dest.y < self.virtualy:
+        if abs(self.cPos.y - self.currentDest.y) > self.width + self.speed:
+            if self.currentDest.y < self.virtualy:
                 self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= self.speed
-            elif dest.y > self.virtualy:
+            elif self.currentDest.y > self.virtualy:
                 self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += self.speed
-        elif abs(self.virtualy - dest.y) <= self.width + self.speed and abs(self.virtualy - dest.y) >= self.width: #and sprGroup == None: # fine adjustment
-            if dest.y < self.virtualy:
+        elif abs(self.virtualy - self.currentDest.y) <= self.width + self.speed and abs(self.virtualy - self.currentDest.y) >= self.width: #and sprGroup == None: # fine adjustment
+            if self.currentDest.y < self.virtualy:
                 self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= 0.1
-            elif dest.y > self.virtualy:
+            elif self.currentDest.y > self.virtualy:
                 self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += 0.1
@@ -572,6 +567,7 @@ class Guard(Actor):
                     self.states[4] = True # must be left after the above to prevent the original destination being overwritten
 
     def patrol(self):
+        print(self.currentDest.distance(Point(self.cPos.x, self.cPos.y)))
         if self.currentDest.distance(Point(self.cPos.x, self.cPos.y)) < self.width / 2 and len(self.patrolPoints) > 1: # if I'm close to my destination  (and there are multiple patrol points to choose from)...
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # ... set the destination to be next point in patrol points list
         elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point...
@@ -651,7 +647,7 @@ class Guard(Actor):
         elif self.states[1]: # upon seeing a guard's corpse
             self.currentDest = self.lastSeenCorpse # go to the last seen corpse
 
-            if abs(self.cPos.x - self.currentDest.x) <= self.width and abs(self.cPos.y - self.currentDest.y) <= self.height: # if within a body length of the corpse
+            if abs(self.cPos.x - self.currentDest.x) <= self.width and abs(self.cPos.y - self.currentDest.y) <= self.width: # if within a body length of the corpse
                 self.states[3] = True # investigating around a point
                 self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the corpse
                 self.states[1] = False # stops this routine running next frame
@@ -670,7 +666,7 @@ class Guard(Actor):
             if devMode:
                 drawText("Patrolling normally", (self.rect.x + 10, self.rect.y + 70))
 
-        self.goto(self.currentDest, envGroup) # ... I suppose I ought to walk around
+        self.walk(envGroup) # ... I suppose I ought to walk around
 
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
