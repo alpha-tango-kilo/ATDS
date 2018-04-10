@@ -18,10 +18,11 @@ playerAlive = pygame.image.load("./assets/Actor/Player/alive.png")
 # Colours #
 black = (0,0,0)
 grey = (105,105,105)
+lightgrey = (230,230,230)
 white = (255,255,255)
 red = (255,0,0)
+green = (0,255,0)
 dan = (42,117,225)
-lightgrey = (230,230,230)
 #########
 
 gameDisplay = pygame.display.set_mode((displayWidth, displayHeight), pygame.NOFRAME)
@@ -36,6 +37,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.player = None
         self.guards = []
         self.obstacles = [Obstacle(0, -100, displayWidth, 100, False), Obstacle(0, displayHeight, displayWidth, 100, False), Obstacle(-100, 0, 100, displayHeight, False), Obstacle(displayWidth, 0, 100, displayHeight, False)]
+        self.objective = None
 
         # all sprite groups can be created here!
         self.playerGroup        = pygame.sprite.GroupSingle()
@@ -54,8 +56,9 @@ class Level(): # I'd like to think this is pretty self explanatory
         Returns True on successful load, False if file is not found
         File format is intended to work as follows, all parameters must be given and will be separated by a space/tab (depending on which I feel like, hopefully I'll update this comment):
         line 1 - player parameters (x, y)
-        line 2 - guard parameters (x, y, patrolPoints, speed), all guards will be on this single line. Guard patrol points are sown together by dashes (-), so they aren't separated until we're ready for that sweet O(n^2) processing
+        line 2 - guard parameters (x, y, patrolPoints, speed), all guards will be on this single line. Guard patrol points are sewn together by dashes (-), so they aren't separated until we're ready for that sweet O(n^2) processing
         line 3 - obstacle parameters (x, y, width, height, destructable), relying on the same basis as above
+        line 4 - objective parameters (x, y, width, height)
         """
         self.clear()
         print("Loading level...\n\n")
@@ -89,6 +92,9 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.obstacles.append(Obstacle(int(raw[2][obstacleNo]), int(raw[2][obstacleNo + 1]), int(raw[2][obstacleNo + 2]), int(raw[2][obstacleNo + 3]), (raw[2][obstacleNo + 4] == "True"))) # creates obstacle objects, adding them to the list
             print("Loaded obstacle")
         print("Finished loading obstacles:\t{n} in total\n".format(n = str(int(len(raw[2]) / 5))))
+
+        self.objective = Objective(int(raw[3][0]), int(raw[3][1]), int(raw[3][2]), int(raw[3][3]))
+        print("Loaded objective\n")
 
         print("Updating groups...\n")
         self.updateGroups()
@@ -676,6 +682,8 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
 class Objective(Obstacle):
     def __init__(self, x = 0, y = 0, w = 250, h = 250):
         super().__init__(x, y, w, h, False)
+        self.colour = green
+        self.image.fill(self.colour)
 
     def getShot(self):
         print("Shooting the objective won't win you the game, but it might feel satisfying")
