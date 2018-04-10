@@ -51,6 +51,7 @@ class Level(): # I'd like to think this is pretty self explanatory
 
     def loadFromFile(self, number): # look examiner! file storage!
         """
+        Returns True on successful load, False if file is not found
         File format is intended to work as follows, all parameters must be given and will be separated by a space/tab (depending on which I feel like, hopefully I'll update this comment):
         line 1 - player parameters (x, y)
         line 2 - guard parameters (x, y, patrolPoints, speed), all guards will be on this single line. Guard patrol points are sown together by dashes (-), so they aren't separated until we're ready for that sweet O(n^2) processing
@@ -58,7 +59,13 @@ class Level(): # I'd like to think this is pretty self explanatory
         """
         self.clear()
         print("Loading level...\n\n")
-        raw = open("./levels/{no}.level".format(no = str(number)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
+        try:
+            raw = open("./levels/{no}.level".format(no = str(number)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important. consider regexing?
+
+        except FileNotFoundError: # If the level doesn't exist
+            print("Level file (ID: {n}) not found, aborting".format(n = number))
+            return False
+
         self.ID = number
         print("Level file read (ID: {n})\n".format(n = number))
 
@@ -86,6 +93,8 @@ class Level(): # I'd like to think this is pretty self explanatory
         print("Updating groups...\n")
         self.updateGroups()
         print("Groups updated\n\nLevel loaded")
+
+        return True
 
     def updateGroups(self):
         # empty all sprite groups first (playerGroup doesn't have to be done as it's a GroupSingle)
@@ -748,7 +757,7 @@ def instance():
     RELOAD = pygame.USEREVENT + 1
 
     level = Level()
-    level.loadFromFile(1)
+    level.loadFromFile(100)
 
     # hide mouse
     pygame.mouse.set_visible(False)
