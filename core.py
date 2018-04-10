@@ -32,7 +32,7 @@ clock = pygame.time.Clock()
 
 class Level(): # I'd like to think this is pretty self explanatory
     def __init__(self): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
-        self.ID = None
+        self.ID = 1
 
         self.player = None
         self.guards = []
@@ -128,8 +128,8 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.environmentGroup.add(self.obstacles[obstacleIndex])
             self.allGroup.add(self.obstacles[obstacleIndex])
 
-        self.allGroup.add(self.objective)
         try:
+            self.allGroup.add(self.objective)
             self.objectiveGroup.add(self.objective)
         except: # if there is no objective (unsure of error type)
             pass # no need to do anything
@@ -773,7 +773,7 @@ def drawMask(mask, colour = (0,0,0)): # alternative name is destroyFPS()
 
 def instance():
     level = Level()
-    running = level.loadFromFile(100)
+    running = level.loadFromFile(level.ID)
     devMode = True
 
     RELOAD = pygame.USEREVENT + 1
