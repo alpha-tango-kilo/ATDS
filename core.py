@@ -31,6 +31,8 @@ clock = pygame.time.Clock()
 
 class Level(): # I'd like to think this is pretty self explanatory
     def __init__(self): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
+        self.ID = None
+
         self.player = None
         self.guards = []
         self.obstacles = [Obstacle(0, -100, displayWidth, 100, False), Obstacle(0, displayHeight, displayWidth, 100, False), Obstacle(-100, 0, 100, displayHeight, False), Obstacle(displayWidth, 0, 100, displayHeight, False)]
@@ -57,7 +59,8 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.clear()
         print("Loading level...\n\n")
         raw = open("./levels/{no}.level".format(no = str(number)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important
-        print("Level file read\n")
+        self.ID = number
+        print("Level file read (ID: {n})\n".format(n = number))
 
         for lineNo in range(len(raw)):
             raw[lineNo] = raw[lineNo].split(" ") # could use tabs instead for readability, this may change but is essentially unimportant
@@ -664,6 +667,15 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
 class Objective(Obstacle):
     def __init__(self, x = 0, y = 0, w = 250, h = 250):
         super().__init__(x, y, w, h, False)
+
+    def getShot(self):
+        print("Shooting the objective won't win you the game, but it might feel satisfying")
+
+    def onTouch(self):
+        """
+        This is where the game's winning condition should be, at which point the next level should be loaded
+        """
+        print("The game has been won, proceeding to next level...")
 
 class Projectile(pygame.sprite.Sprite):
     """
