@@ -506,49 +506,53 @@ class Guard(Actor):
             self.currentDest = Point(self.rect.x + self.speed * 2, self.rect.y)
 
     def walk(self, sprGroup = None):
+        """
+        Always check where to go using cPos, but move using virtual co-ordinates
+        Guards will always try and stand directly on top of their destination
+        """
         self.wantToGoHere = [False, False, False, False]
 
         # x co-ordinate #
-        if abs(self.cPos.x - self.currentDest.x) > self.width + self.speed:
-            if self.currentDest.x < self.virtualx:
+        if abs(self.cPos.x - self.currentDest.x) > self.speed:
+            if self.currentDest.x < self.cPos.x:
                 self.wantToGoHere[2] = True
                 if not self.bannedDirs[2]:
                     self.virtualx -= self.speed
-            elif self.currentDest.x > self.virtualx:
+            elif self.currentDest.x > self.cPos.x:
                 self.wantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx += self.speed
-        elif abs(self.virtualx - self.currentDest.x) <= self.width + self.speed and abs(self.virtualx - self.currentDest.x) >= self.width: #and sprGroup == None: # fine adjusment
-            if self.currentDest.x < self.virtualx:
+        else: # fine adjusment
+            if self.currentDest.x < self.cPos.x:
                 self.wantToGoHere[2] = True # necessary?
                 if not self.bannedDirs[2]:
-                    self.virtualx -= 0.1
-            elif self.currentDest.x > self.virtualx:
+                    self.virtualx = self.currentDest.x - self.width / 2
+            elif self.currentDest.x > self.cPos.x:
                 self.wantToGoHere[3] = True # necessary?
                 if not self.bannedDirs[3]:
-                    self.virtualx += 0.1
+                    self.virtualx = self.currentDest.x - self.width / 2
         ###
 
         # y co-ordinate #
         # could change such that moving up/down is determined before the distance moved is
-        if abs(self.cPos.y - self.currentDest.y) > self.width + self.speed:
-            if self.currentDest.y < self.virtualy:
+        if abs(self.cPos.y - self.currentDest.y) > self.speed:
+            if self.currentDest.y < self.cPos.y:
                 self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= self.speed
-            elif self.currentDest.y > self.virtualy:
+            elif self.currentDest.y > self.cPos.y:
                 self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
                     self.virtualy += self.speed
-        elif abs(self.virtualy - self.currentDest.y) <= self.width + self.speed and abs(self.virtualy - self.currentDest.y) >= self.width: #and sprGroup == None: # fine adjustment
-            if self.currentDest.y < self.virtualy:
+        else: # fine adjustment
+            if self.currentDest.y < self.cPos.y:
                 self.wantToGoHere[1] = True
                 if not self.bannedDirs[0]:
-                    self.virtualy -= 0.1
-            elif self.currentDest.y > self.virtualy:
+                    self.virtualy = self.currentDest.y - self.width / 2
+            elif self.currentDest.y > self.cPos.y:
                 self.wantToGoHere[0] = True
                 if not self.bannedDirs[1]:
-                    self.virtualy += 0.1
+                    self.virtualy = self.currentDest.y - self.width / 2
         ###
 
         self.posUpdate()
@@ -567,7 +571,6 @@ class Guard(Actor):
                     self.states[4] = True # must be left after the above to prevent the original destination being overwritten
 
     def patrol(self):
-        print(self.currentDest.distance(Point(self.cPos.x, self.cPos.y)))
         if self.currentDest.distance(Point(self.cPos.x, self.cPos.y)) < self.width / 2 and len(self.patrolPoints) > 1: # if I'm close to my destination  (and there are multiple patrol points to choose from)...
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # ... set the destination to be next point in patrol points list
         elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point...
@@ -889,7 +892,6 @@ def instance():
         for guard in level.guards: # this is where the brain should be called from
             if guard.alive: # prevents the guard from moving if they're dead - quite useful
                 guard.brain(level.player, level.guardGroup, level.actorGroup, level.environmentGroup, (guard in level.visibleGroup), devMode)
-        print()
 
         if not devMode:
             level.visibleGroup.draw(gameDisplay)
