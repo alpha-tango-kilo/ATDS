@@ -14,6 +14,8 @@ displayHeight = 720
 framerate = 120
 RELOAD      = pygame.USEREVENT + 1
 CHECKWIN    = pygame.USEREVENT + 2
+virtualDisplay = pygame.Surface((displayWidth, displayHeight)) # always left dirty for the next process to clean it before use
+virtualDisplay.set_colorkey((255,255,255))
 # Textures #
 guardAlive = pygame.image.load("./assets/Actor/Guard/alive.png")
 guardDead = pygame.image.load("./assets/Actor/Guard/dead.png")
@@ -375,9 +377,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         if returnMask:
             #fov = m.degrees(fov)
             #angFromVert = m.degrees(angFromVert)
-            virtualDisplay = pygame.Surface((displayWidth, displayHeight))
             virtualDisplay.fill(white)
-            virtualDisplay.set_colorkey(white)
             #temp = self.cPos.round()
             pygame.draw.arc(virtualDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
             #pygame.gfxdraw.pie(gameDisplay, temp.x, temp.y, distance, angFromVert, angFromVert + fov, black) # both coords and angles have to be ints. I think angles might even work in degrees *sigh*
@@ -414,9 +414,6 @@ class Player(Actor):
 
         tempGroup = pygame.sprite.GroupSingle()
         visibleSprites = pygame.sprite.Group()
-
-        virtualDisplay = pygame.Surface((displayWidth, displayHeight))
-        virtualDisplay.set_colorkey(white)
 
         for spr in allSprites:
             try:
@@ -575,9 +572,9 @@ class Guard(Actor):
                     self.states[4] = True # must be left after the above to prevent the original destination being overwritten
 
     def patrol(self):
-        if self.currentDest.distance(Point(self.rect.x, self.rect.y)) < 22: # if close to my destination (I don't know why this has to be 22 to work)
-            self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # sets destination to be next point in patrol points list
-        elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point
+        if self.currentDest.distance(Point(self.cPos.x, self.cPos.y)) < self.width / 2 and len(self.patrolPoints) > 1: # if I'm close to my destination  (and there are multiple patrol points to choose from)...
+            self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # ... set the destination to be next point in patrol points list
+        elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point...
             self.currentDest = self.patrolPoints[rng.randint(0, len(self.patrolPoints) - 1)] # ... pick a random one and start heading there
 
     def generatePatrol(self, focus, radius):
@@ -592,34 +589,33 @@ class Guard(Actor):
 
         actors.remove(self) # don't look at yourself silly (also saves an iteration in the below for loop)
 
-        virtualDisplay = pygame.Surface((displayWidth, displayHeight))
-        virtualDisplay.set_colorkey(white)
-
         for actor in actors:
             virtualDisplay.fill(white)
-            virtualDisplay.blit(actor.image, (actor.rect.x, actor.rect.y))
+            virtualDisplay.blit(actor.image, (actor.rect.x, actor.rect.y)) # this has to remain as is, don't change things to cPos
             if viewMask.overlap(pygame.mask.from_surface(virtualDisplay), (0,0)):
                 try: # EAFP for checking if actor is guard or player
-                    if actor.alive: # if the guard is alive - will throw AttributeError is this is the player
-                        if not alreadySeenAGuard: # if it's the first guard I've seen
+                    if actor.alive: # if the guard is alive - will throw AttributeError if this is the player
+                        if not alreadySeenAGuard: # if it's the first guard I've seen...
                             self.lastSeenGuards = [] # ... jettison all other previously know guard locations, to avoid duplicates
                             alreadySeenAGuard = True
                         self.lastSeenGuards.append(Point(actor.cPos.x, actor.cPos.y))
-                    elif Point(actor.rect.x, actor.rect.y) not in self.patrolPoints and self.states[1] == False: # if the corpse isn't one I'm patrolling around already, and I'm not already taking a shuftie at another corpse already
-                        self.lastSeenCorpse = Point(actor.rect.x, actor.rect.y)
+                    elif Point(actor.cPos.x, actor.cPos.y) not in self.patrolPoints and self.states[1] == False: # if the corpse isn't one I'm patrolling around already, and I'm not already taking a shuftie at another corpse already
+                        self.lastSeenCorpse = Point(actor.cPos.x, actor.cPos.y)
                         self.states[1] = True
                 except AttributeError: # must be the player
-                    self.lastSeenPlayer = Point(actor.rect.x, actor.rect.y)
+                    self.lastSeenPlayer = Point(actor.cPos.x, actor.cPos.y)
                     self.states[0] = True
 
         actors.add(self) # so you don't bamboozle the next guard running this loop
 
-    def quickLook(self, viewMask, actor): # probably doesn't work as it doesn't use virtualDisplay generation technology (tm)
-        return viewMask.overlap(pygame.mask.from_surface(actor.image), (0,0))
+    def quickLook(self, viewMask, actor):
+        virtualDisplay.fill(white)
+        virtualDisplay.blit(actor.image, (actor.rect.x, actor.rect.y))
+        return viewMask.overlap(pygame.mask.from_surface(virtualDisplay), (0,0))
 
     def brain(self, player, allyGroup, actorGroup, envGroup, amVisible, devMode = False):
 
-        self.lastCoords = Point(self.virtualx, self.virtualy)
+        self.lastCoords = Point(self.cPos.x, self.cPos.y)
 
         if devMode or amVisible: # if I should be seen and be seen looking
             viewMask = self.cone(self.currentDest, 90, 100, True, True) # ... draw the cone so that it can be seen
@@ -703,8 +699,6 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         self.rect.y = round(y)
         self.cPos = Point(self.rect.x + self.width/2, self.rect.y + self.height/2)
 
-        virtualDisplay = pygame.Surface((displayWidth, displayHeight))
-        virtualDisplay.set_colorkey(white)
         virtualDisplay.fill(white)
         tempGroup = pygame.sprite.GroupSingle()
         tempGroup.add(self)
@@ -899,6 +893,7 @@ def instance():
         for guard in level.guards: # this is where the brain should be called from
             if guard.alive: # prevents the guard from moving if they're dead - quite useful
                 guard.brain(level.player, level.guardGroup, level.actorGroup, level.environmentGroup, (guard in level.visibleGroup), devMode)
+        print()
 
         if not devMode:
             level.visibleGroup.draw(gameDisplay)
