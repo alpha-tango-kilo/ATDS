@@ -161,7 +161,10 @@ class Level(): # I'd like to think this is pretty self explanatory
         drawText("Winner! Winner! Chicken dinner!", (100,100), dan, "Comic Sans MS", 36)
         pygame.display.update()
 
-        pygame.time.delay(10000)
+        if not devMode:
+            pygame.time.delay(10000)
+        else:
+            pygame.time.delay(2000)
 
         self.ID += 1
         self.loadFromFile()
