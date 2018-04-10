@@ -158,7 +158,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         print("Winner! Winner! Chicken dinner!")
 
         gameDisplay.fill(white)
-        drawText("Winner! Winner! Chicken dinner!", (100,100), dan, "Comic Sans MS", 36)
+        drawText("Winner! Winner! Chicken dinner!", (100,100), dan, "Comic Sans MS", 54)
         pygame.display.update()
 
         if not devMode:
@@ -827,13 +827,13 @@ def instance():
             # Any pygame handled events should be put here #
             # Quit the game
             if event.type == pygame.QUIT:
-                running = False
+                level.running = False
 
             # Key pressed (triggers once, even if held) #
             if event.type == pygame.KEYDOWN:
 
                 if event.key == pygame.K_ESCAPE: # close game if escape is pressed
-                    running = False
+                    level.running = False
 
                 if event.key == pygame.K_r: # press R to reload
                     if level.player.currentMag < level.player.magSize:
