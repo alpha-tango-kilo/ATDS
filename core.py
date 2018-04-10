@@ -128,11 +128,9 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.environmentGroup.add(self.obstacles[obstacleIndex])
             self.allGroup.add(self.obstacles[obstacleIndex])
 
-        try:
+        if self.objective:
             self.allGroup.add(self.objective)
             self.objectiveGroup.add(self.objective)
-        except: # if there is no objective (unsure of error type)
-            pass # no need to do anything
 
     def printLevel(self): # see what's in the level, so it can be debugged (I wonder why I wrote this)
         print("~~ PRINT START ~~\n")
@@ -389,6 +387,7 @@ class Player(Actor):
 
             except AttributeError: # if the object doesn't have the attribute mask
                 #print("Creating mask...")
+
                 virtualDisplay.fill(white)
 
                 tempGroup.add(spr)
@@ -883,7 +882,7 @@ def instance():
         clock.tick(framerate) # manages fps game is displayed at
 
     pygame.quit()
-    print("Pygame window closed")
+    print("\nPygame window closed")
 
 if __name__ == "__main__":
     instance()
