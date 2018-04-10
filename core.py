@@ -63,7 +63,7 @@ class Level(): # I'd like to think this is pretty self explanatory
             raw = open("./levels/{no}.level".format(no = str(number)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important. consider regexing?
 
         except FileNotFoundError: # If the level doesn't exist
-            print("Level file (ID: {n}) not found, aborting".format(n = number))
+            print("Level file (ID: {n}) not found, aborting.\n".format(n = number))
             return False
 
         self.ID = number
@@ -751,13 +751,11 @@ def drawMask(mask, colour = (0,0,0)): # alternative name is destroyFPS()
                 pygame.gfxdraw.pixel(gameDisplay, i, j, colour)
 
 def instance():
-    running = True
+    level = Level()
+    running = level.loadFromFile(100)
     devMode = True
 
     RELOAD = pygame.USEREVENT + 1
-
-    level = Level()
-    level.loadFromFile(100)
 
     # hide mouse
     pygame.mouse.set_visible(False)
@@ -860,6 +858,7 @@ def instance():
         clock.tick(framerate) # manages fps game is displayed at
 
     pygame.quit()
+    print("Pygame window closed")
 
 if __name__ == "__main__":
     instance()
