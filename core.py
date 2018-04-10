@@ -46,6 +46,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.environmentGroup   = pygame.sprite.Group() # anything you don't want to walk through
         self.allGroup           = pygame.sprite.Group() # everything except player
         self.visibleGroup       = pygame.sprite.Group()
+        self.objectiveGroup     = pygame.sprite.GroupSingle() # where the objective is kept in its spare time
 
         for obstacle in self.obstacles: # could use self.updateGroups?
             self.environmentGroup.add(obstacle)
@@ -93,8 +94,11 @@ class Level(): # I'd like to think this is pretty self explanatory
             print("Loaded obstacle")
         print("Finished loading obstacles:\t{n} in total\n".format(n = str(int(len(raw[2]) / 5))))
 
-        self.objective = Objective(int(raw[3][0]), int(raw[3][1]), int(raw[3][2]), int(raw[3][3]))
-        print("Loaded objective\n")
+        try:
+            self.objective = Objective(int(raw[3][0]), int(raw[3][1]), int(raw[3][2]), int(raw[3][3]))
+            print("Loaded objective\n")
+        except IndexError: # objective isn't in the list
+            print("No objective in level, skipping\n")
 
         print("Updating groups...\n")
         self.updateGroups()
@@ -109,17 +113,26 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.environmentGroup.empty()
         self.allGroup.empty()
         self.visibleGroup.empty()
+        self.objectiveGroup.empty()
 
         # start re-adding everything
         self.playerGroup.add(self.player)
         self.actorGroup.add(self.player)
+
         for guard in self.guards:
             self.guardGroup.add(guard)
             self.actorGroup.add(guard)
             self.allGroup.add(guard)
+
         for obstacleIndex in range(len(self.obstacles)): # runs for every wall, excluding the game bounds as they're already added
             self.environmentGroup.add(self.obstacles[obstacleIndex])
             self.allGroup.add(self.obstacles[obstacleIndex])
+
+        self.allGroup.add(self.objective)
+        try:
+            self.objectiveGroup.add(self.objective)
+        except: # if there is no objective (unsure of error type)
+            pass # no need to do anything
 
     def printLevel(self): # see what's in the level, so it can be debugged (I wonder why I wrote this)
         print("~~ PRINT START ~~\n")
@@ -747,7 +760,7 @@ class Projectile(pygame.sprite.Sprite):
             self.go(sprGroup, bulletPen) # recurse the function to allow bullet to continue travelling
 
 def drawText(text, loc, colour = (0,0,0), font = "Comic Sans MS", fontSize = 14):
-    theFont = pygame.font.SysFont(font, fontSize)
+    theFont = pygame.font.SysFont(font, fontSize) # cache this maybe?
     textRender = theFont.render(str(text), True, colour)
     gameDisplay.blit(textRender, loc)
     return textRender
