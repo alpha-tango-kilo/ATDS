@@ -11,6 +11,8 @@ directions = ['u','d','l','r']
 displayWidth = 1280
 displayHeight = 720
 framerate = 120
+RELOAD      = pygame.USEREVENT + 1
+CHECKWIN    = pygame.USEREVENT + 2
 # Textures #
 guardAlive = pygame.image.load("./assets/Actor/Guard/alive.png")
 guardDead = pygame.image.load("./assets/Actor/Guard/dead.png")
@@ -67,11 +69,10 @@ class Level(): # I'd like to think this is pretty self explanatory
             raw = open("./levels/{no}.level".format(no = str(self.ID)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important. consider regexing?
 
         except FileNotFoundError: # If the level doesn't exist
-            print("Level file (ID: {n}) not found, aborting.\n".format(n = number))
+            print("Level file (ID: {n}) not found, aborting.\n".format(n = self.ID))
             return False
 
-        self.ID = number
-        print("Level file read (ID: {n})\n".format(n = number))
+        print("Level file read (ID: {n})\n".format(n = self.ID))
 
         for lineNo in range(len(raw)):
             raw[lineNo] = raw[lineNo].split(" ") # could use tabs instead for readability, this may change but is essentially unimportant
@@ -136,15 +137,30 @@ class Level(): # I'd like to think this is pretty self explanatory
         """
         The level has been won if the player reaches the objective or no guards remain standing, whichever happens first
         """
-        
-        wonByObjective = pygame.sprite.collide_rect(self.player, self.objective)
 
-        if wonByObjective: # no point in checking this if the game already has been won
+        wonByObjective = False
+
+        try:
+            wonByObjective = pygame.sprite.collide_rect(self.player, self.objective)
+        except AttributeError: # if there is no objective
+            pass
+
+        if not wonByObjective: # no point in checking this if the game already has been won
             for guard in self.guards:
                 if guard.alive:
                     return False
 
         print("Winner! Winner! Chicken dinner!")
+
+        gameDisplay.fill(white)
+        drawText("Winner! Winner! Chicken dinner!", (100,100), dan, "Comic Sans MS", 36)
+        pygame.display.update()
+
+        pygame.time.delay(10000)
+
+        self.ID += 1
+        self.loadFromFile()
+
         return True
 
     def printLevel(self): # see what's in the level, so it can be debugged (I wonder why I wrote this)
@@ -461,6 +477,8 @@ class Guard(Actor):
         self.alive = False
         self.image.fill((0,0,0,0)) # make image blank
         self.image.blit(guardDead, (0,0)) # draw on dead guard texture
+
+        pygame.time.set_timer(CHECKWIN, 1) # triggers a win check when a guard dies
 
     def altRoute(self):
         if self.states[4] == False: # if this is the first time altRoute() has been called, save the old destination
@@ -785,8 +803,6 @@ def instance():
     running = level.loadFromFile()
     devMode = True
 
-    RELOAD = pygame.USEREVENT + 1
-
     # hide mouse
     pygame.mouse.set_visible(False)
 
@@ -831,6 +847,10 @@ def instance():
             if event.type == RELOAD:
                 pygame.time.set_timer(RELOAD, 0) # prevents re-reloading chain (just pygame things)
                 level.player.reload()
+
+            if event.type == CHECKWIN:
+                pygame.time.set_timer(CHECKWIN, 0)
+                level.checkWin()
             ###
 
         # Keys being held #
