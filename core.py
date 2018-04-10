@@ -651,6 +651,9 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         """
         return "Obstacle at ({x}, {y}), with a width of {w} and height of {h}".format(x = self.rect.x, y = self.rect.y, w = self.width, h = self.height)
 
+    def posUpdate(self):
+        self.cPos = Point(self.rect.x + self.width/2, self.rect.y + self.height/2)
+
     def getShot(self):
         if self.destructable: # wall breaks
             self.kill() # removes sprite
