@@ -52,7 +52,7 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.environmentGroup.add(obstacle)
             self.allGroup.add(obstacle)
 
-    def loadFromFile(self, number): # look examiner! file storage!
+    def loadFromFile(self): # look examiner! file storage!
         """
         Returns True on successful load, False if file is not found
         File format is intended to work as follows, all parameters must be given and will be separated by a space/tab (depending on which I feel like, hopefully I'll update this comment):
@@ -64,7 +64,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.clear()
         print("Loading level...\n\n")
         try:
-            raw = open("./levels/{no}.level".format(no = str(number)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important. consider regexing?
+            raw = open("./levels/{no}.level".format(no = str(self.ID)), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() time complexity of level creation is not an issue, having things read as I want is more important. consider regexing?
 
         except FileNotFoundError: # If the level doesn't exist
             print("Level file (ID: {n}) not found, aborting.\n".format(n = number))
@@ -132,6 +132,21 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.allGroup.add(self.objective)
             self.objectiveGroup.add(self.objective)
 
+    def checkWin(self):
+        """
+        The level has been won if the player reaches the objective or no guards remain standing, whichever happens first
+        """
+        
+        wonByObjective = pygame.sprite.collide_rect(self.player, self.objective)
+
+        if wonByObjective: # no point in checking this if the game already has been won
+            for guard in self.guards:
+                if guard.alive:
+                    return False
+
+        print("Winner! Winner! Chicken dinner!")
+        return True
+
     def printLevel(self): # see what's in the level, so it can be debugged (I wonder why I wrote this)
         print("~~ PRINT START ~~\n")
         print(self.player)
@@ -164,6 +179,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.environmentGroup.empty()
         self.allGroup.empty()
         self.visibleGroup.empty()
+        self.objectiveGroup.empty()
 
         for obstacle in self.obstacles:
             self.environmentGroup.add(obstacle)
@@ -700,12 +716,6 @@ class Objective(Obstacle):
     def getShot(self):
         print("Shooting the objective won't win you the game, but it might feel satisfying")
 
-    def onTouch(self):
-        """
-        This is where the game's winning condition should be, at which point the next level should be loaded
-        """
-        print("The game has been won, proceeding to next level...")
-
 class Projectile(pygame.sprite.Sprite):
     """
     The pew pew things
@@ -772,7 +782,7 @@ def drawMask(mask, colour = (0,0,0)): # alternative name is destroyFPS()
 
 def instance():
     level = Level()
-    running = level.loadFromFile(level.ID)
+    running = level.loadFromFile()
     devMode = True
 
     RELOAD = pygame.USEREVENT + 1
