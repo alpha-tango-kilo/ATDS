@@ -2,6 +2,7 @@ import pygame
 import pygame.gfxdraw # not always needed, but used in drawMask
 import math as m
 import random as rng
+from sys import exit
 
 pygame.init()
 pygame.font.init()
@@ -35,6 +36,7 @@ clock = pygame.time.Clock()
 class Level(): # I'd like to think this is pretty self explanatory
     def __init__(self): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
         self.ID = 1
+        self.running = False
 
         self.player = None
         self.guards = []
@@ -70,7 +72,10 @@ class Level(): # I'd like to think this is pretty self explanatory
 
         except FileNotFoundError: # If the level doesn't exist
             print("Level file (ID: {n}) not found, aborting.\n".format(n = self.ID))
-            return False
+            self.running = False
+            pygame.quit()
+            exit()
+            return
 
         print("Level file read (ID: {n})\n".format(n = self.ID))
 
@@ -105,7 +110,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.updateGroups()
         print("Groups updated\n\nLevel loaded")
 
-        return True
+        self.running = True
 
     def updateGroups(self):
         # empty all sprite groups first (playerGroup doesn't have to be done as it's a GroupSingle)
@@ -800,16 +805,18 @@ def drawMask(mask, colour = (0,0,0)): # alternative name is destroyFPS()
 
 def instance():
     level = Level()
-    running = level.loadFromFile()
+    level.loadFromFile()
     devMode = True
 
     # hide mouse
     pygame.mouse.set_visible(False)
+    # check for wins
+    pygame.time.set_timer(CHECKWIN, 25)
 
     # initialise done before anything is drawn to the screen
     playerView = pygame.mask.from_surface(gameDisplay)
 
-    while running:
+    while level.running:
         mouse = pygame.mouse.get_pos()
         mouse = Point(mouse[0], mouse[1]) # for sake of consistency throughout program
 
@@ -849,7 +856,7 @@ def instance():
                 level.player.reload()
 
             if event.type == CHECKWIN:
-                pygame.time.set_timer(CHECKWIN, 0)
+                pygame.time.set_timer(CHECKWIN, 25)
                 level.checkWin()
             ###
 
@@ -913,6 +920,7 @@ def instance():
 
     pygame.quit()
     print("\nPygame window closed")
+    exit()
 
 if __name__ == "__main__":
     instance()
