@@ -500,25 +500,31 @@ class Guard(Actor):
             print("Alt-route hit another wall")
             self.wantToGoStack.append(self.dirToTry)
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
-        elif not self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the latest direction I've been trying is now free
+        elif len(self.wantToGoStack) == 0 or not self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the latest direction I've been trying is now free
             print("Alt-route found the previously blocked path to be clear")
-            self.dirToTry = self.wantToGoStack.pop()
+            try:
+                self.dirToTry = self.wantToGoStack.pop()
+            except IndexError:
+                pass
             if len(self.wantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
-                print("Alt-routing complete\n")
-                self.states[4] = False # alt routing is no longer needed
-                self.currentDest = self.oldDest
+                if self.cPos.distance(self.currentDest) < 1:
+                    print("Alt-route finished")
+                    self.states[4] = False # alt routing is no longer needed
+                    self.currentDest = self.oldDest
+                else:
+                    print("Alt-routing finishing, just reaching currentDest\n")
                 return # return early to prevent the below if statements from changing the destination
 
         print("Alt-route is now trying direction: {d}\n".format(d = directions[self.dirToTry]))
 
         if self.dirToTry == 0: # up
-            self.currentDest = Point(self.cPos.x, self.cPos.y - self.speed * 2)
+            self.currentDest = Point(self.cPos.x, self.cPos.y - self.width - self.speed)
         elif self.dirToTry == 1: # left
-            self.currentDest = Point(self.cPos.x - self.speed * 2, self.cPos.y)
+            self.currentDest = Point(self.cPos.x - self.width - self.speed, self.cPos.y)
         elif self.dirToTry == 2: # down
-            self.currentDest = Point(self.cPos.x, self.cPos.y + self.speed * 2)
+            self.currentDest = Point(self.cPos.x, self.cPos.y + self.width + self.speed)
         elif self.dirToTry == 3: # right
-            self.currentDest = Point(self.cPos.x + self.speed * 2, self.cPos.y)
+            self.currentDest = Point(self.cPos.x + self.width + self.speed, self.cPos.y)
 
         #print("Current destination is:\t{cd}\nCurrent location is:\t{cl}\n\n".format(cd = self.currentDest, cl = self.cPos))
 
@@ -528,7 +534,6 @@ class Guard(Actor):
 
     def walk(self, sprGroup = None, avoidRecurse = False):
 
-        print(self.bannedDirs)
         """
         Always check where to go using cPos, but move using virtual co-ordinates
         Guards will always try and stand directly on top of their destination
@@ -641,7 +646,7 @@ class Guard(Actor):
         self.lastCoords = Point(self.cPos.x, self.cPos.y)
 
         if self.states[3]:
-            view = (180, 40)
+            view = (180, 40) # angle, distance
         else:
             view = (90, 150)
 
