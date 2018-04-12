@@ -252,7 +252,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.width = 15
         self.speed = speed
-        self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move
+        self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move ULDR
 
         self.image = pygame.Surface([self.width, self.width], pygame.SRCALPHA, 32)
         self.image.fill((0,0,0,0))
@@ -311,9 +311,9 @@ class Actor(pygame.sprite.Sprite, World_Object):
     def move(self, direction, sprGroup = None):
         if direction == 'u' and not self.bannedDirs[0]: # up
             self.virtualy -= self.speed
-        elif direction == 'd' and not self.bannedDirs[1]: # down
+        elif direction == 'd' and not self.bannedDirs[2]: # down
             self.virtualy += self.speed
-        elif direction == 'l' and not self.bannedDirs[2]: # left
+        elif direction == 'l' and not self.bannedDirs[1]: # left
             self.virtualx -= self.speed
         elif direction == 'r' and not self.bannedDirs[3]: # right
             self.virtualx += self.speed
@@ -533,25 +533,25 @@ class Guard(Actor):
         Always check where to go using cPos, but move using virtual co-ordinates
         Guards will always try and stand directly on top of their destination
         """
-        self.wantToGoHere = [False, False, False, False]
+        self.wantToGoHere = [False, False, False, False] # ULDR
 
         # x co-ordinate #
         if abs(self.cPos.x - self.currentDest.x) > self.speed:
-            if self.currentDest.x < self.cPos.x:
-                self.wantToGoHere[2] = True
-                if not self.bannedDirs[2]:
+            if self.currentDest.x < self.cPos.x: # left
+                self.wantToGoHere[1] = True
+                if not self.bannedDirs[1]:
                     self.virtualx -= self.speed
-            elif self.currentDest.x > self.cPos.x:
+            elif self.currentDest.x > self.cPos.x: # right
                 self.wantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx += self.speed
         else: # fine adjusment
-            if self.currentDest.x < self.cPos.x:
-                self.wantToGoHere[2] = True # necessary?
-                if not self.bannedDirs[2]:
+            if self.currentDest.x < self.cPos.x: # left
+                self.wantToGoHere[1] = True
+                if not self.bannedDirs[1]:
                     self.virtualx = self.currentDest.x - self.width / 2
-            elif self.currentDest.x > self.cPos.x:
-                self.wantToGoHere[3] = True # necessary?
+            elif self.currentDest.x > self.cPos.x: # right
+                self.wantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx = self.currentDest.x - self.width / 2
         ###
@@ -559,22 +559,22 @@ class Guard(Actor):
         # y co-ordinate #
         # could change such that moving up/down is determined before the distance moved is
         if abs(self.cPos.y - self.currentDest.y) > self.speed:
-            if self.currentDest.y < self.cPos.y:
-                self.wantToGoHere[1] = True
+            if self.currentDest.y < self.cPos.y: # up
+                self.wantToGoHere[0] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= self.speed
-            elif self.currentDest.y > self.cPos.y:
-                self.wantToGoHere[0] = True
-                if not self.bannedDirs[1]:
+            elif self.currentDest.y > self.cPos.y: # down
+                self.wantToGoHere[2] = True
+                if not self.bannedDirs[2]:
                     self.virtualy += self.speed
         else: # fine adjustment
-            if self.currentDest.y < self.cPos.y:
-                self.wantToGoHere[1] = True
+            if self.currentDest.y < self.cPos.y: # up
+                self.wantToGoHere[0] = True
                 if not self.bannedDirs[0]:
                     self.virtualy = self.currentDest.y - self.width / 2
-            elif self.currentDest.y > self.cPos.y:
-                self.wantToGoHere[0] = True
-                if not self.bannedDirs[1]:
+            elif self.currentDest.y > self.cPos.y: # down
+                self.wantToGoHere[2] = True
+                if not self.bannedDirs[2]:
                     self.virtualy = self.currentDest.y - self.width / 2
         ###
 
