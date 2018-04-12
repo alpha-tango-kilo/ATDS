@@ -140,7 +140,7 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.allGroup.add(self.objective)
             self.objectiveGroup.add(self.objective)
 
-    def checkWin(self):
+    def checkWin(self, devMode = False):
         """
         The level has been won if the player reaches the objective or no guards remain standing, whichever happens first
         """
@@ -157,7 +157,7 @@ class Level(): # I'd like to think this is pretty self explanatory
                 if guard.alive:
                     return False
 
-        print("Winner! Winner! Chicken dinner!")
+        print("Winner! Winner! Chicken dinner!\n")
 
         gameDisplay.fill(white)
         drawText("Winner! Winner! Chicken dinner!", (100,100), dan, "Comic Sans MS", 54)
@@ -853,7 +853,7 @@ def instance():
 
             if event.type == CHECKWIN:
                 pygame.time.set_timer(CHECKWIN, 25)
-                level.checkWin()
+                level.checkWin(devMode)
             ###
 
         # Keys being held #
