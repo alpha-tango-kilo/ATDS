@@ -467,7 +467,6 @@ class Guard(Actor):
         self.currentDest = rng.choice(self.patrolPoints)
         self.waitPingSent = False # used with investigating
         self.investigatedCorpses = []
-        self.debugKill = False
 
         """
         Guard states (each number referring to an index in the array):
@@ -489,33 +488,22 @@ class Guard(Actor):
         pygame.time.set_timer(CHECKWIN, 1) # triggers a win check when a guard dies
 
     def altRoute(self):
-
-        print("Where the actor wants to go:\t{here}\nCurrently blocked directions:\t{alsohere}\nDesired direction blocked?\t{yn}".format(here = directions[self.dirToTry], alsohere = self.bannedDirs, yn = self.bannedDirs[self.dirToTry]))
-
         if self.states[4] == False: # if this is the first time altRoute() has been called...
-            print("Alt-route called for the first time")
             self.oldDest = self.currentDest # ... save the old destination
             self.dirToTry = (self.wantToGoStack[len(self.wantToGoStack) - 1] + self.problemSolvingDirection) % 4
         elif self.bannedDirs[self.dirToTry]: # if the way I'm currently trying to go is blocked
-            print("Alt-route hit another wall")
             self.wantToGoStack.append(self.dirToTry)
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
         elif len(self.wantToGoStack) == 0 or not self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the latest direction I've been trying is now free
-            print("Alt-route found the previously blocked path to be clear")
             try:
                 self.dirToTry = self.wantToGoStack.pop()
             except IndexError:
                 pass
             if len(self.wantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
                 if self.cPos.distance(self.currentDest) < 1:
-                    print("Alt-route finished")
                     self.states[4] = False # alt routing is no longer needed
                     self.currentDest = self.oldDest
-                else:
-                    print("Alt-routing finishing, just reaching currentDest\n")
                 return # return early to prevent the below if statements from changing the destination
-
-        print("Alt-route is now trying direction: {d}\n".format(d = directions[self.dirToTry]))
 
         if self.dirToTry == 0: # up
             self.currentDest = Point(self.cPos.x, self.cPos.y - self.width - self.speed)
@@ -525,12 +513,6 @@ class Guard(Actor):
             self.currentDest = Point(self.cPos.x, self.cPos.y + self.width + self.speed)
         elif self.dirToTry == 3: # right
             self.currentDest = Point(self.cPos.x + self.width + self.speed, self.cPos.y)
-
-        #print("Current destination is:\t{cd}\nCurrent location is:\t{cl}\n\n".format(cd = self.currentDest, cl = self.cPos))
-
-        if not self.debugKill:
-            #pygame.time.set_timer(EMERGENCYSTOP, 150)
-            self.debugKill = True
 
     def walk(self, sprGroup = None, avoidRecurse = False):
 
