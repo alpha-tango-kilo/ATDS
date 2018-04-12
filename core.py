@@ -490,15 +490,15 @@ class Guard(Actor):
 
     def altRoute(self):
 
-        print("Where the actor wants to go: {here}\nCurrently blocked directions: {alsohere}".format(here = self.wantToGoStack, alsohere = self.bannedDirs))
-        print("\nChecking elif:\n\tself.wantToGoStack[len(self.wantToGoStack) - 1] = {a}\n\tself.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]] = {b}\n".format(a = self.wantToGoStack[len(self.wantToGoStack) - 1], b = self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]))
+        print("Where the actor wants to go:\t{here}\nCurrently blocked directions:\t{alsohere}\nDesired direction blocked?\t{yn}".format(here = self.wantToGoStack, alsohere = self.bannedDirs, yn = self.bannedDirs[self.dirToTry]))
 
         if self.states[4] == False: # if this is the first time altRoute() has been called...
             print("Alt-route called for the first time")
             self.oldDest = self.currentDest # ... save the old destination
             self.dirToTry = (self.wantToGoStack[len(self.wantToGoStack) - 1] + self.problemSolvingDirection) % 4
-        elif self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the way I'm currently trying to go is blocked
+        elif self.bannedDirs[self.dirToTry]: # if the way I'm currently trying to go is blocked
             print("Alt-route hit another wall")
+            self.wantToGoStack.append(self.dirToTry)
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
         else: # if the latest direction I've been trying is now free
             print("Alt-route found a previously blocked path to be clear")
