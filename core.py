@@ -464,8 +464,9 @@ class Guard(Actor):
         self.lastSeenPlayer = None # uses rect.x and rect.y
         self.lastSeenGuards = []
         self.patrolPoints = patrolPoints
-        self.currentDest = self.patrolPoints[0]
+        self.currentDest = rng.choice(self.patrolPoints)
         self.waitPingSent = False # used with investigating
+        self.investigatedCorpses = []
 
         """
         Guard states (each number referring to an index in the array):
@@ -600,8 +601,8 @@ class Guard(Actor):
                             self.lastSeenGuards = [] # ... jettison all other previously know guard locations, to avoid duplicates
                             alreadySeenAGuard = True
                         self.lastSeenGuards.append(Point(actor.cPos.x, actor.cPos.y))
-                    elif Point(actor.cPos.x, actor.cPos.y) not in self.patrolPoints and self.states[1] == False: # if the corpse isn't one I'm patrolling around already, and I'm not already taking a shuftie at another corpse already
-                        self.lastSeenCorpse = Point(actor.cPos.x, actor.cPos.y)
+                    elif actor.cPos not in self.patrolPoints and self.states[1] == False and actor.cPos not in self.investigatedCorpses: # if the corpse isn't one I'm patrolling around already, and I'm not already taking a shuftie at another corpse already, oh and I haven't already investigated this corpose
+                        self.lastSeenCorpse = actor.cPos
                         self.states[1] = True
                 except AttributeError: # must be the player
                     self.lastSeenPlayer = Point(actor.cPos.x, actor.cPos.y)
@@ -865,6 +866,14 @@ def instance():
             if event.type == CHECKWIN:
                 pygame.time.set_timer(CHECKWIN, 25)
                 level.checkWin(devMode)
+
+            if event.type == GUARDTHINK:
+                pygame.time.set_timer(GUARDTHINK, 0)
+                for guard in level.guards:
+                    if guard.states[3] and guard.waitPingSent:
+                        guard.investigatedCorpses.append(guard.currentDest)
+                        guard.states[3] = False
+                        guard.waitPingSent = False
             ###
 
         # Keys being held #
