@@ -490,7 +490,7 @@ class Guard(Actor):
 
     def altRoute(self):
 
-        print("Where the actor wants to go:\t{here}\nCurrently blocked directions:\t{alsohere}\nDesired direction blocked?\t{yn}".format(here = self.wantToGoStack, alsohere = self.bannedDirs, yn = self.bannedDirs[self.dirToTry]))
+        print("Where the actor wants to go:\t{here}\nCurrently blocked directions:\t{alsohere}\nDesired direction blocked?\t{yn}".format(here = directions[self.dirToTry], alsohere = self.bannedDirs, yn = self.bannedDirs[self.dirToTry]))
 
         if self.states[4] == False: # if this is the first time altRoute() has been called...
             print("Alt-route called for the first time")
@@ -500,16 +500,16 @@ class Guard(Actor):
             print("Alt-route hit another wall")
             self.wantToGoStack.append(self.dirToTry)
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
-        else: # if the latest direction I've been trying is now free
-            print("Alt-route found a previously blocked path to be clear")
+        elif not self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the latest direction I've been trying is now free
+            print("Alt-route found the previously blocked path to be clear")
             self.dirToTry = self.wantToGoStack.pop()
             if len(self.wantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
-                print("Alt-routing complete")
+                print("Alt-routing complete\n")
                 self.states[4] = False # alt routing is no longer needed
                 self.currentDest = self.oldDest
                 return # return early to prevent the below if statements from changing the destination
 
-        print("Alt-route is currently trying direction: {d}".format(d = directions[self.dirToTry]))
+        print("Alt-route is now trying direction: {d}\n".format(d = directions[self.dirToTry]))
 
         if self.dirToTry == 0: # up
             self.currentDest = Point(self.cPos.x, self.cPos.y - self.speed * 2)
@@ -520,15 +520,15 @@ class Guard(Actor):
         elif self.dirToTry == 3: # right
             self.currentDest = Point(self.cPos.x + self.speed * 2, self.cPos.y)
 
-        print("Current destination is:\t{cd}\nCurrent location is:\t{cl}\n\n".format(cd = self.currentDest, cl = self.cPos))
+        #print("Current destination is:\t{cd}\nCurrent location is:\t{cl}\n\n".format(cd = self.currentDest, cl = self.cPos))
 
         if not self.debugKill:
-            pygame.time.set_timer(EMERGENCYSTOP, 100)
+            #pygame.time.set_timer(EMERGENCYSTOP, 150)
             self.debugKill = True
 
     def walk(self, sprGroup = None, avoidRecurse = False):
 
-        print("Walked called; avoidRecurse = {b}\n".format(b = avoidRecurse))
+        print(self.bannedDirs)
         """
         Always check where to go using cPos, but move using virtual co-ordinates
         Guards will always try and stand directly on top of their destination
