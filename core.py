@@ -506,13 +506,13 @@ class Guard(Actor):
                 return # return early to prevent the below if statements from changing the destination
 
         if self.dirToTry == 0: # up
-            self.currentDest = Point(self.cPos.x, self.cPos.y - self.width - self.speed)
+            self.currentDest = Point(self.cPos.x, self.cPos.y - self.width/2 - self.speed)
         elif self.dirToTry == 1: # left
-            self.currentDest = Point(self.cPos.x - self.width - self.speed, self.cPos.y)
+            self.currentDest = Point(self.cPos.x - self.width/2 - self.speed, self.cPos.y)
         elif self.dirToTry == 2: # down
-            self.currentDest = Point(self.cPos.x, self.cPos.y + self.width + self.speed)
+            self.currentDest = Point(self.cPos.x, self.cPos.y + self.width/2 + self.speed)
         elif self.dirToTry == 3: # right
-            self.currentDest = Point(self.cPos.x + self.width + self.speed, self.cPos.y)
+            self.currentDest = Point(self.cPos.x + self.width/2 + self.speed, self.cPos.y)
 
     def walk(self, sprGroup = None, avoidRecurse = False):
 
