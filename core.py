@@ -14,6 +14,7 @@ displayHeight = 720
 framerate = 120
 RELOAD      = pygame.USEREVENT + 1
 CHECKWIN    = pygame.USEREVENT + 2
+GUARDTHINK  = pygame.USEREVENT + 3
 virtualDisplay = pygame.Surface((displayWidth, displayHeight)) # always left dirty for the next process to clean it before use
 virtualDisplay.set_colorkey((255,255,255))
 # Textures #
@@ -464,6 +465,7 @@ class Guard(Actor):
         self.lastSeenGuards = []
         self.patrolPoints = patrolPoints
         self.currentDest = self.patrolPoints[0]
+        self.waitPingSent = False # used with investigating
 
         """
         Guard states (each number referring to an index in the array):
@@ -616,10 +618,16 @@ class Guard(Actor):
 
         self.lastCoords = Point(self.cPos.x, self.cPos.y)
 
-        if devMode or amVisible: # if I should be seen and be seen looking
-            viewMask = self.cone(self.currentDest, 90, 100, True, True) # ... draw the cone so that it can be seen
-        else: # ... or don't
-            viewMask = self.cone(self.currentDest, 90, 100, False, True) # creating this mask now saves CPU time as sometimes it would have been made twice, but is always needed at least once
+        if self.states[3]:
+            view = (180, 40)
+        else:
+            view = (90, 150)
+
+        viewMask = self.cone(self.currentDest, view[0], view[1], devMode or amVisible, True)
+        """
+        Cone is drawn with a viewing angle and distance dependent on what the guard is doing. This is drawn to the game screen if the guard can be seen or devMode is True.
+        The mask of this cone is saved so it can be used again if necessary (sometimes it's used again with .quickLook())
+        """
 
         #drawMask(viewMask, lightgrey)
 
@@ -662,6 +670,9 @@ class Guard(Actor):
         if self.states[3]: # if investigating a point, assuming self.currentDest is the thing we're interested in
             if devMode:
                 drawText("Investigating here", (self.rect.x + 10, self.rect.y + 56))
+            if not self.waitPingSent:
+                pygame.time.set_timer(GUARDTHINK, rng.randint(1000, 5000)) # guard waits for a random amount of time between 1 and 5 seconds
+                self.waitPingSent = True
             return
 
         elif not self.states[0] and not self.states[1] and not self.states[4]: # if I'm not doing anything that would mean I wouldn't be following my patrol
