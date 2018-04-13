@@ -77,10 +77,7 @@ class Level(): # I'd like to think this is pretty self explanatory
 
         except FileNotFoundError: # If the level doesn't exist
             print("Level file (ID: {n}) not found, aborting.\n".format(n = self.ID))
-            self.running = False
-            pygame.quit()
-            exit()
-            return
+            quit()
 
         print("Level file read (ID: {n})\n".format(n = self.ID))
 
@@ -158,7 +155,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         if not wonByObjective: # no point in checking this if the game already has been won
             for guard in self.guards:
                 if guard.alive:
-                    return False
+                    return
 
         print("Winner! Winner! Chicken dinner!\n")
 
@@ -173,8 +170,6 @@ class Level(): # I'd like to think this is pretty self explanatory
 
         self.ID += 1
         self.loadFromFile()
-
-        return True
 
     def gameOver(self):
         print("Game Over!")
