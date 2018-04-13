@@ -12,6 +12,7 @@ directions = ['u','l','d','r']
 displayWidth = 1280
 displayHeight = 720
 framerate = 60
+frametime = 1000/framerate
 RELOAD          = pygame.USEREVENT + 1
 CHECKWIN        = pygame.USEREVENT + 2
 GUARDTHINK      = pygame.USEREVENT + 3
@@ -154,7 +155,7 @@ class Level(): # I'd like to think this is pretty self explanatory
 
         if not wonByObjective: # no point in checking this if the game already has been won
             for guard in self.guards:
-                if guard.alive:
+                if guard.living:
                     return
 
         print("Winner! Winner! Chicken dinner!\n")
@@ -455,7 +456,7 @@ class Guard(Actor):
         self.image.blit(guardAlive, (0,0))
         self.image = self.image.convert_alpha()
 
-        self.alive = True
+        self.living = True
 
         # Navigation related variables
         self.wantToGoStack = [] # stack of direction indexes
@@ -488,7 +489,7 @@ class Guard(Actor):
 
     def getShot(self):
         print("Guard hit. They didn't appreciate it.")
-        self.alive = False
+        self.living = False
         self.image.fill((0,0,0,0)) # make image blank
         self.image.blit(guardDead, (0,0)) # draw on dead guard texture
 
@@ -615,17 +616,17 @@ class Guard(Actor):
                 if pygame.sprite.collide_rect(tActor, envGroup):
         """
 
-    def lookAround(self, viewMask, actors):
+    def lookAround(self, viewMask, actorGroup):
         alreadySeenAGuard = False
 
-        actors.remove(self) # don't look at yourself silly (also saves an iteration in the below for loop)
+        actorGroup.remove(self) # don't look at yourself silly (also saves an iteration in the below for loop)
 
-        for actor in actors:
+        for actor in actorGroup:
             virtualDisplay.fill(white)
             virtualDisplay.blit(actor.image, (actor.rect.x, actor.rect.y)) # this has to remain as is, don't change things to cPos
             if viewMask.overlap(pygame.mask.from_surface(virtualDisplay), (0,0)):
                 try: # EAFP for checking if actor is guard or player
-                    if actor.alive: # if the guard is alive - will throw AttributeError if this is the player
+                    if actor.living: # if the guard is alive - will throw AttributeError if this is the player
                         if not alreadySeenAGuard: # if it's the first guard I've seen...
                             self.lastSeenGuards = [] # ... jettison all other previously know guard locations, to avoid duplicates
                             alreadySeenAGuard = True
@@ -634,10 +635,11 @@ class Guard(Actor):
                         self.lastSeenCorpse = actor.cPos
                         self.states[1] = True
                 except AttributeError: # must be the player
+                    print("Guard.lookAround caught attribute error. Seeing player?")
                     self.lastSeenPlayer = Point(actor.cPos.x, actor.cPos.y)
                     self.states[0] = True
 
-        actors.add(self) # so you don't bamboozle the next guard running this loop
+        actorGroup.add(self) # so you don't bamboozle the next guard running this loop
 
     def quickLook(self, viewMask, actor):
         virtualDisplay.fill(white)
@@ -676,7 +678,7 @@ class Guard(Actor):
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
 
-            if self.rect.x == self.lastSeenPlayer.x and self.rect.y == self.lastSeenPlayer.y and self.quickLook(viewMask, player) == False: # lost the player
+            if self.cPos == self.lastSeenPlayer and self.quickLook(viewMask, player) == False: # lost the player
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
                 self.generatePatrol(self.currentDest, rng.randint(100,300), envGroup) # generate a new patrol centering on the player's last known location
@@ -853,7 +855,7 @@ def instance():
     # hide mouse
     pygame.mouse.set_visible(False)
     # check for wins
-    pygame.time.set_timer(CHECKWIN, 25)
+    pygame.time.set_timer(CHECKWIN, round(frametime))
 
     # initialise done before anything is drawn to the screen
     playerView = pygame.mask.from_surface(gameDisplay)
@@ -898,8 +900,8 @@ def instance():
                 level.player.reload()
 
             if event.type == CHECKWIN:
-                pygame.time.set_timer(CHECKWIN, 25)
                 level.checkWin(devMode)
+                pygame.time.set_timer(CHECKWIN, round(frametime))
 
             if event.type == GUARDTHINK:
                 pygame.time.set_timer(GUARDTHINK, 0)
@@ -948,7 +950,7 @@ def instance():
         level.visibleGroup = level.player.selectToRender(playerView, level.allGroup) # decide what needs rendering
 
         for guard in level.guards: # this is where the brain should be called from
-            if guard.alive: # prevents the guard from moving if they're dead - quite useful
+            if guard.living: # prevents the guard from moving if they're dead - quite useful
                 guard.brain(level.player, level.guardGroup, level.actorGroup, level.environmentGroup, (guard in level.visibleGroup), devMode)
 
         if not devMode:
