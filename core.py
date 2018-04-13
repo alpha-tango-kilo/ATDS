@@ -635,7 +635,6 @@ class Guard(Actor):
                         self.lastSeenCorpse = actor.cPos
                         self.states[1] = True
                 except AttributeError: # must be the player
-                    print("Guard.lookAround caught attribute error. Seeing player?")
                     self.lastSeenPlayer = Point(actor.cPos.x, actor.cPos.y)
                     self.states[0] = True
 
@@ -644,7 +643,10 @@ class Guard(Actor):
     def quickLook(self, viewMask, actor):
         virtualDisplay.fill(white)
         virtualDisplay.blit(actor.image, (actor.rect.x, actor.rect.y))
-        return viewMask.overlap(pygame.mask.from_surface(virtualDisplay), (0,0))
+        if viewMask.overlap(pygame.mask.from_surface(virtualDisplay), (0,0)): # returns tuple if there is overlap, None otherwise
+            return True
+        else:
+            return False
 
     def brain(self, player, allyGroup, actorGroup, envGroup, amVisible, devMode = False):
 
@@ -677,6 +679,8 @@ class Guard(Actor):
 
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
+
+            print("Quick look returns {ft}".format(ft = self.quickLook(viewMask, player)))
 
             if self.cPos == self.lastSeenPlayer and self.quickLook(viewMask, player) == False: # lost the player
                 self.states[0] = True # no longer aware of player
