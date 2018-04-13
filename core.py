@@ -451,7 +451,6 @@ class Guard(Actor):
         self.alive = True
 
         # Navigation related variables
-        self.wantToGoHere = [False for _ in range(4)] # udlr
         self.wantToGoStack = [] # stack of direction indexes
         self.lastCoords = Point(self.virtualx, self.virtualy)
         self.problemSolvingDirection = 1 #rng.choice([-1,1])
@@ -489,17 +488,23 @@ class Guard(Actor):
         pygame.time.set_timer(CHECKWIN, 1) # triggers a win check when a guard dies
 
     def altRoute(self):
-        print("Where the actor wants to go:\t{here}\nCurrently blocked directions:\t{alsohere}\nDesired direction blocked?\t{yn}".format(here = directions[self.dirToTry], alsohere = self.bannedDirs, yn = self.bannedDirs[self.dirToTry]))
+        print("Where the actor wants to go:\t\t{here}\nCurrently blocked directions:\t\t{alsohere}\nDesired direction blocked?\t\t{yn}".format(here = self.wantToGoStack, alsohere = self.bannedDirs, yn = self.bannedDirs[self.dirToTry]))
+
+        try:
+            print("not self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]] = {torf}".format(torf = (not self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]])))
+        except IndexError:
+            pass
 
         if self.states[4] == False: # if this is the first time altRoute() has been called...
             print("Alt-route called for the first time")
             self.oldDest = self.currentDest # ... save the old destination
+            self.states[4] = True # make brain aware that alt-routing is happening
             self.dirToTry = (self.wantToGoStack[len(self.wantToGoStack) - 1] + self.problemSolvingDirection) % 4
         elif self.bannedDirs[self.dirToTry]: # if the way I'm currently trying to go is blocked
             print("Alt-route hit another wall")
             self.wantToGoStack.append(self.dirToTry)
             self.dirToTry = (self.dirToTry + self.problemSolvingDirection) % 4
-        elif len(self.wantToGoStack) == 0 or not self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]: # if the latest direction I've been trying is now free
+        elif len(self.wantToGoStack) == 0 or (not self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]): # if the latest direction I've been wanting is now free
             print("Alt-route found the previously blocked path to be clear")
             try:
                 self.dirToTry = self.wantToGoStack.pop()
@@ -514,7 +519,7 @@ class Guard(Actor):
                     print("Alt-routing finishing, just reaching currentDest\n")
                 return # return early to prevent the below if statements from changing the destination
 
-        print("Alt-route is now trying direction: {d}\n".format(d = directions[self.dirToTry]))
+        print("Alt-route is now trying direction:\t{d}\n".format(d = directions[self.dirToTry]))
 
         if self.dirToTry == 0: # up
             self.currentDest = Point(self.cPos.x, self.cPos.y - self.width/2 - self.speed)
@@ -537,25 +542,25 @@ class Guard(Actor):
         Always check where to go using cPos, but move using virtual co-ordinates
         Guards will always try and stand directly on top of their destination
         """
-        self.wantToGoHere = [False, False, False, False] # ULDR
+        wantToGoHere = [False, False, False, False] # ULDR
 
         # x co-ordinate #
         if abs(self.cPos.x - self.currentDest.x) > self.speed:
             if self.currentDest.x < self.cPos.x: # left
-                self.wantToGoHere[1] = True
+                wantToGoHere[1] = True
                 if not self.bannedDirs[1]:
                     self.virtualx -= self.speed
             elif self.currentDest.x > self.cPos.x: # right
-                self.wantToGoHere[3] = True
+                wantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx += self.speed
         else: # fine adjusment
             if self.currentDest.x < self.cPos.x: # left
-                self.wantToGoHere[1] = True
+                wantToGoHere[1] = True
                 if not self.bannedDirs[1]:
                     self.virtualx = self.currentDest.x - self.width / 2
             elif self.currentDest.x > self.cPos.x: # right
-                self.wantToGoHere[3] = True
+                wantToGoHere[3] = True
                 if not self.bannedDirs[3]:
                     self.virtualx = self.currentDest.x - self.width / 2
         ###
@@ -564,20 +569,20 @@ class Guard(Actor):
         # could change such that moving up/down is determined before the distance moved is
         if abs(self.cPos.y - self.currentDest.y) > self.speed:
             if self.currentDest.y < self.cPos.y: # up
-                self.wantToGoHere[0] = True
+                wantToGoHere[0] = True
                 if not self.bannedDirs[0]:
                     self.virtualy -= self.speed
             elif self.currentDest.y > self.cPos.y: # down
-                self.wantToGoHere[2] = True
+                wantToGoHere[2] = True
                 if not self.bannedDirs[2]:
                     self.virtualy += self.speed
         else: # fine adjustment
             if self.currentDest.y < self.cPos.y: # up
-                self.wantToGoHere[0] = True
+                wantToGoHere[0] = True
                 if not self.bannedDirs[0]:
                     self.virtualy = self.currentDest.y - self.width / 2
             elif self.currentDest.y > self.cPos.y: # down
-                self.wantToGoHere[2] = True
+                wantToGoHere[2] = True
                 if not self.bannedDirs[2]:
                     self.virtualy = self.currentDest.y - self.width / 2
         ###
@@ -588,15 +593,15 @@ class Guard(Actor):
             self.collisionCheck(sprGroup)
 
             if not avoidRecurse: # used to stop altRoute calling walk calling altRoute etc.
-                for thisWay in range(4):
-                    self.wantToGoStack = []
 
-                    if self.bannedDirs[thisWay] and self.wantToGoHere[thisWay]: # last clause to prevent repeat appending
+                self.wantToGoStack = []
+
+                for thisWay in range(4):
+                    if self.bannedDirs[thisWay] and wantToGoHere[thisWay]: # last clause to prevent repeat appending
                         self.wantToGoStack.append(thisWay) # if found to be blocked, direction added as somewhere the guard originally wanted to go
 
-                    if len(self.wantToGoStack) >= 2 or sum(self.wantToGoHere) == len(self.wantToGoStack): # if I'm not going anywhere that isn't blocked
-                        self.altRoute()
-                        self.states[4] = True # must be left after the above to prevent the original destination being overwritten
+                if len(self.wantToGoStack) >= 2 or sum(wantToGoHere) == len(self.wantToGoStack): # if I'm not going anywhere that isn't blocked
+                    self.altRoute()
 
     def patrol(self):
         if self.currentDest.distance(Point(self.cPos.x, self.cPos.y)) < self.width / 2 and len(self.patrolPoints) > 1: # if I'm close to my destination  (and there are multiple patrol points to choose from)...
@@ -663,8 +668,6 @@ class Guard(Actor):
             print("Game Over!")
 
         if self.states[4]: # navigating around an obstacle to get to destination
-            if self.bannedDirs[self.dirToTry]: # if I can't move...
-                self.wantToGoStack.append(self.dirToTry) # ... the direction I just tried to move in must be blocked by something
             self.altRoute() # Must be called every time
             if devMode:
                 drawText("Alt-routing", (self.rect.x + 10, self.rect.y + 14))
