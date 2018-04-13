@@ -16,6 +16,7 @@ RELOAD          = pygame.USEREVENT + 1
 CHECKWIN        = pygame.USEREVENT + 2
 GUARDTHINK      = pygame.USEREVENT + 3
 EMERGENCYSTOP   = pygame.USEREVENT + 4
+GAMEOVER        = pygame.USEREVENT + 5
 virtualDisplay = pygame.Surface((displayWidth, displayHeight)) # always left dirty for the next process to clean it before use
 virtualDisplay.set_colorkey((255,255,255))
 # Textures #
@@ -162,11 +163,11 @@ class Level(): # I'd like to think this is pretty self explanatory
         print("Winner! Winner! Chicken dinner!\n")
 
         gameDisplay.fill(white)
-        drawText("Winner! Winner! Chicken dinner!", (100,100), dan, "Comic Sans MS", 54)
+        drawText("Winner! Winner! Chicken dinner!", (100,100), dan, "Comic Sans MS", 60)
         pygame.display.update()
 
         if not devMode:
-            pygame.time.delay(10000)
+            pygame.time.delay(5000)
         else:
             pygame.time.delay(2000)
 
@@ -174,6 +175,17 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.loadFromFile()
 
         return True
+
+    def gameOver(self):
+        print("Game Over!")
+        gameDisplay.fill(white)
+        drawText("Game Over! You were caught by a guard", (100,100), red, "Comic Sans MS", 60)
+        drawText("Game will close shortly...", (100, 700), black, "Comic Sans MS", 16)
+        pygame.display.update()
+
+        print("Game will exit in 5 seconds...")
+        pygame.time.delay(5000)
+        quit()
 
     def printLevel(self): # see what's in the level, so it can be debugged (I wonder why I wrote this)
         print("~~ PRINT START ~~\n")
@@ -466,6 +478,7 @@ class Guard(Actor):
         self.currentDest = rng.choice(self.patrolPoints)
         self.waitPingSent = False # used with investigating
         self.investigatedCorpses = []
+        self.gameOverTriggered = False
 
         """
         Guard states (each number referring to an index in the array):
@@ -591,12 +604,21 @@ class Guard(Actor):
         elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point...
             self.currentDest = self.patrolPoints[rng.randint(0, len(self.patrolPoints) - 1)] # ... pick a random one and start heading there
 
-    def generatePatrol(self, focus, radius):
+    def generatePatrol(self, focus, radius, envGroup):
         # method creates a random 3 point patrol given a central point and radius
         # currently does not check to ensure the path is possible
         focus = focus.round()
         udlr = [rng.choice([-1,1]), rng.choice([-1,1])] # chooses -1 or 1 randomly
         self.patrolPoints = [Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
+
+        """
+        # validation
+        validated = False
+        while not validated:
+            for pt in self.patrolPoints:
+                tActor = Actor(pt.x, pt.y)
+                if pygame.sprite.collide_rect(tActor, envGroup):
+        """
 
     def lookAround(self, viewMask, actors):
         alreadySeenAGuard = False
@@ -647,7 +669,9 @@ class Guard(Actor):
         self.lookAround(viewMask, actorGroup)
 
         if pygame.sprite.collide_rect(player, self): # if guard is touching the player
-            print("Game Over!")
+            if not self.gameOverTriggered:
+                pygame.time.set_timer(GAMEOVER, 1) # send the game over event to the main loop ASAP
+                self.gameOverTriggered = True
 
         if self.states[4]: # navigating around an obstacle to get to destination
             self.altRoute() # Must be called every time
@@ -660,7 +684,7 @@ class Guard(Actor):
             if self.rect.x == self.lastSeenPlayer.x and self.rect.y == self.lastSeenPlayer.y and self.quickLook(viewMask, player) == False: # lost the player
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
-                self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the player's last known location
+                self.generatePatrol(self.currentDest, rng.randint(100,300), envGroup) # generate a new patrol centering on the player's last known location
                 if devMode:
                     drawText("Searching for player", (self.rect.x + 10, self.rect.y + 28))
             elif devMode:
@@ -671,7 +695,7 @@ class Guard(Actor):
 
             if abs(self.cPos.x - self.currentDest.x) <= self.width and abs(self.cPos.y - self.currentDest.y) <= self.width: # if within a body length of the corpse
                 self.states[3] = True # investigating around a point
-                self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the corpse
+                self.generatePatrol(self.currentDest, rng.randint(100,300), envGroup) # generate a new patrol centering on the corpse
                 self.states[1] = False # stops this routine running next frame
                 if devMode:
                     drawText("At corpse, new patrol made", (self.rect.x + 10, self.rect.y + 42))
@@ -821,6 +845,11 @@ def drawMask(mask, colour = (0,0,0)): # alternative name is destroyFPS()
             if mask.get_at((i, j)) != 0:
                 pygame.gfxdraw.pixel(gameDisplay, i, j, colour)
 
+def quit():
+    pygame.quit()
+    print("\nPygame window closed")
+    exit()
+
 def instance():
     level = Level()
     level.loadFromFile()
@@ -884,6 +913,10 @@ def instance():
                         guard.investigatedCorpses.append(guard.currentDest)
                         guard.states[3] = False
                         guard.waitPingSent = False
+
+            if event.type == GAMEOVER:
+                pygame.time.set_timer(GAMEOVER, 0)
+                level.gameOver()
             ###
 
         # Keys being held #
@@ -944,9 +977,7 @@ def instance():
         pygame.display.update()
         clock.tick(framerate) # manages fps game is displayed at
 
-    pygame.quit()
-    print("\nPygame window closed")
-    exit()
+    quit()
 
 if __name__ == "__main__":
     instance()
