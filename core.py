@@ -521,6 +521,10 @@ class Guard(Actor):
         """
         wantToGoHere = [False, False, False, False] # ULDR
 
+        tempSpeed = self.speed
+        if abs(self.cPos.x - self.currentDest.x) > self.speed and abs(self.cPos.y - self.currentDest.y) > self.speed: # if the Guard is going to be moving diagonally...
+            self.speed = m.sqrt(0.5 * self.speed**2) # make sure he can't move any faster as a result
+
         # x co-ordinate #
         if abs(self.cPos.x - self.currentDest.x) > self.speed:
             if self.currentDest.x < self.cPos.x: # left
@@ -564,6 +568,7 @@ class Guard(Actor):
                     self.virtualy = self.currentDest.y - self.width / 2
         ###
 
+        self.speed = tempSpeed
         self.posUpdate()
 
         if sprGroup:
