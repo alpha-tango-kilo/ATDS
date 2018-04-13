@@ -342,15 +342,18 @@ class Actor(pygame.sprite.Sprite, World_Object):
     def reload(self): # assumes the delay/wait has already occurred
         self.currentMag = self.magSize
 
-    def cone(self, mouse, fov, distance, drawCone = False, returnMask = False):
+    def cone(self, lookingHere, fov, distance, drawCone = False, returnMask = False):
         fov = m.radians(fov) # convert fov to radians
 
         # Mr. Marshall's code #
 
-        dx = mouse.x - self.cPos.x
-        dy = mouse.y - self.cPos.y
+        dx = lookingHere.x - self.cPos.x
+        dy = lookingHere.y - self.cPos.y
         mod_m = m.sqrt(dx**2 + dy**2)
-        sf = distance/mod_m*2/3 # my lovely addition, multiplying by two thirds
+        try:
+            sf = distance / mod_m * 2/3 # my lovely addition, multiplying by two thirds
+        except ZeroDivisionError:
+            sf = distance * 2/3 # don't know if this fix is correct, but only ever happens when player successfully evades a guard, which is rare
         centre = Point(sf*dx + self.cPos.x, sf*dy + self.cPos.y)
 
         angle_sf = sf*m.tan(fov/2)
@@ -648,7 +651,7 @@ class Guard(Actor):
         else:
             return False
 
-    def brain(self, player, allyGroup, actorGroup, envGroup, amVisible, devMode = False):
+    def brain(self, player, actorGroup, envGroup, amVisible, devMode = False):
 
         self.lastCoords = Point(self.cPos.x, self.cPos.y)
 
@@ -955,7 +958,10 @@ def instance():
 
         for guard in level.guards: # this is where the brain should be called from
             if guard.living: # prevents the guard from moving if they're dead - quite useful
-                guard.brain(level.player, level.guardGroup, level.actorGroup, level.environmentGroup, (guard in level.visibleGroup), devMode)
+                guard.brain(level.player, level.actorGroup, level.environmentGroup, (guard in level.visibleGroup), devMode)
+            else:
+                #level.guardGroup.remove(guards)
+                pass
 
         if not devMode:
             level.visibleGroup.draw(gameDisplay)
