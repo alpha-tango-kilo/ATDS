@@ -454,7 +454,7 @@ class Guard(Actor):
         self.wantToGoHere = [False for _ in range(4)] # udlr
         self.wantToGoStack = [] # stack of direction indexes
         self.lastCoords = Point(self.virtualx, self.virtualy)
-        self.problemSolvingDirection = rng.choice([-1,1])
+        self.problemSolvingDirection = 1 #rng.choice([-1,1])
         self.oldDest = Point()
         self.dirToTry = 0 # udlr indexes
 
@@ -464,7 +464,7 @@ class Guard(Actor):
         self.lastSeenPlayer = None # uses rect.x and rect.y
         self.lastSeenGuards = []
         self.patrolPoints = patrolPoints
-        self.currentDest = rng.choice(self.patrolPoints)
+        self.currentDest = self.patrolPoints[2] # rng.choice(self.patrolPoints)
         self.waitPingSent = False # used with investigating
         self.investigatedCorpses = []
         self.debugKill = False
@@ -507,7 +507,7 @@ class Guard(Actor):
                 pass
             if len(self.wantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
                 if self.cPos.distance(self.currentDest) < 1:
-                    print("Alt-route finished")
+                    print("Alt-route finished\n")
                     self.states[4] = False # alt routing is no longer needed
                     self.currentDest = self.oldDest
                 else:
