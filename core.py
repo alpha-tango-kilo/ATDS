@@ -463,15 +463,14 @@ class Guard(Actor):
 
         # Navigation related variables
         self.wantToGoStack = [] # stack of direction indexes
-        self.lastCoords = Point(self.virtualx, self.virtualy)
         self.problemSolvingDirection = rng.choice([-1,1])
         self.oldDest = Point()
         self.dirToTry = 0 # udlr indexes
 
         # Brain variables
         self.states = [False for _ in range(5)]
-        self.lastSeenCorpse = None # uses rect.x and rect.y
-        self.lastSeenPlayer = None # uses rect.x and rect.y
+        self.lastSeenCorpse = None # uses cPos of Actor
+        self.lastSeenPlayer = None # uses cPos of Actor
         self.lastSeenGuards = []
         self.patrolPoints = patrolPoints
         self.currentDest = rng.choice(self.patrolPoints)
@@ -652,8 +651,6 @@ class Guard(Actor):
             return False
 
     def brain(self, player, actorGroup, envGroup, amVisible, devMode = False):
-
-        self.lastCoords = Point(self.cPos.x, self.cPos.y)
 
         if self.states[3]:
             view = (180, 40) # angle, distance
@@ -912,7 +909,7 @@ def instance():
 
             if event.type == GUARDTHINK:
                 pygame.time.set_timer(GUARDTHINK, 0)
-                for guard in level.guards:
+                for guard in level.guards: # will reset state of ALL investigating guards
                     if guard.states[3] and guard.waitPingSent:
                         guard.investigatedCorpses.append(guard.currentDest)
                         guard.states[3] = False
