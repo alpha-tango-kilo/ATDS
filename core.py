@@ -532,6 +532,8 @@ class Guard(Actor):
         wantToGoHere = [False, False, False, False] # ULDR
 
         tempSpeed = self.speed
+        if self.states[0]: # if chasing the player
+            self.speed = self.speed * 1.5 # move 50% faster
         if abs(self.cPos.x - self.currentDest.x) > self.speed and abs(self.cPos.y - self.currentDest.y) > self.speed: # if the Guard is going to be moving diagonally...
             self.speed = m.sqrt(0.5 * self.speed**2) # make sure he can't move any faster as a result
 
