@@ -893,7 +893,7 @@ def instance():
 
                 if event.key == pygame.K_l and devMode: # prints out the level debug into console if the user is in devMode
                     level.printLevel()
-                    running = False
+                    level.running = False
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
                 level.player.shoot(mouse, level.allGroup)
