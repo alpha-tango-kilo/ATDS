@@ -36,12 +36,11 @@ dan = (42,117,225)
 
 gameDisplay = pygame.display.set_mode((displayWidth, displayHeight), pygame.NOFRAME)
 pygame.display.set_caption("ATDS")
-
 clock = pygame.time.Clock()
 
 class Level(): # I'd like to think this is pretty self explanatory
-    def __init__(self): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
-        self.ID = 1
+    def __init__(self, n = 1): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
+        self.ID = n
         self.running = False
 
         self.player = None
@@ -62,12 +61,14 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.environmentGroup.add(obstacle)
             self.allGroup.add(obstacle)
 
+        self.loadFromFile()
+
     def loadFromFile(self): # look examiner! file storage!
         """
         File format is intended to work as follows, all parameters must be given and will be separated by a space:
         line 1 - player parameters (x, y)
         line 2 - guard parameters (x, y, patrolPoints, speed), all guards will be on this single line. Guard patrol points are sewn together by dashes (-), so they aren't separated until we're ready for that sweet O(n^2) processing
-        line 3 - obstacle parameters (x, y, width, height, destructable), relying on the same basis as above
+        line 3 - obstacle parameters (x, y, width, height, destructible), relying on the same basis as above
         line 4 - objective parameters (x, y, width, height)
         """
         self.clear()
@@ -194,7 +195,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         for obstacle in self.obstacles:
             print("\tPlaced at:\t({x},{y})".format(x = obstacle.rect.x, y = obstacle.rect.y))
             print("\tWidth:\t{w}\tHeight:\t{h}".format(w = obstacle.width, h = obstacle.height))
-            print("\tDestructable:\t{yorn}\n".format(yorn = obstacle.destructable))
+            print("\tdestructible:\t{yorn}\n".format(yorn = obstacle.destructible))
         print("Sprite groups:")
         print("\tguardGroup:\t\t{n}".format(n = len(self.guardGroup)))
         print("\tactorGroup:\t\t{n}".format(n = len(self.actorGroup)))
@@ -723,18 +724,18 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
     """
     Those things we love to hit our heads against
     """
-    def __init__(self, x = 0, y = 0, w = 250, h = 250, destructable = False):
+    def __init__(self, x = 0, y = 0, w = 250, h = 250, destructible = False):
         """
-        Define the shape and destructability of the wall
+        Define the shape and destructibility of the wall
         """
         super().__init__()
 
         self.width = w
         self.height = h
-        self.destructable = destructable
+        self.destructible = destructible
 
         # Obstacle will be grey if you can break it
-        if self.destructable:
+        if self.destructible:
             self.colour = grey
         else:
             self.colour = black
@@ -768,7 +769,7 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         self.cPos = Point(self.rect.x + self.width/2, self.rect.y + self.height/2)
 
     def getShot(self):
-        if self.destructable: # wall breaks
+        if self.destructible: # wall breaks
             self.kill() # removes sprite
             print("Wall shot. Wall dead.")
         else:
@@ -853,8 +854,7 @@ def quit():
     exit()
 
 def instance():
-    level = Level()
-    level.loadFromFile()
+    level = Level(1)
     devMode = True
 
     # hide mouse
