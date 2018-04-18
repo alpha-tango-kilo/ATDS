@@ -966,12 +966,14 @@ def instance():
         else:
             level.allGroup.draw(gameDisplay)
 
-        level.player.drawCrosshair(mouse)
-        level.playerGroup.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
         try:
             level.objectiveGroup.draw(gameDisplay) # draw the objective
         except: # if there is no objective, no worries
             pass
+
+        level.player.drawCrosshair(mouse)
+        level.playerGroup.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
+
         ###
 
         """
