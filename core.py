@@ -141,7 +141,7 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.allGroup.add(self.objective)
             self.objectiveGroup.add(self.objective)
 
-    def checkWin(self, devMode = False):
+    def checkWin(self, devMode):
         """
         The level has been won if the player reaches the objective or no guards remain standing, whichever happens first
         """
@@ -647,12 +647,12 @@ class Guard(Actor):
     def quickLook(self, viewMask, actor):
         virtualDisplay.fill(white)
         virtualDisplay.blit(actor.image, (actor.rect.x, actor.rect.y))
-        if viewMask.overlap(pygame.mask.from_surface(virtualDisplay), (0,0)): # returns tuple if there is overlap, None otherwise
+        if viewMask.overlap(pygame.mask.from_surface(virtualDisplay), (0,0)): # tuple if there is overlap, None otherwise
             return True
         else:
             return False
 
-    def brain(self, player, actorGroup, envGroup, amVisible, devMode = False):
+    def brain(self, player, actorGroup, envGroup, amVisible, devMode):
 
         if self.states[3]:
             view = (180, 40) # angle, distance
