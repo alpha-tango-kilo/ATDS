@@ -496,7 +496,7 @@ class Guard(Actor):
         self.image.fill((0,0,0,0)) # make image blank
         self.image.blit(guardDead, (0,0)) # draw on dead guard texture
 
-        pygame.time.set_timer(level.CHECKWIN, 1) # triggers a win check when a guard dies
+        #pygame.time.set_timer(level.CHECKWIN, 1) # triggers a win check when a guard dies
 
     def altRoute(self):
 
