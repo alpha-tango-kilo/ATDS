@@ -13,11 +13,6 @@ displayWidth = 1280
 displayHeight = 720
 framerate = 60
 frametime = 1000/framerate
-RELOAD          = pygame.USEREVENT + 1
-CHECKWIN        = pygame.USEREVENT + 2
-GUARDTHINK      = pygame.USEREVENT + 3
-EMERGENCYSTOP   = pygame.USEREVENT + 4
-GAMEOVER        = pygame.USEREVENT + 5
 virtualDisplay = pygame.Surface((displayWidth, displayHeight)) # always left dirty for the next process to clean it before use
 virtualDisplay.set_colorkey((255,255,255))
 # Textures #
@@ -47,6 +42,12 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.guards = []
         self.obstacles = [Obstacle(0, -100, displayWidth, 100, False), Obstacle(0, displayHeight, displayWidth, 100, False), Obstacle(-100, 0, 100, displayHeight, False), Obstacle(displayWidth, 0, 100, displayHeight, False)]
         self.objective = None
+
+        self.RELOAD          = pygame.USEREVENT + 1
+        self.CHECKWIN        = pygame.USEREVENT + 2
+        self.GUARDTHINK      = pygame.USEREVENT + 3
+        self.EMERGENCYSTOP   = pygame.USEREVENT + 4
+        self.GAMEOVER        = pygame.USEREVENT + 5
 
         # all sprite groups can be created here!
         self.playerGroup        = pygame.sprite.GroupSingle()
@@ -495,7 +496,7 @@ class Guard(Actor):
         self.image.fill((0,0,0,0)) # make image blank
         self.image.blit(guardDead, (0,0)) # draw on dead guard texture
 
-        pygame.time.set_timer(CHECKWIN, 1) # triggers a win check when a guard dies
+        pygame.time.set_timer(level.CHECKWIN, 1) # triggers a win check when a guard dies
 
     def altRoute(self):
 
@@ -652,14 +653,16 @@ class Guard(Actor):
         else:
             return False
 
-    def brain(self, player, actorGroup, envGroup, amVisible, devMode):
+    def brain(self, level, devMode):
+
+        amVisible = (self in level.visibleGroup) or devMode
 
         if self.states[3]:
             view = (180, 40) # angle, distance
         else:
             view = (90, 150)
 
-        viewMask = self.cone(self.currentDest, view[0], view[1], devMode or amVisible, True)
+        viewMask = self.cone(self.currentDest, view[0], view[1], amVisible, True)
         """
         Cone is drawn with a viewing angle and distance dependent on what the guard is doing. This is drawn to the game screen if the guard can be seen or devMode is True.
         The mask of this cone is saved so it can be used again if necessary (sometimes it's used again with .quickLook())
@@ -667,11 +670,11 @@ class Guard(Actor):
 
         #drawMask(viewMask, lightgrey)
 
-        self.lookAround(viewMask, actorGroup)
+        self.lookAround(viewMask, level.actorGroup)
 
-        if pygame.sprite.collide_rect(player, self): # if guard is touching the player
+        if pygame.sprite.collide_rect(level.player, self): # if guard is touching the player
             if not self.gameOverTriggered:
-                pygame.time.set_timer(GAMEOVER, 1) # send the game over event to the main loop ASAP
+                pygame.time.set_timer(level.GAMEOVER, 1) # send the game over event to the main loop ASAP
                 self.gameOverTriggered = True
 
         if self.states[4]: # navigating around an obstacle to get to destination
@@ -682,12 +685,12 @@ class Guard(Actor):
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
 
-            print("Quick look returns {ft}".format(ft = self.quickLook(viewMask, player)))
+            print("Quick look returns {ft}".format(ft = self.quickLook(viewMask, level.player)))
 
-            if self.cPos == self.lastSeenPlayer and self.quickLook(viewMask, player) == False: # lost the player
+            if self.cPos == self.lastSeenPlayer and self.quickLook(viewMask, level.player) == False: # lost the player
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
-                self.generatePatrol(self.currentDest, rng.randint(100,300), envGroup) # generate a new patrol centering on the player's last known location
+                self.generatePatrol(self.currentDest, rng.randint(100,300), level.environmentGroup) # generate a new patrol centering on the player's last known location
                 if devMode:
                     drawText("Searching for player", (self.rect.x + 10, self.rect.y + 28))
             elif devMode:
@@ -718,7 +721,7 @@ class Guard(Actor):
             if devMode:
                 drawText("Patrolling normally", (self.rect.x + 10, self.rect.y + 70))
 
-        self.walk(envGroup, self.states[4]) # ... I suppose I ought to walk around
+        self.walk(level.environmentGroup, self.states[4]) # ... I suppose I ought to walk around
 
 class Obstacle(pygame.sprite.Sprite, World_Object):
     """
@@ -860,7 +863,7 @@ def instance():
     # hide mouse
     pygame.mouse.set_visible(False)
     # check for wins
-    pygame.time.set_timer(CHECKWIN, round(frametime))
+    pygame.time.set_timer(level.CHECKWIN, round(frametime))
 
     # initialise done before anything is drawn to the screen
     playerView = pygame.mask.from_surface(gameDisplay)
@@ -872,7 +875,7 @@ def instance():
         for event in pygame.event.get():
             # Any pygame handled events should be put here #
             # Quit the game
-            if event.type == pygame.QUIT or event.type == EMERGENCYSTOP:
+            if event.type == pygame.QUIT or event.type == level.EMERGENCYSTOP:
                 level.running = False
 
             # Key pressed (triggers once, even if held) #
@@ -884,10 +887,10 @@ def instance():
                 if event.key == pygame.K_r: # press R to reload
                     if level.player.currentMag < level.player.magSize:
                         if level.player.currentMag >= 1: # short reload
-                            pygame.time.set_timer(RELOAD, level.player.shortReload) # start the reload
+                            pygame.time.set_timer(level.RELOAD, level.player.shortReload) # start the reload
                             level.player.currentMag = 1 # immersion science
                         else: # long reload
-                            pygame.time.set_timer(RELOAD, level.player.longReload) # start the reload
+                            pygame.time.set_timer(level.RELOAD, level.player.longReload) # start the reload
 
                 if event.key == pygame.K_RIGHTBRACKET:
                     devMode = not devMode # python is magical sometimes
@@ -898,26 +901,26 @@ def instance():
 
             if event.type == pygame.MOUSEBUTTONDOWN: # shoot the gun
                 level.player.shoot(mouse, level.allGroup)
-                pygame.time.set_timer(RELOAD, 0) # cancels a reload upon shooting
+                pygame.time.set_timer(level.RELOAD, 0) # cancels a reload upon shooting
 
-            if event.type == RELOAD:
-                pygame.time.set_timer(RELOAD, 0) # prevents re-reloading chain (just pygame things)
+            if event.type == level.RELOAD:
+                pygame.time.set_timer(level.RELOAD, 0) # prevents re-reloading chain (just pygame things)
                 level.player.reload()
 
-            if event.type == CHECKWIN:
+            if event.type == level.CHECKWIN:
                 level.checkWin(devMode)
-                pygame.time.set_timer(CHECKWIN, round(frametime))
+                pygame.time.set_timer(level.CHECKWIN, round(frametime))
 
-            if event.type == GUARDTHINK:
-                pygame.time.set_timer(GUARDTHINK, 0)
+            if event.type == level.GUARDTHINK:
+                pygame.time.set_timer(level.GUARDTHINK, 0)
                 for guard in level.guards: # will reset state of ALL investigating guards
                     if guard.states[3] and guard.waitPingSent:
                         guard.investigatedCorpses.append(guard.currentDest)
                         guard.states[3] = False
                         guard.waitPingSent = False
 
-            if event.type == GAMEOVER:
-                pygame.time.set_timer(GAMEOVER, 0)
+            if event.type == level.GAMEOVER:
+                pygame.time.set_timer(level.GAMEOVER, 0)
                 level.gameOver()
             ###
 
@@ -956,7 +959,7 @@ def instance():
 
         for guard in level.guards: # this is where the brain should be called from
             if guard.living: # prevents the guard from moving if they're dead - quite useful
-                guard.brain(level.player, level.actorGroup, level.environmentGroup, (guard in level.visibleGroup), devMode)
+                guard.brain(level, devMode)
             else:
                 #level.guardGroup.remove(guards)
                 pass
