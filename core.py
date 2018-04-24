@@ -609,6 +609,7 @@ class Guard(Actor):
         # method creates a random 3 point patrol given a central point and radius
         # currently does not check to ensure the path is possible
         focus = focus.round()
+        radius = m.sqrt(2 * radius**2)
         udlr = [rng.choice([-1,1]), rng.choice([-1,1])] # chooses -1 or 1 randomly
         self.patrolPoints = [Point(focus.x + (radius * udlr[0]), focus.y + (radius * udlr[1])), focus, Point(focus.x - (radius * udlr[0]), focus.y - (radius * udlr[1]))]
 
