@@ -656,14 +656,12 @@ class Guard(Actor):
 
     def brain(self, level, devMode):
 
-        amVisible = (self in level.visibleGroup) or devMode
-
         if self.states[3]:
             view = (180, 40) # angle, distance
         else:
             view = (90, 150)
 
-        viewMask = self.cone(self.currentDest, view[0], view[1], amVisible, True)
+        viewMask = self.cone(self.currentDest, view[0], view[1], (self in level.visibleGroup) or devMode, True)
         """
         Cone is drawn with a viewing angle and distance dependent on what the guard is doing. This is drawn to the game screen if the guard can be seen or devMode is True.
         The mask of this cone is saved so it can be used again if necessary (sometimes it's used again with .quickLook())
