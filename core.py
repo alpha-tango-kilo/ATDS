@@ -603,7 +603,7 @@ class Guard(Actor):
         if self.currentDest.distance(Point(self.cPos.x, self.cPos.y)) < self.width / 2 and len(self.patrolPoints) > 1: # if I'm close to my destination  (and there are multiple patrol points to choose from)...
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # ... set the destination to be next point in patrol points list
         elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point...
-            self.currentDest = self.patrolPoints[rng.randint(0, len(self.patrolPoints) - 1)] # ... pick a random one and start heading there
+            self.currentDest = rng.choice(self.patrolPoints) # ... pick a random one and start heading there
 
     def generatePatrol(self, focus, radius, envGroup):
         # method creates a random 3 point patrol given a central point and radius
