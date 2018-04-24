@@ -857,7 +857,7 @@ def quit():
     exit()
 
 def instance():
-    level = Level(1)
+    level = Level(int(input("Enter the level number you want to load: ")))
     devMode = True
 
     # hide mouse
