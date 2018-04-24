@@ -605,7 +605,7 @@ class Guard(Actor):
         elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point...
             self.currentDest = rng.choice(self.patrolPoints) # ... pick a random one and start heading there
 
-    def generatePatrol(self, focus, radius, envGroup):
+    def generatePatrol(self, focus, radius):
         # method creates a random 3 point patrol given a central point and radius
         # currently does not check to ensure the path is possible
         focus = focus.round()
@@ -686,7 +686,7 @@ class Guard(Actor):
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
 
-            if self.cPos == self.lastSeenPlayer and self.quickLook(viewMask, level.player) == False: # lost the player
+            if self.cPos == self.lastSeenPlayer and not self.quickLook(viewMask, level.player): # lost the player
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
                 self.generatePatrol(self.currentDest, rng.randint(100,300), level.environmentGroup) # generate a new patrol centering on the player's last known location
