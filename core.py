@@ -29,7 +29,7 @@ green = (0,255,0)
 dan = (42,117,225)
 #########
 
-gameDisplay = pygame.display.set_mode((displayWidth, displayHeight), pygame.NOFRAME)
+gameDisplay = pygame.display.set_mode((displayWidth, displayHeight))
 pygame.display.set_caption("ATDS")
 clock = pygame.time.Clock()
 
@@ -684,8 +684,6 @@ class Guard(Actor):
 
         elif self.states[0]: # gotta go get the player! Grrrr
             self.currentDest = self.lastSeenPlayer
-
-            print("Quick look returns {ft}".format(ft = self.quickLook(viewMask, level.player)))
 
             if self.cPos == self.lastSeenPlayer and self.quickLook(viewMask, level.player) == False: # lost the player
                 self.states[0] = True # no longer aware of player
