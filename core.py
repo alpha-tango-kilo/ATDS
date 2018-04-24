@@ -701,7 +701,7 @@ class Guard(Actor):
 
             if abs(self.cPos.x - self.currentDest.x) <= self.width and abs(self.cPos.y - self.currentDest.y) <= self.width: # if within a body length of the corpse
                 self.states[3] = True # investigating around a point
-                self.generatePatrol(self.currentDest, rng.randint(100,300), envGroup) # generate a new patrol centering on the corpse
+                self.generatePatrol(self.currentDest, rng.randint(100,300), level.environmentGroup) # generate a new patrol centering on the corpse
                 self.states[1] = False # stops this routine running next frame
                 if devMode:
                     drawText("At corpse, new patrol made", (self.rect.x + 10, self.rect.y + 42))
@@ -712,7 +712,7 @@ class Guard(Actor):
             if devMode:
                 drawText("Investigating here", (self.rect.x + 10, self.rect.y + 56))
             if not self.waitPingSent:
-                pygame.time.set_timer(GUARDTHINK, rng.randint(1000, 5000)) # guard waits for a random amount of time between 1 and 5 seconds
+                pygame.time.set_timer(level.GUARDTHINK, rng.randint(1000, 5000)) # guard waits for a random amount of time between 1 and 5 seconds
                 self.waitPingSent = True
             return
 
