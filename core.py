@@ -687,7 +687,7 @@ class Guard(Actor):
             if self.cPos == self.lastSeenPlayer and not self.quickLook(viewMask, level.player): # lost the player
                 self.states[0] = True # no longer aware of player
                 self.states[3] = True # investigate around last known point
-                self.generatePatrol(self.currentDest, rng.randint(100,300), level.environmentGroup) # generate a new patrol centering on the player's last known location
+                self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the player's last known location
                 if devMode:
                     drawText("Searching for player", (self.rect.x + 10, self.rect.y + 28))
             elif devMode:
@@ -698,7 +698,7 @@ class Guard(Actor):
 
             if abs(self.cPos.x - self.currentDest.x) <= self.width and abs(self.cPos.y - self.currentDest.y) <= self.width: # if within a body length of the corpse
                 self.states[3] = True # investigating around a point
-                self.generatePatrol(self.currentDest, rng.randint(100,300), level.environmentGroup) # generate a new patrol centering on the corpse
+                self.generatePatrol(self.currentDest, rng.randint(100,300)) # generate a new patrol centering on the corpse
                 self.states[1] = False # stops this routine running next frame
                 if devMode:
                     drawText("At corpse, new patrol made", (self.rect.x + 10, self.rect.y + 42))
