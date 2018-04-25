@@ -840,7 +840,6 @@ def drawText(text, loc, colour = (0,0,0), font = "Comic Sans MS", fontSize = 14)
     theFont = pygame.font.SysFont(font, fontSize) # cache this maybe?
     textRender = theFont.render(str(text), True, colour)
     gameDisplay.blit(textRender, loc)
-    return textRender
 
 def drawMask(mask, colour = (0,0,0)): # alternative name is destroyFPS()
     for i in range(displayWidth):
@@ -855,7 +854,7 @@ def quit():
 
 def instance():
     level = Level(int(input("Enter the level number you want to load: ")))
-    devMode = True
+    devMode = False
 
     # hide mouse
     pygame.mouse.set_visible(False)
@@ -947,7 +946,7 @@ def instance():
         drawText("{pewsLeft} / {pews}".format(pewsLeft = level.player.currentMag, pews = level.player.magSize), (mouse.x + 10, mouse.y + 10)) # remaining bullets in mag are slapped just below the mouse
         drawText("FPS: {fps}".format(fps = round(clock.get_fps())), (2,0)) # fps counter
         if devMode:
-            drawText("Frame Time: {ft}".format(ft = clock.get_rawtime()), (2,18)) # frame time
+            drawText("Frame Time: {ft}ms".format(ft = clock.get_rawtime()), (2,18)) # frame time
         ###
 
         # Rendering functions #
