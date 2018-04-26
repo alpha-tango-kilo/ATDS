@@ -970,9 +970,9 @@ def instance():
                     level.guards[n].brain(level, devMode)
                 elif not level.guards[n].states[3]:
                     level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
-        else:
-            for guard in level.guards:
-                guard.walk(level.environmentGroup, guard.states[4])
+        #else:
+        #    for guard in level.guards:
+        #        guard.walk(level.environmentGroup, guard.states[4])
 
         """for guard in level.guards: # this is where the brain should be called from
             if guard.living: # prevents the guard from moving if they're dead - quite useful
