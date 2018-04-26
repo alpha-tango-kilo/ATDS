@@ -15,7 +15,7 @@ framerate = 60
 frametime = 1000/framerate
 virtualDisplay = pygame.Surface((displayWidth, displayHeight)) # always left dirty for the next process to clean it before use
 virtualDisplay.set_colorkey((255,255,255))
-performanceLevel = 4 # bigger number = easier to run
+performanceLevel = 8 # bigger number = easier to run || runs a guard's "brain" every x frames
 # Textures #
 guardAlive = pygame.image.load("./assets/Actor/Guard/alive.png")
 guardDead = pygame.image.load("./assets/Actor/Guard/dead.png")
@@ -861,8 +861,11 @@ def quit():
 
 def instance():
     level = Level(int(input("Enter the level number you want to load: ")))
-    devMode = False
+    devMode = True
     tick = 0
+
+    for guard in level.guards:
+        guard.brain(level, False)
 
     # hide mouse
     pygame.mouse.set_visible(False)
@@ -968,11 +971,14 @@ def instance():
             for n in range(len(level.guards)):
                 if n == temp:
                     level.guards[n].brain(level, devMode)
-                elif not level.guards[n].states[3]:
+                elif not level.guards[n].states[3] and level.guards[n].living:
                     level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
-        #else:
-        #    for guard in level.guards:
-        #        guard.walk(level.environmentGroup, guard.states[4])
+                    level.guards[n].cone(level.guards[n].currentDest, 90, 150, (level.guards[n] in level.visibleGroup) or devMode, False)
+        else:
+            for guard in level.guards:
+                if guard.living and not guard.states[3]:
+                    guard.walk(level.environmentGroup, guard.states[4])
+                    guard.cone(guard.currentDest, 90, 150, (guard in level.visibleGroup) or devMode, False)
 
         """for guard in level.guards: # this is where the brain should be called from
             if guard.living: # prevents the guard from moving if they're dead - quite useful
