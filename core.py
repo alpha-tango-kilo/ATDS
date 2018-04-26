@@ -594,7 +594,6 @@ class Guard(Actor):
             self.collisionCheck(sprGroup)
 
             if not avoidRecurse: # used to stop altRoute calling walk calling altRoute etc.
-
                 self.wantToGoStack = []
 
                 for thisWay in range(4):
@@ -605,7 +604,7 @@ class Guard(Actor):
                     self.altRoute()
 
     def patrol(self):
-        if self.currentDest.distance(Point(self.cPos.x, self.cPos.y)) < self.width / 2 and len(self.patrolPoints) > 1: # if I'm close to my destination  (and there are multiple patrol points to choose from)...
+        if self.currentDest.distance(Point(self.cPos.x, self.cPos.y)) < self.width / 2 and len(self.patrolPoints) > 1 and self.currentDest in self.patrolPoints: # if I'm close to my destination  (and there are multiple patrol points to choose from)...
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # ... set the destination to be next point in patrol points list
         elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point...
             self.currentDest = rng.choice(self.patrolPoints) # ... pick a random one and start heading there
@@ -978,13 +977,6 @@ def instance():
                 level.guards[n].cone(level.guards[n].currentDest, 90, 150, (level.guards[n] in level.visibleGroup) or devMode, False)
             elif n == temp:
                 level.guards[n].brain(level, devMode)
-
-        """for guard in level.guards: # this is where the brain should be called from
-            if guard.living: # prevents the guard from moving if they're dead - quite useful
-                guard.brain(level, devMode)
-            else:
-                #level.guardGroup.remove(guards)
-                pass"""
 
         if not devMode:
             level.visibleGroup.draw(gameDisplay)
