@@ -964,7 +964,15 @@ def instance():
         level.visibleGroup = level.player.selectToRender(playerView, level.allGroup) # decide what needs rendering
 
         if tick % len(level.guards) == 0:
-            level.guards[tick//len(level.guards)].brain(level, devMode)
+            temp = tick//len(level.guards)
+            for n in range(len(level.guards)):
+                if n == temp:
+                    level.guards[n].brain(level, devMode)
+                elif not level.guards[n].states[3]:
+                    level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
+        else:
+            for guard in level.guards:
+                guard.walk(level.environmentGroup, guard.states[4])
 
         """for guard in level.guards: # this is where the brain should be called from
             if guard.living: # prevents the guard from moving if they're dead - quite useful
