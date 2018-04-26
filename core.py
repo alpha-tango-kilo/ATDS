@@ -538,10 +538,11 @@ class Guard(Actor):
         wantToGoHere = [False, False, False, False] # ULDR
 
         tempSpeed = self.speed
-        if self.states[0]: # if chasing the player
-            self.speed = self.speed * 1.5 # move 50% faster
+        if self.states[0]: # if chasing the player...
+            self.speed = self.speed * 1.5 # ...move 50% faster
+
         if abs(self.cPos.x - self.currentDest.x) > self.speed and abs(self.cPos.y - self.currentDest.y) > self.speed: # if the Guard is going to be moving diagonally...
-            self.speed = m.sqrt(0.5 * self.speed**2) # make sure he can't move any faster as a result
+            self.speed = m.sqrt(0.5 * self.speed**2) # make sure they can't move any faster as a result
 
         # x co-ordinate #
         if abs(self.cPos.x - self.currentDest.x) > self.speed:
@@ -600,7 +601,7 @@ class Guard(Actor):
                     if self.bannedDirs[thisWay] and wantToGoHere[thisWay]: # last clause to prevent repeat appending
                         self.wantToGoStack.append(thisWay) # if found to be blocked, direction added as somewhere the guard originally wanted to go
 
-                if len(self.wantToGoStack) >= 2 or sum(wantToGoHere) == len(self.wantToGoStack): # if I'm not going anywhere that isn't blocked
+                if len(self.wantToGoStack) >= 2 or (sum(wantToGoHere) == len(self.wantToGoStack) and sum(wantToGoHere) >= 1): # if I'm not going anywhere that isn't blocked
                     self.altRoute()
 
     def patrol(self):
@@ -865,7 +866,7 @@ def instance():
     tick = 0
 
     for guard in level.guards:
-        guard.brain(level, False)
+        guard.brain(level, False) # get all the guards warmed up and makes sure they're ok before we stop them thinking every frame
 
     # hide mouse
     pygame.mouse.set_visible(False)
