@@ -15,6 +15,7 @@ framerate = 60
 frametime = 1000/framerate
 virtualDisplay = pygame.Surface((displayWidth, displayHeight)) # always left dirty for the next process to clean it before use
 virtualDisplay.set_colorkey((255,255,255))
+performanceLevel = 4 # bigger number = easier to run
 # Textures #
 guardAlive = pygame.image.load("./assets/Actor/Guard/alive.png")
 guardDead = pygame.image.load("./assets/Actor/Guard/dead.png")
@@ -37,6 +38,7 @@ class Level(): # I'd like to think this is pretty self explanatory
     def __init__(self, n = 1): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
         self.ID = n
         self.running = False
+        self.maintainGuards = 0
 
         self.player = None
         self.guards = []
@@ -113,6 +115,8 @@ class Level(): # I'd like to think this is pretty self explanatory
         print("Updating groups...\n")
         self.updateGroups()
         print("Groups updated\n\nLevel loaded")
+
+        self.maintainGuards = len(self.guards) * performanceLevel
 
         self.running = True
 
@@ -656,6 +660,9 @@ class Guard(Actor):
 
     def brain(self, level, devMode):
 
+        if not self.living:
+            return # do nothing if dead
+
         if self.states[3]:
             view = (180, 40) # angle, distance
         else:
@@ -855,6 +862,7 @@ def quit():
 def instance():
     level = Level(int(input("Enter the level number you want to load: ")))
     devMode = False
+    tick = 0
 
     # hide mouse
     pygame.mouse.set_visible(False)
@@ -953,12 +961,15 @@ def instance():
         playerView = level.player.cone(mouse, 90, 200, True, True)
         level.visibleGroup = level.player.selectToRender(playerView, level.allGroup) # decide what needs rendering
 
-        for guard in level.guards: # this is where the brain should be called from
+        if tick % len(level.guards) == 0:
+            level.guards[tick//len(level.guards)].brain(level, devMode)
+
+        """for guard in level.guards: # this is where the brain should be called from
             if guard.living: # prevents the guard from moving if they're dead - quite useful
                 guard.brain(level, devMode)
             else:
                 #level.guardGroup.remove(guards)
-                pass
+                pass"""
 
         if not devMode:
             level.visibleGroup.draw(gameDisplay)
@@ -982,6 +993,8 @@ def instance():
 
         pygame.display.update()
         clock.tick(framerate) # manages fps game is displayed at
+        tick = tick + 1 % level.maintainGuards
+        print("Tick: {t}".format(t = tick))
 
     quit()
 
