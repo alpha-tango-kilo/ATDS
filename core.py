@@ -975,7 +975,7 @@ def instance():
             if n != temp and level.guards[n].living and not level.guards[n].states[3]:
                 level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
                 level.guards[n].cone(level.guards[n].currentDest, 90, 150, ((level.guards[n] in level.visibleGroup) or devMode) and level.guards[n].currentDest.distance(Point(level.guards[n].cPos.x, level.guards[n].cPos.y)) > level.guards[n].width / 2, False)
-            elif n == temp:
+            elif n == temp or level.guards[n].states[0]:
                 level.guards[n].brain(level, devMode)
 
         if not devMode:
