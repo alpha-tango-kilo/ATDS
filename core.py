@@ -969,17 +969,15 @@ def instance():
 
         if tick % len(level.guards) == 0:
             temp = tick//len(level.guards)
-            for n in range(len(level.guards)):
-                if n == temp:
-                    level.guards[n].brain(level, devMode)
-                elif not level.guards[n].states[3] and level.guards[n].living:
-                    level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
-                    level.guards[n].cone(level.guards[n].currentDest, 90, 150, (level.guards[n] in level.visibleGroup) or devMode, False)
         else:
-            for guard in level.guards:
-                if guard.living and not guard.states[3]:
-                    guard.walk(level.environmentGroup, guard.states[4])
-                    guard.cone(guard.currentDest, 90, 150, (guard in level.visibleGroup) or devMode, False)
+            temp = -1 # can't be a value that n (below) can take
+
+        for n in range(len(level.guards)):
+            if n != temp and level.guards[n].living and not level.guards[n].states[3]:
+                level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
+                level.guards[n].cone(level.guards[n].currentDest, 90, 150, (level.guards[n] in level.visibleGroup) or devMode, False)
+            elif n == temp:
+                level.guards[n].brain(level, devMode)
 
         """for guard in level.guards: # this is where the brain should be called from
             if guard.living: # prevents the guard from moving if they're dead - quite useful
