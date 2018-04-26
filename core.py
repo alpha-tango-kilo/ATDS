@@ -873,6 +873,8 @@ def instance():
     playerView = pygame.mask.from_surface(gameDisplay)
 
     while level.running:
+        tick = (tick + 1) % level.maintainGuards
+
         mouse = pygame.mouse.get_pos()
         mouse = Point(mouse[0], mouse[1]) # for sake of consistency throughout program
 
@@ -993,8 +995,6 @@ def instance():
 
         pygame.display.update()
         clock.tick(framerate) # manages fps game is displayed at
-        tick = tick + 1 % level.maintainGuards
-        print("Tick: {t}".format(t = tick))
 
     quit()
 
