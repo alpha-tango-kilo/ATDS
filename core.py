@@ -15,6 +15,7 @@ framerate = 60
 frametime = 1000/framerate
 virtualDisplay = pygame.Surface((displayWidth, displayHeight)) # always left dirty for the next process to clean it before use
 virtualDisplay.set_colorkey((255,255,255))
+performanceLevel = 4 # bigger number = easier to run || runs a guard's "brain" every x frames
 # Textures #
 guardAlive = pygame.image.load("./assets/Actor/Guard/alive.png")
 guardDead = pygame.image.load("./assets/Actor/Guard/dead.png")
@@ -37,6 +38,7 @@ class Level(): # I'd like to think this is pretty self explanatory
     def __init__(self, n = 1): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
         self.ID = n
         self.running = False
+        self.maintainGuards = 0
 
         self.player = None
         self.guards = []
@@ -113,6 +115,8 @@ class Level(): # I'd like to think this is pretty self explanatory
         print("Updating groups...\n")
         self.updateGroups()
         print("Groups updated\n\nLevel loaded")
+
+        self.maintainGuards = len(self.guards) * performanceLevel
 
         self.running = True
 
@@ -534,10 +538,11 @@ class Guard(Actor):
         wantToGoHere = [False, False, False, False] # ULDR
 
         tempSpeed = self.speed
-        if self.states[0]: # if chasing the player
-            self.speed = self.speed * 1.5 # move 50% faster
+        if self.states[0]: # if chasing the player...
+            self.speed = self.speed * 1.5 # ...move 50% faster
+
         if abs(self.cPos.x - self.currentDest.x) > self.speed and abs(self.cPos.y - self.currentDest.y) > self.speed: # if the Guard is going to be moving diagonally...
-            self.speed = m.sqrt(0.5 * self.speed**2) # make sure he can't move any faster as a result
+            self.speed = m.sqrt(0.5 * self.speed**2) # make sure they can't move any faster as a result
 
         # x co-ordinate #
         if abs(self.cPos.x - self.currentDest.x) > self.speed:
@@ -589,18 +594,17 @@ class Guard(Actor):
             self.collisionCheck(sprGroup)
 
             if not avoidRecurse: # used to stop altRoute calling walk calling altRoute etc.
-
                 self.wantToGoStack = []
 
                 for thisWay in range(4):
                     if self.bannedDirs[thisWay] and wantToGoHere[thisWay]: # last clause to prevent repeat appending
                         self.wantToGoStack.append(thisWay) # if found to be blocked, direction added as somewhere the guard originally wanted to go
 
-                if len(self.wantToGoStack) >= 2 or sum(wantToGoHere) == len(self.wantToGoStack): # if I'm not going anywhere that isn't blocked
+                if len(self.wantToGoStack) >= 2 or (sum(wantToGoHere) == len(self.wantToGoStack) and sum(wantToGoHere) >= 1): # if I'm not going anywhere that isn't blocked
                     self.altRoute()
 
     def patrol(self):
-        if self.currentDest.distance(Point(self.cPos.x, self.cPos.y)) < self.width / 2 and len(self.patrolPoints) > 1: # if I'm close to my destination  (and there are multiple patrol points to choose from)...
+        if self.currentDest.distance(Point(self.cPos.x, self.cPos.y)) < self.width / 2 and len(self.patrolPoints) > 1 and self.currentDest in self.patrolPoints: # if I'm close to my destination  (and there are multiple patrol points to choose from)...
             self.currentDest = self.patrolPoints[(self.patrolPoints.index(self.currentDest) + 1) % len(self.patrolPoints)] # ... set the destination to be next point in patrol points list
         elif self.currentDest not in self.patrolPoints: # if not currently heading towards a patrol point...
             self.currentDest = rng.choice(self.patrolPoints) # ... pick a random one and start heading there
@@ -655,6 +659,9 @@ class Guard(Actor):
             return False
 
     def brain(self, level, devMode):
+
+        if not self.living:
+            return # do nothing if dead
 
         if self.states[3]:
             view = (180, 40) # angle, distance
@@ -853,8 +860,12 @@ def quit():
     exit()
 
 def instance():
-    level = Level(int(input("Enter the level number you want to load: ")))
+    level = Level(int(input("Enter the level number you want to load (1 for first level): ")))
     devMode = False
+    tick = 0
+
+    for guard in level.guards:
+        guard.brain(level, False) # get all the guards warmed up and makes sure they're ok before we stop them thinking every frame
 
     # hide mouse
     pygame.mouse.set_visible(False)
@@ -865,6 +876,8 @@ def instance():
     playerView = pygame.mask.from_surface(gameDisplay)
 
     while level.running:
+        tick = (tick + 1) % level.maintainGuards
+
         mouse = pygame.mouse.get_pos()
         mouse = Point(mouse[0], mouse[1]) # for sake of consistency throughout program
 
@@ -953,12 +966,17 @@ def instance():
         playerView = level.player.cone(mouse, 90, 200, True, True)
         level.visibleGroup = level.player.selectToRender(playerView, level.allGroup) # decide what needs rendering
 
-        for guard in level.guards: # this is where the brain should be called from
-            if guard.living: # prevents the guard from moving if they're dead - quite useful
-                guard.brain(level, devMode)
-            else:
-                #level.guardGroup.remove(guards)
-                pass
+        if tick % len(level.guards) == 0:
+            temp = tick//len(level.guards)
+        else:
+            temp = -1 # can't be a value that n (below) can take
+
+        for n in range(len(level.guards)):
+            if n != temp and level.guards[n].living and not level.guards[n].states[3]:
+                level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
+                level.guards[n].cone(level.guards[n].currentDest, 90, 150, ((level.guards[n] in level.visibleGroup) or devMode) and level.guards[n].currentDest.distance(Point(level.guards[n].cPos.x, level.guards[n].cPos.y)) > level.guards[n].width / 2, False)
+            elif n == temp or level.guards[n].states[0]:
+                level.guards[n].brain(level, devMode)
 
         if not devMode:
             level.visibleGroup.draw(gameDisplay)
