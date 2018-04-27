@@ -860,8 +860,8 @@ def quit():
     exit()
 
 def instance():
-    level = Level(int(input("Enter the level number you want to load: ")))
-    devMode = True
+    level = Level(int(input("Enter the level number you want to load (1 for first level): ")))
+    devMode = False
     tick = 0
 
     for guard in level.guards:
