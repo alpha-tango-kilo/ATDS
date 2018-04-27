@@ -879,8 +879,6 @@ def instance():
     playerView = pygame.mask.from_surface(gameDisplay)
 
     while level.running:
-        tick = (tick + 1) % level.maintainGuards
-
         mouse = pygame.mouse.get_pos()
         mouse = Point(mouse[0], mouse[1]) # for sake of consistency throughout program
 
@@ -965,14 +963,21 @@ def instance():
             drawText("Frame Time: {ft}ms".format(ft = clock.get_rawtime()), (2,18)) # frame time
         ###
 
-        # Rendering functions #
         playerView = level.player.cone(mouse, 90, 200, True, True)
         level.visibleGroup = level.player.selectToRender(playerView, level.allGroup) # decide what needs rendering
 
-        if tick % len(level.guards) == 0:
-            temp = tick//len(level.guards)
+        tick = (tick + 1) % level.maintainGuards
+
+        print(tick)
+
+        if performanceLevel == 1:
+            temp = tick
+        elif tick % performanceLevel == 0:
+            temp = tick // performanceLevel
         else:
             temp = -1 # can't be a value that n (below) can take
+
+        print(str(temp) + "\n")
 
         for n in range(len(level.guards)):
             if n != temp and level.guards[n].living and not level.guards[n].states[3]:
@@ -993,8 +998,6 @@ def instance():
 
         level.player.drawCrosshair(mouse)
         level.playerGroup.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
-
-        ###
 
         """
         collided = pygame.sprite.spritecollide(player, environmentSprites, False) # returns array of objects collided with
