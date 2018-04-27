@@ -15,7 +15,7 @@ framerate = 60
 frametime = 1000/framerate
 virtualDisplay = pygame.Surface((displayWidth, displayHeight)) # always left dirty for the next process to clean it before use
 virtualDisplay.set_colorkey((255,255,255))
-performanceLevel = 4 # bigger number = easier to run || runs a guard's "brain" every x frames
+performanceLevel = 1 # bigger number = easier to run || runs a guard's "brain" every x frames
 # Textures #
 guardAlive = pygame.image.load("./assets/Actor/Guard/alive.png")
 guardDead = pygame.image.load("./assets/Actor/Guard/dead.png")
@@ -974,7 +974,7 @@ def instance():
         for n in range(len(level.guards)):
             if n != temp and level.guards[n].living and not level.guards[n].states[3]:
                 level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
-                level.guards[n].cone(level.guards[n].currentDest, 90, 150, ((level.guards[n] in level.visibleGroup) or devMode) and level.guards[n].currentDest.distance(Point(level.guards[n].cPos.x, level.guards[n].cPos.y)) > level.guards[n].width / 2, False)
+                level.guards[n].cone(level.guards[n].currentDest, 90, 150, ((level.guards[n] in level.visibleGroup) or devMode) and level.guards[n].currentDest.distance(Point(level.guards[n].cPos.x, level.guards[n].cPos.y)) > level.guards[n].width / 2, False) # don't overthink this line, or try and debug it
             elif n == temp or level.guards[n].states[0]:
                 level.guards[n].brain(level, devMode)
 
