@@ -968,16 +968,12 @@ def instance():
 
         tick = (tick + 1) % level.maintainGuards
 
-        print(tick)
-
         if performanceLevel == 1:
             temp = tick
         elif tick % performanceLevel == 0:
             temp = tick // performanceLevel
         else:
             temp = -1 # can't be a value that n (below) can take
-
-        print(str(temp) + "\n")
 
         for n in range(len(level.guards)):
             if n != temp and level.guards[n].living and not level.guards[n].states[3]:
