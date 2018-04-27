@@ -67,6 +67,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.loadFromFile()
 
     def loadFromFile(self): # look examiner! file storage!
+
         """
         File format is intended to work as follows, all parameters must be given and will be separated by a space:
         line 1 - player parameters (x, y)
@@ -74,6 +75,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         line 3 - obstacle parameters (x, y, width, height, destructible), relying on the same basis as above
         line 4 - objective parameters (x, y, width, height)
         """
+
         self.clear()
         print("Loading level...\n\n")
         try:
@@ -213,6 +215,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.player = None
         self.guards = []
         self.obstacles = [Obstacle(0, -100, displayWidth, 100, False), Obstacle(0, displayHeight, displayWidth, 100, False), Obstacle(-100, 0, 100, displayHeight, False), Obstacle(displayWidth, 0, 100, displayHeight, False)]
+        self.objective = None
 
         self.playerGroup.empty()
         self.guardGroup.empty()
