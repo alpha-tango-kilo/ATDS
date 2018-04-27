@@ -15,7 +15,7 @@ framerate = 60
 frametime = 1000/framerate
 virtualDisplay = pygame.Surface((displayWidth, displayHeight)) # always left dirty for the next process to clean it before use
 virtualDisplay.set_colorkey((255,255,255))
-performanceLevel = 1 # bigger number = easier to run || runs a guard's "brain" every x frames
+performanceLevel = 1 # runs a guard's "brain" every x frames (recommend 1 or 2)
 # Textures #
 guardAlive = pygame.image.load("./assets/Actor/Guard/alive.png")
 guardDead = pygame.image.load("./assets/Actor/Guard/dead.png")
