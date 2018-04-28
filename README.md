@@ -1,5 +1,5 @@
 # ATDS
-###A Top Down Shooter
+### A Top Down Shooter
 
 **Welcome to ATDS!**
 
