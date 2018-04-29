@@ -979,11 +979,11 @@ def instance():
             temp = -1 # can't be a value that n (below) can take
 
         for n in range(len(level.guards)):
-            if n != temp and level.guards[n].living and not level.guards[n].states[3]:
+            if n == temp or level.guards[n].states[0] or level.guards[n].states[4]:
+                level.guards[n].brain(level, devMode)
+            elif n != temp and level.guards[n].living and not level.guards[n].states[3]:
                 level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
                 level.guards[n].cone(level.guards[n].currentDest, 90, 150, ((level.guards[n] in level.visibleGroup) or devMode) and level.guards[n].currentDest.distance(Point(level.guards[n].cPos.x, level.guards[n].cPos.y)) > level.guards[n].width / 2, False) # don't overthink this line, or try and debug it
-            elif n == temp or level.guards[n].states[0] or level.guards[n].states[4]:
-                level.guards[n].brain(level, devMode)
 
         if not devMode:
             level.visibleGroup.draw(gameDisplay)
