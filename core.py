@@ -164,6 +164,9 @@ class Level(): # I'd like to think this is pretty self explanatory
             for guard in self.guards:
                 if guard.living:
                     return
+            print("Won by force\n")
+        else:
+            print("Won by escape\n")
 
         print("Winner! Winner! Chicken dinner!\n")
 
