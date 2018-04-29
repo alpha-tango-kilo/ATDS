@@ -520,7 +520,7 @@ class Guard(Actor):
         elif len(self.wantToGoStack) == 0 or (not self.bannedDirs[self.wantToGoStack[len(self.wantToGoStack) - 1]]): # if the latest direction I've been wanting is now free
             if len(self.wantToGoStack) > 0:
                 self.dirToTry = self.wantToGoStack.pop()
-            if len(self.wantToGoStack) == 0: # if the original direction I wanted to go is free and I've finished navigating around all obstacles || CAN'T BE ELSE or ELIF
+            else: # if the original direction I wanted to go is free and I've finished navigating around all obstacles
                 if self.cPos.distance(self.currentDest) < 1:
                     self.states[4] = False # alt routing is no longer needed
                     self.currentDest = self.oldDest
