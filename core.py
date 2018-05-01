@@ -66,7 +66,7 @@ class Level(): # I'd like to think this is pretty self explanatory
 
         self.loadFromFile()
 
-    def loadFromFile(self): # look examiner! file storage!
+    def loadFromFile(self): # file storage!
 
         """
         File format is intended to work as follows, all parameters must be given and will be separated by a space:
@@ -89,7 +89,7 @@ class Level(): # I'd like to think this is pretty self explanatory
 
         for lineNo in range(len(raw)):
             raw[lineNo] = raw[lineNo].split(" ") # could use tabs instead for readability, this may change but is essentially unimportant
-            # at this point raw should be a 2D list of lists, just how I like them
+            # at this point raw should be a 2D list of lists, just how I've always wanted
 
         self.player = Player(float(raw[0][0]), float(raw[0][1])) # create player
         print("Loaded player\n")
@@ -233,7 +233,7 @@ class Level(): # I'd like to think this is pretty self explanatory
             self.allGroup.add(obstacle)
 
 class World_Object(): # any object that is visible to and interactive with the player should inherit from this class, as an insurance policy
-    def getShot(self): # a default case for any object rendered to the screen being shot, needed otherwise projectiles will error
+    def getShot(self): # a default case for any object rendered to the screen being shot, needed otherwise projectiles may error
         print("World_Object says 'ow!'")
 
 class Point():
@@ -271,7 +271,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
 
         self.width = 15
         self.speed = speed
-        self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move ULDR
+        self.bannedDirs = [False for _ in range(4)] # used with collision detection to determine directions in which the actor can't move || ULDR
 
         self.image = pygame.Surface([self.width, self.width], pygame.SRCALPHA, 32)
         self.image.fill((0,0,0,0))
@@ -311,10 +311,10 @@ class Actor(pygame.sprite.Sprite, World_Object):
             self.virtualy -= distance
         elif direction == 'd': # down
             self.virtualy += distance
-        elif direction == 'l': # left and right aren't separate in the if statement as only 1 direction will ever be given as a parameter to the function
-            self.virtualx -= distance # left
-        elif direction == 'r':
-            self.virtualx += distance # right
+        elif direction == 'l': # left
+            self.virtualx -= distance
+        elif direction == 'r': # right
+            self.virtualx += distance
 
         self.posUpdate()
 
@@ -356,7 +356,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
     def cone(self, lookingHere, fov, distance, drawCone = False, returnMask = False):
         fov = m.radians(fov) # convert fov to radians
 
-        # Mr. Marshall's code #
+        # no credit taken for this code #
 
         dx = lookingHere.x - self.cPos.x
         dy = lookingHere.y - self.cPos.y
@@ -374,7 +374,7 @@ class Actor(pygame.sprite.Sprite, World_Object):
         corner1 = Point(centre.x + angle_sf*perp_dx, centre.y + angle_sf*perp_dy)
         corner2 = Point(centre.x - angle_sf*perp_dx, centre.y - angle_sf*perp_dy)
 
-        # End Mr. Marshall magic #
+        # end of no credit taken #
 
         xDiff = corner1.x - self.cPos.x # work out difference from point to actor
         yDiff = self.cPos.y - corner1.y
@@ -398,14 +398,9 @@ class Actor(pygame.sprite.Sprite, World_Object):
             pygame.draw.aaline(gameDisplay, black, (self.cPos.x, self.cPos.y), (corner2.x, corner2.y))
 
         if returnMask:
-            #fov = m.degrees(fov)
-            #angFromVert = m.degrees(angFromVert)
             virtualDisplay.fill(white)
-            #temp = self.cPos.round()
             pygame.draw.arc(virtualDisplay, black, arcRect, angFromVert, angFromVert + fov, round(distance))
-            #pygame.gfxdraw.pie(gameDisplay, temp.x, temp.y, distance, angFromVert, angFromVert + fov, black) # both coords and angles have to be ints. I think angles might even work in degrees *sigh*
             viewArea = pygame.mask.from_surface(virtualDisplay) # now we have to find all the sprites we need to draw within this cone
-            #print("Render area count: " + str(renderArea.count()))
             return viewArea
 
 class Player(Actor):
@@ -442,12 +437,8 @@ class Player(Actor):
             try:
                 if spr.mask.overlap_area(playerViewMask, (0,0)) > 0: # tries to use sprites own premade mask, if it has one
                     visibleSprites.add(spr)
-                    #print("Mask from memory")
-                #print("Used sprite mask from memory")
 
             except AttributeError: # if the object doesn't have the attribute mask, whip one up real fast
-                #print("Creating mask...")
-
                 virtualDisplay.fill(white)
 
                 tempGroup.add(spr)
@@ -455,7 +446,6 @@ class Player(Actor):
                 spriteMask = pygame.mask.from_surface(virtualDisplay)
 
                 if spriteMask.overlap_area(playerViewMask, (0,0)) > 0:
-                    #print(str(spr) + " overlaps the player view mask")
                     visibleSprites.add(spr)
 
         return visibleSprites
@@ -764,7 +754,7 @@ class Obstacle(pygame.sprite.Sprite, World_Object):
         tempGroup = pygame.sprite.GroupSingle()
         tempGroup.add(self)
         tempGroup.draw(virtualDisplay)
-        self.mask = pygame.mask.from_surface(virtualDisplay) # pre calculating masks on game load saves having to calculate them every frame
+        self.mask = pygame.mask.from_surface(virtualDisplay) # pre-calculating masks on game load saves having to calculate them every frame
 
     def __str__(self):
         """
@@ -809,7 +799,7 @@ class Projectile(pygame.sprite.Sprite):
         # makes smaller difference to be 1, and scales the other value appropriately
         if self.xStep < self.yStep:
             self.yStep = self.yStep / abs(self.xStep)
-            self.xStep = self.xStep / abs(self.xStep)
+            self.xStep = self.xStep / abs(self.xStep) # consider optimising this
         else:
             self.xStep = self.xStep / abs(self.yStep)
             self.yStep = self.yStep / abs(self.yStep) # consider optimising this
@@ -875,7 +865,8 @@ def instance():
 
     # hide mouse
     pygame.mouse.set_visible(False)
-    # check for wins
+
+    # check for wins at regular intervals
     pygame.time.set_timer(level.CHECKWIN, round(frametime))
 
     # initialise done before anything is drawn to the screen
@@ -906,9 +897,9 @@ def instance():
                             pygame.time.set_timer(level.RELOAD, level.player.longReload) # start the reload
 
                 if event.key == pygame.K_RIGHTBRACKET:
-                    devMode = not devMode # python is magical sometimes
+                    devMode = not devMode # python is magical sometimes (toggles devMode)
 
-                if event.key == pygame.K_l and devMode: # prints out the level debug into console if the user is in devMode
+                if event.key == pygame.K_l and devMode: # prints out the level debug into console if the user is in devMode (I always forget to turn on devMode first...)
                     level.printLevel()
                     level.running = False
 
@@ -926,7 +917,7 @@ def instance():
 
             if event.type == level.GUARDTHINK:
                 pygame.time.set_timer(level.GUARDTHINK, 0)
-                for guard in level.guards: # will reset state of ALL investigating guards
+                for guard in level.guards: # will reset state of ALL investigating guards (not ideal)
                     if guard.states[3] and guard.waitPingSent:
                         guard.investigatedCorpses.append(guard.currentDest)
                         guard.states[3] = False
@@ -992,19 +983,14 @@ def instance():
 
         try:
             level.objectiveGroup.draw(gameDisplay) # draw the objective
-        except: # if there is no objective, no worries
+        except: # if there is no objective, no worries (for the rest of your daysssssssss...)
             pass
 
         level.player.drawCrosshair(mouse)
         level.playerGroup.draw(gameDisplay) # draw player so that they're over the top of the crosshair lines
 
-        """
-        collided = pygame.sprite.spritecollide(player, environmentSprites, False) # returns array of objects collided with
-        guardHit = pygame.sprite.collide_rect(player, guard) # returns boolean
-        """
-
         pygame.display.update()
-        clock.tick(framerate) # manages fps game is displayed at
+        clock.tick(framerate) # manages fps game tries to run at
 
     quit()
 
