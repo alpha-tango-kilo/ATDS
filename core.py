@@ -77,7 +77,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         """
 
         self.clear()
-        print("Loading level...\n\n")
+        print("Loading level...\n")
         try:
             raw = open("./levels/{no}.level".format(no = self.ID), "r").read().splitlines() # open the file as read only. Using read() and then splitlines() avoids Python putting \n at the end of the strings in the array, which occurs when using readlines() || time complexity of level creation is not an issue, having things read as I want is more important. consider regexing?
 
@@ -856,7 +856,8 @@ def quit():
     exit()
 
 def instance():
-    level = Level(int(input("Enter the level number you want to load (1 for first level): ")))
+    level = Level(int(input("\nEnter the level number you want to load (1 for first level): ")))
+    print() # because formatting matters
     devMode = False
     tick = 0
 
