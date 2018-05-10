@@ -975,7 +975,8 @@ def instance():
                 level.guards[n].brain(level, devMode)
             elif n != temp and level.guards[n].living and not level.guards[n].states[3]:
                 level.guards[n].walk(level.environmentGroup, level.guards[n].states[4])
-                level.guards[n].cone(level.guards[n].currentDest, 90, 150, ((level.guards[n] in level.visibleGroup) or devMode) and level.guards[n].currentDest.distance(Point(level.guards[n].cPos.x, level.guards[n].cPos.y)) > level.guards[n].width / 2, False) # don't overthink this line, or try and debug it
+                if ((level.guards[n] in level.visibleGroup) or devMode) and level.guards[n].currentDest.distance(Point(level.guards[n].cPos.x, level.guards[n].cPos.y)) > level.guards[n].width / 2: # don't overthink this line, or try and debug it
+                    level.guards[n].cone(level.guards[n].currentDest, 90, 150, True, False)
 
         if not devMode:
             level.visibleGroup.draw(gameDisplay)
