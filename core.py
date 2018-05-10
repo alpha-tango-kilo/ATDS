@@ -38,7 +38,7 @@ class Level(): # I'd like to think this is pretty self explanatory
     def __init__(self, n = 1): # create necessary variables ONLY, don't actually create the level, as we don't know where we're creating it from
         self.ID = n
         self.running = False
-        self.maintainGuards = 0
+        self.cycleLength = 0
 
         self.player = None
         self.guards = []
@@ -118,7 +118,7 @@ class Level(): # I'd like to think this is pretty self explanatory
         self.updateGroups()
         print("Groups updated\n\nLevel loaded")
 
-        self.maintainGuards = len(self.guards) * performanceLevel
+        self.cycleLength = len(self.guards) * performanceLevel
 
         self.running = True
 
@@ -961,7 +961,7 @@ def instance():
         playerView = level.player.cone(mouse, 90, 200, True, True)
         level.visibleGroup = level.player.selectToRender(playerView, level.allGroup) # decide what needs rendering
 
-        tick = (tick + 1) % level.maintainGuards
+        tick = (tick + 1) % level.cycleLength
 
         if performanceLevel == 1:
             temp = tick
